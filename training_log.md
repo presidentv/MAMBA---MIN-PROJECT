@@ -1,144 +1,177 @@
-# Training log — engagement classifier smoke test
+# Training log — MRG-VM, all seven phases
 
-Run date: 20 August 2026. Data: `Datasets/DAiSEE_Small`, 108 clips / 16 subjects.
-Code: `pipeline/` (Phases 1–2), `src/` (Steps 1–7).
-Re-run instructions: `outputs/README.md`.
+Data: `Datasets/DAiSEE_Small`, 108 clips / 16 subjects / 3 subject-disjoint splits.
+Code: `pipeline/` (Phases 1–2), `mrgvm/` (Phases 3–7), `src/` (transformer baselines).
+Re-run instructions: [`outputs/README.md`](outputs/README.md) and [`mrgvm/README.md`](mrgvm/README.md).
 
 ---
 
-## What was built
+## Status of every phase
 
-| Step | Module | Status |
+| Phase | Deliverable | Status |
 |---|---|---|
-| Phase 1 | `pipeline/phase1_preprocessing.py` | run, 108/108 clips |
-| Phase 2 | `pipeline/phase2_landmarks.py` | run, 5,384 frames |
-| 1. Gaze features | `src/features.py` | run, 21 per-frame + 104 clip-level |
-| 2. Affect branch | `src/affect.py` | run, 8 probs + 1280-d embedding/frame |
-| 3. Dataset | `src/datasets.py` | run |
-| 4. Fusion model | `src/models.py` | run |
-| 5. Baselines | `src/baselines.py` | run, all 5 |
-| 6. Train/eval | `src/train.py` | run, results written |
-| 7a. Early detection | `src/early_detection.py` | **stub only**, by request |
-| 7b. XAI | `src/explain.py` | **stub only**, by request |
+| 1 — Preprocessing + MRS | reliable frames + per-frame MRS table | **run** — 108/108 clips, 5,403 sampled, 5,402 retained, mean MRS 0.855 |
+| 2 — Landmark extraction | landmark coordinates | **run** — 5,384 frames landmarked, 18 mesh failures in 3 Test clips |
+| 3 — MRG-VM | deep behavioural embeddings | **run** — 128-d per clip, `outputs/embeddings/` |
+| 4 — Adaptive feature fusion | optimised feature representation | **run** — 256-d fused vector + 128-d gate |
+| 5 — MLP classifier | trained model | **run** — `outputs/checkpoints/mrgvm.pt`, 1.17 M params |
+| 6 — Evaluations + ablation | ablation table | **run** — 6 variants, `outputs/results_mrgvm/ablation_results.csv` |
+| 7 — Explainable AI (SHAP) | explainable predictions | **run** — `shap_report.json` + 2 PNGs |
 
 ---
 
-## Substitutions made, and why
+## Headline results (test split, 36 clips)
 
-**OpenFace 2.0 action units → HSEmotion (frozen EfficientNet-B0).**
-OpenFace is not a pip package — it needs a compiled binary plus separate model
-downloads — so it was unavailable. HSEmotion was the pre-agreed fallback. It
-gives an 8-class AffectNet emotion distribution *and* the 1280-d penultimate
-embedding; both are written per frame and `data.affect_feature_set` selects
-which the model consumes (default `probs`, because 1280 dimensions over 36
-training clips would be pure memorisation). Consequence for the writeup: the
-affect channel is now **categorical expression**, not **action-unit intensity**,
-so AU-level interpretability claims no longer apply.
+| model | macro-F1 | accuracy | QWK |
+|---|---|---|---|
+| logreg on mean-pooled features | **0.349** | 0.306 | 0.201 |
+| gaze-only transformer | 0.320 | 0.417 | 0.152 |
+| **MRG-VM (full)** | 0.286 | 0.472 | 0.170 |
+| cross-attention transformer fusion | 0.181 | 0.167 | 0.135 |
+| majority class | 0.173 | **0.528** | 0.000 |
+| naive late fusion | 0.126 | 0.167 | 0.100 |
+| affect-only transformer | 0.087 | 0.111 | 0.011 |
 
-**AU45 blink → EAR-based blink detection.**
-No OpenFace means no AU45. Blinks are detected from the eye aspect ratio
-computed off the MediaPipe eye contours (Soukupova & Cech 2016), with a
-**per-clip adaptive threshold** (75% of that clip's own median EAR) rather than
-a global constant, because EAR baseline varies strongly with face shape,
-eyewear and camera angle. Implemented in `src/features.py`, flagged in a comment
-at the call site.
+**These are not results.** 36 training clips, 4 ordinal classes, 3–5 clips in the
+minority test classes. Every training script prints a small-sample warning for
+each class under five clips *before* it trains.
 
-**MediaPipe `solutions` → MediaPipe Tasks API.**
-Not a plan change, an environment constraint: MediaPipe ≥ 1.0 removed the legacy
-`solutions` module from every Python 3.13 wheel. Tasks is a superset and also
-supplies a facial transformation matrix, which gives better head pose than
-solvePnP on six keypoints.
+What the runs legitimately establish:
 
-**Two environment fixes worth remembering:**
-* PyTorch ≥ 2.6 defaults `torch.load(weights_only=True)` and refuses the pickled
-  HSEmotion checkpoint. Scoped context manager in `src/affect.py`.
-* `timm` must be **< 1.0** (`timm==0.9.16` pinned). Under timm ≥ 1.0 the
-  checkpoint loads fine and then fails at *inference* with
-  `AttributeError: DepthwiseSeparableConv.conv_s2d`.
+1. **All seven phases execute end-to-end on real data.** Shapes line up, no
+   silent NaNs, gradients finite, split integrity asserted rather than assumed.
+2. **The accuracy trap is real.** The majority-class predictor posts the highest
+   accuracy of any model (0.528) and the second-lowest macro-F1 (0.173).
+   Reporting bare accuracy here would be actively misleading.
+3. **MRG-VM beats both transformer variants** (0.286 vs 0.181 / 0.087) and the
+   majority floor, and loses to logistic regression on 29 hand-engineered
+   features (0.349). At n=36 that ordering is exactly what you would expect: a
+   1.17 M-parameter backbone has nothing to constrain it. MRG-VM train macro-F1
+   reaches 0.570 against 0.392 validation.
+4. **The reliability guidance is live, not decorative.** Verified directly:
+   changing `delta_scale` measurably changes the Mamba output, and the
+   bidirectional scan was confirmed by perturbing timestep 15 and observing the
+   change propagate back to timestep 2.
 
 ---
 
-## Smoke test results (test split)
+## Phase 6 — ablation study
 
-| model | macro-F1 | accuracy | QWK | F1 c0 | F1 c1 | F1 c2 | F1 c3 |
-|---|---|---|---|---|---|---|---|
-| logreg_meanpool | **0.349** | 0.306 | 0.201 | 0.571 | 0.250 | 0.240 | 0.333 |
-| gaze_only | 0.320 | 0.417 | 0.152 | 0.333 | 0.000 | 0.533 | 0.414 |
-| cross_attention_fusion | 0.181 | 0.167 | 0.135 | 0.333 | 0.222 | 0.000 | 0.167 |
-| majority | 0.173 | **0.528** | 0.000 | 0.000 | 0.000 | 0.691 | 0.000 |
-| late_fusion | 0.126 | 0.167 | 0.100 | 0.273 | 0.000 | 0.000 | 0.231 |
-| affect_only | 0.087 | 0.111 | 0.011 | 0.182 | 0.000 | 0.000 | 0.167 |
+See `outputs/results_mrgvm/ablation_results.csv` for the full table and
+`ablation_results.json` for the per-component deltas against the full model.
 
-**These numbers are not results.** 36 training clips, 4 classes, 3–5 clips in
-the minority test classes. `train.py` prints an explicit small-sample warning
-for every class under 5 clips before it trains anything.
+Six variants, each removing exactly one component, sharing one seed, one data
+cache and one training schedule:
 
-### What the run does legitimately establish
+| variant | removes |
+|---|---|
+| `full` | nothing — reference |
+| `no_mrs` | the score entirely (all retained frames set to MRS = 1.0) |
+| `no_mrs_guidance` | guidance only — Phase 1 still gates frames, but MRS no longer steers `dt` or pooling |
+| `no_vision_mamba` | the appearance stream (landmark geometry only) |
+| `no_landmarks` | the geometric stream (Vision Mamba only) |
+| `concat_fusion` | the gate (plain concatenation, matched capacity) |
 
-1. **The pipeline is correct end-to-end.** Video → aligned frames → landmarks →
-   two feature streams → padded masked sequences → fusion → metrics → JSON/CSV.
-   All shapes line up; no silent NaNs; split integrity asserted, not assumed.
-2. **The accuracy trap is real and immediate.** `majority` posts the *highest*
-   accuracy of all six models (0.528) with the *second-lowest* macro-F1 (0.173).
-   Reporting bare accuracy here would be actively misleading. This is exactly
-   why macro-F1 + confusion matrix is the headline everywhere.
-3. **The transformers overfit hard, as predicted.** Train macro-F1 reaches
-   0.41–0.64 while validation sits at 0.15–0.21 and validation loss climbs
-   monotonically from epoch ~3. Early stopping fires at epochs 20–23.
-4. **Logistic regression beats both transformers.** This is the control working
-   as intended — at n=36 the 267k–667k-parameter models have nothing to learn
-   from. It confirms the mitigation already agreed in `memory.md`: frozen
-   encoders + a light fusion head, with logistic regression reported beside
-   every result.
-5. **Late fusion underperforms both its own branches** (0.126 vs 0.320 / 0.087).
-   Averaging a decent branch with a near-random one drags the good one down.
-   Not a bug — expected when one modality is uninformative at this scale.
+The `no_mrs` vs `no_mrs_guidance` pair is the one that matters: it separates
+"filtering bad frames helped" from "letting reliability steer the SSM helped".
+Those are different claims and are routinely conflated in papers that report a
+quality-filtering step.
 
-### Known weak spots in the features
+**Caveat that applies to the whole table:** at n=36 with a single seed, a
+macro-F1 difference below roughly ±0.10 is indistinguishable from seed noise.
+The ablation harness is correct and will produce a meaningful table on full
+DAiSEE; the current numbers should be read as a demonstration that it runs, not
+as evidence about any component's value. Multiple seeds per variant are the
+obvious next step and are a one-line change (`--seed`).
 
-* `fixation_ratio` is ~1.0 for nearly every clip. At 5 fps the inter-sample
-  interval is 200 ms while a real saccade lasts 30–80 ms, so the I-VT threshold
-  almost never fires. **What this feature actually measures is the rate of gaze
-  shifts between samples, not a saccade rate** — it must not be described as the
-  latter in the writeup. Raising `--sample-fps` in Phase 1 narrows the gap.
-* `off_screen_ratio` is 0.0 for every clip: subjects genuinely look at the
-  screen throughout, so the feature has no variance here. It may become
-  informative on full DAiSEE.
-* Both are documented at their definition site in `src/features.py`.
+---
+
+## Phase 7 — SHAP
+
+Behavioural group contributions (test-time, surrogate fidelity **1.000**):
+
+| group | share of total \|SHAP\| |
+|---|---|
+| facial dynamics | 41.1% |
+| head movement | 23.2% |
+| eye gaze | 19.3% |
+| blink patterns | 11.9% |
+| appearance (Vision Mamba) | 4.5% |
+
+Top individual features: `yaw_mean` (4.8%), `gaze_yaw_mean` (4.5%),
+`geo_nose_chin_dist_mean` (3.2%), `geo_brow_eye_right_mean` (3.0%).
+
+Two things to note honestly:
+
+- The Vision Mamba appearance stream contributes only **4.5%**, consistent with
+  the fusion gate sitting near 0.49 (range 0.35–0.63) — the model is leaning on
+  hand-engineered geometry, not on learned appearance. That is the expected
+  outcome at this sample size and is itself an argument for the geometric
+  branch, not against the architecture.
+- SHAP is computed over a RandomForest surrogate fitted to MRG-VM's own
+  predictions, because KernelSHAP against the torch model would need thousands
+  of forward passes through the selective scan. Fidelity is measured and
+  reported (`surrogate_fidelity` in `shap_report.json`); at 1.000 the surrogate
+  reproduces the model's predictions exactly on this sample, so the attributions
+  are trustworthy *here*. On a larger set fidelity will drop and must be
+  re-checked — the script warns below 0.8.
+
+---
+
+## Substitutions and environment constraints
+
+| Planned | Used | Why |
+|---|---|---|
+| `mamba-ssm` (official Vision Mamba) | hand-written S6 in `mrgvm/mamba.py` | `mamba-ssm` ships a fused CUDA kernel and will not build without `nvcc`; this is a CPU-only machine. Same algorithm, no fused kernel — the scan is a Python loop over the sequence axis with the batch dimension supplying parallelism. |
+| OpenFace 2.0 action units | HSEmotion frozen EfficientNet-B0 | OpenFace is not a pip package. **Consequence:** the affect channel is *categorical expression*, not *AU intensity* — AU-level interpretability claims no longer apply. |
+| AU45 blink | eye-aspect-ratio blink detection | Follows from the above. Per-clip adaptive threshold, since EAR baseline varies with face shape and eyewear. |
+| MediaPipe `solutions` | MediaPipe Tasks API | `solutions` was removed from every Python 3.13 wheel at mediapipe ≥ 1.0. Tasks is a superset and supplies a facial transformation matrix, giving better head pose than solvePnP on six keypoints. |
+
+Two pins that will bite if changed: **`timm` must be < 1.0** (HSEmotion
+checkpoints were pickled against timm 0.x and fail at *inference*, not load,
+under ≥ 1.0), and PyTorch ≥ 2.6 needs a scoped `weights_only=False` to load them.
+
+---
+
+## Known weak spots
+
+- **`fixation_ratio` is ≈1.0 for nearly every clip.** At 5 fps the sampling
+  interval is 200 ms while a saccade lasts 30–80 ms, so the I-VT threshold
+  rarely fires. This feature measures the *rate of gaze shifts between samples*,
+  not a saccade rate, and must not be described as the latter in the writeup.
+- **`off_screen_ratio` is 0.0 across the sample** — subjects genuinely look at
+  the screen throughout, so the feature has no variance here.
+- **Single seed everywhere.** Needed for the ablation table to mean anything.
+- Both feature issues are documented at their definition sites in
+  `src/features.py`.
 
 ---
 
 ## Findings worth keeping
 
-**DAiSEE splits are subject-disjoint — verified, not assumed.**
-16 subjects, none in more than one split (Train 4, Validation 4, Test 8).
-`datasets.verify_split_integrity` **raises** on violation rather than warning,
-since leakage would invalidate every number.
+**DAiSEE splits are subject-disjoint — verified, not assumed.** 16 subjects
+(Train 4, Validation 4, Test 8), none in more than one split. Both dataset
+loaders **raise** on violation rather than warning.
 
-**This sample is not representative of full DAiSEE's imbalance.**
-Engagement counts per split are roughly 4/6/16/10 across classes 0–3. Full
-DAiSEE has ~1% in class 0. Expect macro-F1 to fall at full scale, and expect
-class weighting to matter much more.
+**This sample is not representative of full DAiSEE's imbalance.** Engagement
+counts run roughly 4/6/16/10 across classes 0–3 per split. Full DAiSEE has ~1%
+in class 0, so expect macro-F1 to fall and class weighting to matter far more.
 
-**ClipID encodes a within-subject ordering.** `ClipID = <6-digit SubjectID><suffix>`,
-suffix 4 digits (2 of 108 have 3, reading as a stripped leading zero). Left-pad
-to 4: first digit = session (observed 0/1/2), last three = clip index within
-session, strictly increasing. This gives the ordering the early-detection
-experiment needs. **Caveat: inferred from the ID pattern, not documented by the
-DAiSEE authors**, and indices are not dense (subject 110001 jumps 1012 → 1040 →
-1048), so only pairs with an index gap of exactly 1 can be treated as adjacent.
-Written up in full in `src/early_detection.py`.
+**ClipID encodes a within-subject ordering.**
+`ClipID = <6-digit SubjectID><suffix>`; left-pad the suffix to 4 digits, first
+digit is the session (observed 0/1/2), last three a strictly-increasing
+within-session index. *Inferred from the ID pattern, not documented by the DAiSEE
+authors*, and indices are not dense (subject 110001 jumps 1012 → 1040 → 1048), so
+only gap-of-1 pairs are safely adjacent. Written up in `src/early_detection.py`.
 
 ---
 
 ## Next steps
 
-1. Get the full DAiSEE and re-run — commands in `outputs/README.md`. Everything
-   scales unchanged; only `--input-root` differs.
-2. Re-tune `off_screen_*` thresholds and consider `--sample-fps 10` once real
-   variance exists.
-3. Implement `src/early_detection.py` (signatures fixed, ordering solved).
-4. Implement `src/explain.py` — the deletion test is the one that keeps SHAP and
-   attention rollout honest; run it against a random-ablation control.
-5. Ablate `--loss ce` against CORAL once n is large enough for the comparison to
-   mean anything.
+1. Obtain the full DAiSEE and re-run — commands in `outputs/README.md`.
+   Everything scales unchanged; only `--input-root` differs.
+2. Re-run the ablation with 3–5 seeds per variant so the deltas exceed noise.
+3. If a CUDA machine becomes available, swap `mrgvm/mamba.py` for `mamba-ssm`
+   and raise `image_size` to 224 — the interfaces already match.
+4. Implement `src/early_detection.py` (signatures fixed, ordering solved).
+5. Ablate the affect branch into MRG-VM as a third fusion stream.

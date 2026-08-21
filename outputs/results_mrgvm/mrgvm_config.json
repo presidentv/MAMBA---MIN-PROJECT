@@ -1,0 +1,67 @@
+{
+  "vision_mamba": {
+    "image_size": 112,
+    "patch_size": 16,
+    "d_model": 128,
+    "spatial_depth": 2,
+    "temporal_depth": 2,
+    "d_state": 16,
+    "dropout": 0.1,
+    "max_frames": 64,
+    "guide_delta": true,
+    "guide_pooling": true,
+    "min_delta_scale": 0.25
+  },
+  "fusion": {
+    "kind": "adaptive",
+    "hidden_dim": 128,
+    "dropout": 0.2,
+    "use_mamba": true,
+    "use_geometric": true,
+    "geometric_pooling": "stats"
+  },
+  "classifier": {
+    "hidden_dims": [
+      128,
+      64
+    ],
+    "dropout": 0.3,
+    "num_classes": 4
+  },
+  "data": {
+    "max_frames": 50,
+    "target": "Engagement",
+    "batch_size": 4,
+    "num_workers": 0,
+    "standardize": true,
+    "use_mrs_gate": true,
+    "include_gaze_features": true,
+    "norm_mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "norm_std": [
+      0.229,
+      0.224,
+      0.225
+    ]
+  },
+  "train": {
+    "epochs": 40,
+    "learning_rate": 0.0003,
+    "weight_decay": 0.01,
+    "warmup_epochs": 3,
+    "grad_clip": 1.0,
+    "early_stopping_patience": 10,
+    "label_smoothing": 0.05,
+    "class_weighting": true,
+    "seed": 42,
+    "deterministic": true
+  },
+  "splits": [
+    "Train",
+    "Validation",
+    "Test"
+  ]
+}

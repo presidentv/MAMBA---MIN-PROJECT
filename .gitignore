@@ -14,9 +14,11 @@ DAiSEE/
 #   phase1_reliable_frames/  aligned face crops of research subjects
 #   phase2_landmarks/        478-point facial landmark tables
 #   features/                facial-expression embeddings
+#   embeddings/              learned face representations from the MRG-VM backbone
 outputs/phase1_reliable_frames/
 outputs/phase2_landmarks/
 outputs/features/
+outputs/embeddings/
 outputs/checkpoints/
 
 # Run manifests carry the DAiSEE label values per clip; the run statistics they

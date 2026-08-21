@@ -1,91 +1,61 @@
-# Explainable Multimodal Engagement Detection — DAiSEE pipeline
+# MRG-VM — Motion Reliability Guided Vision Mamba for Student Engagement Detection
 
-A reproducible pipeline for student-engagement detection on the
-[DAiSEE](https://people.iith.ac.in/vineethnb/resources/daisee/) corpus: video
-preprocessing with a **Motion Reliability Score**, MediaPipe facial landmark and
-iris extraction, gaze + affect feature engineering, and a cross-attention
-transformer fusion model with an ordinal head — evaluated against five required
-baselines.
+Full implementation of the seven-phase framework described in the project
+specification: video preprocessing with a novel **Motion Reliability Score**,
+MediaPipe landmark extraction, a **reliability-guided Vision Mamba** backbone,
+adaptive feature fusion, a lightweight MLP classifier, an ablation study, and
+SHAP explainability.
 
-Built and verified end-to-end on a 108-clip DAiSEE sample. **The code is written
-to scale to the full 9,068-clip dataset unchanged** — nothing hardcodes a subject
-ID, clip count or split size; everything is discovered by walking the directory
-tree.
+Built and verified end-to-end on a 108-clip [DAiSEE](https://people.iith.ac.in/vineethnb/resources/daisee/)
+sample. **The code scales to the full 9,068-clip dataset unchanged** — nothing
+hardcodes a subject ID, clip count or split size; everything is discovered by
+walking the directory tree.
 
-> **Status: the training results in this repo are a smoke test, not a result.**
-> With 36 training clips across 4 classes, the numbers below demonstrate that the
-> pipeline runs correctly on real data. They do not demonstrate that the model
-> works. See [Results](#results).
+> **The reported metrics are a smoke test, not a result.** With 36 training clips
+> across 4 ordinal classes, they demonstrate that the pipeline runs correctly on
+> real data. They do not demonstrate that the model works. See [Results](#results).
+
+---
+
+## The seven phases
+
+| Phase | What it does | Code | Status |
+|---|---|---|---|
+| **1** | Video loading, frame extraction, face detection, alignment, normalisation, **Motion Reliability Score**, low-quality frame rejection | [`pipeline/phase1_preprocessing.py`](pipeline/phase1_preprocessing.py) | run: 108/108 clips, 5,402 frames retained |
+| **2** | MediaPipe Face Mesh — face, eye and iris landmarks, head pose, landmark tracking | [`pipeline/phase2_landmarks.py`](pipeline/phase2_landmarks.py) | run: 5,384 frames landmarked |
+| **3** | **MRG-VM** — Vision Mamba over reliable face regions, spatial-temporal behavioural representations | [`mrgvm/mamba.py`](mrgvm/mamba.py), [`mrgvm/vision_mamba.py`](mrgvm/vision_mamba.py) | run |
+| **4** | Adaptive feature fusion of Mamba embeddings with landmark geometry, normalisation, final feature vector | [`mrgvm/fusion.py`](mrgvm/fusion.py), [`mrgvm/geometric.py`](mrgvm/geometric.py) | run |
+| **5** | Lightweight MLP engagement classifier, trained and validated | [`mrgvm/train_mrgvm.py`](mrgvm/train_mrgvm.py) | run |
+| **6** | Evaluations + ablation of MRS / Vision Mamba / landmarks / adaptive fusion | [`mrgvm/ablation.py`](mrgvm/ablation.py) | run |
+| **7** | SHAP feature importance and behavioural-contribution visualisation | [`mrgvm/shap_explain.py`](mrgvm/shap_explain.py) | run |
+
+`src/` additionally holds a **transformer baseline stack** (gaze + affect
+branches, cross-attention fusion, CORAL ordinal head, five required baselines).
+It is not part of the PDF's seven phases; it exists to give MRG-VM something
+honest to be compared against. See [`training_log.md`](training_log.md).
 
 ---
 
 ## Data is not in this repository
 
-Nothing derived from DAiSEE's video is committed here, deliberately:
+Nothing derived from DAiSEE's video is committed, deliberately:
 
 | Excluded | Why |
 |---|---|
 | `Datasets/` | DAiSEE is licence-restricted (per-user registration) and is video of identifiable people. Redistribution is not permitted. |
-| `outputs/phase1_reliable_frames/` | 5,402 aligned face crops of research subjects — a distilled face dataset. |
-| `outputs/phase2_landmarks/`, `outputs/features/` | Derived biometric data: 478-point landmark tables and 1280-d facial-expression embeddings. |
-| `outputs/*_manifest.csv` | Carry the DAiSEE per-clip label values. The run statistics they summarise are reproduced in [`outputs/README.md`](outputs/README.md). |
-| `models/` | MediaPipe model bundles — fetched on demand, see step 2 below. |
+| `outputs/phase1_reliable_frames/` | 5,402 aligned face crops — a distilled face dataset of research subjects. |
+| `outputs/phase2_landmarks/`, `outputs/features/`, `outputs/embeddings/` | Derived biometric data: landmark tables, expression embeddings, learned face representations. |
+| `outputs/*_manifest.csv` | Carry the DAiSEE per-clip label values. Their statistics are reproduced in [`outputs/README.md`](outputs/README.md). |
+| `models/`, `.venv/` | Fetched or built on demand. |
 
-What **is** committed: all pipeline and model code, configs, the run logs, the
-evaluation results (`outputs/results/`), and the documentation.
-
-Obtain DAiSEE yourself from the authors, place it anywhere, and point
-`--input-root` at it.
-
----
-
-## Pipeline
-
-```
-DAiSEE video
-    │
-    ├─ Phase 1  pipeline/phase1_preprocessing.py
-    │     sample @5fps → detect + track subject's face → align to canonical
-    │     eye line → normalise 224×224 → Motion Reliability Score → gate
-    │     ↳ aligned crops + per-frame MRS component table
-    │
-    ├─ Phase 2  pipeline/phase2_landmarks.py
-    │     478-point iris-refined face mesh → head pose → frame-to-frame tracking
-    │     ↳ landmarks.parquet (1488 cols), labels merged by ClipID
-    │
-    ├─ Step 1   src/features.py     21 per-frame gaze features + 104 clip-level
-    ├─ Step 2   src/affect.py       frozen FER: 8 emotion probs + 1280-d embedding
-    ├─ Step 3   src/datasets.py     padded masked sequences, split-integrity checks
-    ├─ Step 4   src/models.py       2× temporal transformer + cross-attention + CORAL
-    ├─ Step 5   src/baselines.py    majority, logreg, gaze-only, affect-only, late fusion
-    └─ Step 6   src/train.py        AdamW + cosine, early stopping on val macro-F1
-```
-
-### The Motion Reliability Score
-
-Five sub-scores in `[0,1]`, combined as a configurable weighted mean; frames
-below `mrs_threshold` are discarded and clips losing >70% of frames are flagged
-rather than silently dropped.
-
-| component | measured on | note |
-|---|---|---|
-| `blur` | **native-resolution** face ROI | Variance of Laplacian. Deliberately not the aligned crop: DAiSEE faces are ~130px and get upscaled to 224, so scoring the crop reports every frame as soft. |
-| `face_visibility` | detection | BlazeFace confidence; 0 when no face found. |
-| `head_rotation` | pose | `1 − ‖(yaw,pitch,roll)‖ / 60°` |
-| `eye_visibility` | keypoints + mesh | Both eyes in-frame and in-box, modulated by true eye-aspect-ratio. |
-| `motion_consistency` | consecutive **aligned** crops | Median Farnebäck flow. Alignment already cancels real head motion, so residual flow indicates *detector jitter* — which is what should be penalised. |
-
-Saturation constants were **calibrated on 240 frames across 12 clips spanning all
-three splits**, not guessed: Laplacian variance p50 = 150 sets `blur_var_reference`;
-observed flow p95 = 3.6px sets `max_flow_magnitude_px = 8.0` at ≈2.2× p95.
+Committed: all code, configs, run logs, evaluation results and documentation.
+Obtain DAiSEE from its authors and point `--input-root` at it.
 
 ---
 
 ## Quickstart
 
-Requires Python 3.13. All commands run from the repository root.
-
-**1. Environment**
+Python 3.13. All commands from the repository root.
 
 ```bash
 python -m venv .venv
@@ -95,13 +65,11 @@ python -m venv .venv
 .venv/Scripts/python.exe -m pip install -r requirements.txt
 ```
 
-**2. Fetch the MediaPipe model bundles (once, ~4 MB)**
-
 ```bash
 .venv/Scripts/python.exe pipeline/fetch_models.py
 ```
 
-**3. Run the pipeline**
+**Phases 1–2**
 
 ```bash
 .venv/Scripts/python.exe pipeline/phase1_preprocessing.py --input-root /path/to/DAiSEE --output-root outputs --config pipeline/configs/default.json
@@ -111,6 +79,8 @@ python -m venv .venv
 .venv/Scripts/python.exe pipeline/phase2_landmarks.py --input-root /path/to/DAiSEE --output-root outputs --config pipeline/configs/default.json
 ```
 
+**Gaze/affect features** (feed the geometric stream and the baseline stack)
+
 ```bash
 .venv/Scripts/python.exe src/features.py --output-root outputs --config src/configs/default.json
 ```
@@ -119,131 +89,148 @@ python -m venv .venv
 .venv/Scripts/python.exe src/affect.py --output-root outputs --config src/configs/default.json
 ```
 
+**Phases 3–5 — train MRG-VM**
+
 ```bash
-.venv/Scripts/python.exe src/train.py --output-root outputs --config src/configs/default.json
+.venv/Scripts/python.exe -m mrgvm.train_mrgvm --output-root outputs --config mrgvm/configs/default.json
 ```
 
-Smoke-test a subset first with `--limit-clips 20` on both phases.
+**Phases 3–4 deliverable — export embeddings**
 
-Full details, tunable flags and full-dataset scaling notes (storage, runtime,
-label-imbalance expectations): **[`outputs/README.md`](outputs/README.md)**.
+```bash
+.venv/Scripts/python.exe -m mrgvm.extract_embeddings --output-root outputs
+```
+
+**Phase 6 — ablation study**
+
+```bash
+.venv/Scripts/python.exe -m mrgvm.ablation --output-root outputs --config mrgvm/configs/default.json
+```
+
+**Phase 7 — SHAP**
+
+```bash
+.venv/Scripts/python.exe -m mrgvm.shap_explain --output-root outputs
+```
+
+Smoke-test with `--limit-clips 20` (phases 1–2) or `--epochs 2` (phases 5–6)
+before committing to a full run. Full flag reference and full-dataset scaling
+notes (storage, runtime, imbalance): [`outputs/README.md`](outputs/README.md).
+
+---
+
+## Phase 1 — the Motion Reliability Score
+
+Five sub-scores in `[0,1]`, combined as a configurable weighted mean. Frames
+below threshold are discarded; clips losing >70% of frames are flagged rather
+than silently dropped.
+
+| component | measured on | note |
+|---|---|---|
+| `blur` | **native-resolution** face ROI | Variance of Laplacian. Deliberately not the aligned crop: DAiSEE faces are ~130 px and get upscaled to 224, so scoring the crop reports every frame as soft. |
+| `face_visibility` | detection | BlazeFace confidence; 0 when no face found. |
+| `head_rotation` | pose | `1 − ‖(yaw,pitch,roll)‖ / 60°` |
+| `eye_visibility` | keypoints + mesh | Both eyes in-frame and in-box, modulated by true eye-aspect-ratio. |
+| `motion_consistency` | consecutive **aligned** crops | Median Farnebäck flow. Alignment already cancels real head motion, so residual flow indicates *detector jitter*. |
+
+Saturation constants were **calibrated on 240 frames across 12 clips spanning all
+three splits**, not guessed: Laplacian variance p50 = 150 sets
+`blur_var_reference`; observed flow p95 = 3.6 px sets `max_flow_magnitude_px = 8.0`
+at ≈2.2× p95.
+
+## Phase 3 — where "reliability guided" actually lives
+
+Phase 1 discards frames below threshold, but survivors are not equally
+trustworthy — MRS 0.52 and 0.95 both pass. Two mechanisms carry that residual
+reliability into the model:
+
+1. **`dt` modulation.** In a state-space model `dt` controls how far the hidden
+   state moves per step: `h_t = exp(dt·A)h_{t-1} + (dt·B)x_t`. Scaling `dt` by
+   MRS makes a low-reliability frame *literally update the state less*, without
+   masking it or breaking the sequence. This is the natural place to inject a
+   per-timestep confidence into an SSM; a transformer has no clean equivalent.
+2. **Reliability-weighted pooling.** The temporal pool is MRS-weighted.
+
+Both are independently ablatable, which is what lets Phase 6 separate "filtering
+bad frames helped" from "letting reliability steer the SSM helped".
+
+The Mamba is hand-written in PyTorch because `mamba-ssm` requires CUDA/`nvcc`
+and this is a CPU-only machine — same S6 algorithm, no fused kernel. Blocks are
+bidirectional (Vim), since a patch grid has no causal direction. Details:
+[`mrgvm/README.md`](mrgvm/README.md).
 
 ---
 
 ## Results
 
-Test split, 36 clips. `majority` is the trivial floor.
+Test split, 36 clips. **Read macro-F1, not accuracy** — the majority-class
+predictor scores the *highest accuracy* of any model here and the second-lowest
+macro-F1, which is exactly the trap this dataset sets.
 
 | model | macro-F1 | accuracy | QWK |
 |---|---|---|---|
-| logreg_meanpool | **0.349** | 0.306 | 0.201 |
-| gaze_only | 0.320 | 0.417 | 0.152 |
-| cross_attention_fusion | 0.181 | 0.167 | 0.135 |
-| majority | 0.173 | **0.528** | 0.000 |
-| late_fusion | 0.126 | 0.167 | 0.100 |
-| affect_only | 0.087 | 0.111 | 0.011 |
+| logreg on mean-pooled features | **0.349** | 0.306 | 0.201 |
+| gaze-only transformer | 0.320 | 0.417 | 0.152 |
+| **MRG-VM (full)** | 0.286 | 0.472 | 0.170 |
+| cross-attention transformer fusion | 0.181 | 0.167 | 0.135 |
+| majority class | 0.173 | **0.528** | 0.000 |
+| naive late fusion | 0.126 | 0.167 | 0.100 |
+| affect-only transformer | 0.087 | 0.111 | 0.011 |
 
-**Read the two bolded cells together.** The majority-class predictor has the
-*highest accuracy* of all six models and the *second-lowest macro-F1*. This is
-why macro-F1 and the full confusion matrix are the headline everywhere in this
-repo and bare accuracy is never reported alone.
+MRG-VM beats both transformer variants and the majority floor, and loses to
+logistic regression on mean-pooled features. At n=36 that ordering is what you
+would expect: a 1.17 M-parameter backbone has nothing to constrain it, while a
+strongly regularised linear model on 29 hand-engineered features does not
+overfit. Train macro-F1 reaches 0.570 against 0.392 validation.
 
-What this run legitimately establishes:
+Phase 6 ablation results: `outputs/results_mrgvm/ablation_results.csv`.
+Phase 7 SHAP: `outputs/results_mrgvm/shap_report.json` and the two PNGs.
 
-1. The pipeline is correct end-to-end — shapes line up, no silent NaNs, split
-   integrity asserted rather than assumed.
-2. The transformers overfit hard, as expected at n=36: train macro-F1 reaches
-   0.41–0.64 while validation sits at 0.15–0.21 and validation loss climbs from
-   about epoch 3.
-3. Logistic regression beating both transformers is the control working — it
-   confirms that frozen encoders plus a light head, with logreg reported beside
-   every result, is the right mitigation at this sample size.
+`train_mrgvm.py` prints the per-split class distribution and warns for every
+class holding fewer than five clips *before* it trains.
 
-`src/train.py` prints the per-split class distribution and an explicit warning
-for every class holding fewer than five clips *before* it trains anything.
-
-Full interpretation and known feature weaknesses: **[`training_log.md`](training_log.md)**.
-
----
-
-## Design notes worth knowing
-
-**MediaPipe Tasks, not `solutions`.** MediaPipe ≥ 1.0 removed the legacy
-`mediapipe.solutions` API from every Python 3.13 wheel. This pipeline uses the
-Tasks API, which is a functional superset and additionally provides a facial
-transformation matrix — better head pose than solvePnP on six keypoints.
-
-**Phase 2 reads Phase 1's crops, not the videos.** Video decoding is never paid
-for twice, and Phase 2 depends only on the Phase 1 output tree. The 2×3
-alignment affine is stored on every row, so any landmark can be projected back
-to original-frame pixels via `alignment.invert_affine`.
-
-**CORAL ordinal loss.** The head emits K−1 cumulative logits sharing one weight
-vector, differing only in bias, which makes `P(y>0) ≥ P(y>1) ≥ P(y>2)` monotone
-*by construction*. A cumulative-link model has the same intent but must learn
-its thresholds freely, and at n=36 those thresholds routinely invert. Plain
-cross-entropy is available via `--loss ce` as the honest ablation.
-
-**Subject-disjoint splits are verified, not assumed.**
-`datasets.verify_split_integrity` **raises** on violation — leakage would
-invalidate every number, so it must not be recoverable by accident.
-
-### Substitutions from the original plan
-
-| Planned | Used | Why |
-|---|---|---|
-| OpenFace 2.0 action units | HSEmotion (frozen EfficientNet-B0) | OpenFace is not a pip package. Consequence: the affect channel is *categorical expression*, not *AU intensity* — AU-level interpretability claims no longer apply. |
-| AU45 blink | Eye-aspect-ratio blink detection | Follows from the above. Uses a per-clip adaptive threshold, since EAR baseline varies with face shape and eyewear. |
-
-Two environment pins this depends on: `timm` must be **< 1.0** (the HSEmotion
-checkpoints were pickled against timm 0.x and fail at *inference* under ≥1.0),
-and PyTorch ≥2.6 needs a scoped `weights_only=False` to load them.
-
-### Known feature limitations
-
-- `fixation_ratio` is ≈1.0 for nearly every clip. At 5 fps the sampling interval
-  is 200 ms while a saccade lasts 30–80 ms, so the I-VT threshold rarely fires.
-  **This feature measures the rate of gaze shifts between samples, not a saccade
-  rate**, and must not be described as the latter.
-- `off_screen_ratio` is 0.0 across the sample — subjects genuinely look at the
-  screen throughout. It may gain variance on the full dataset.
+Full interpretation, substitutions and known feature weaknesses:
+[`training_log.md`](training_log.md).
 
 ---
 
 ## Repository layout
 
 ```
-pipeline/
-  fetch_models.py              download MediaPipe Tasks bundles
-  phase1_preprocessing.py      Phase 1 driver
-  phase2_landmarks.py          Phase 2 driver
-  configs/default.json
-  engagement_pipeline/         alignment, mrs, pose, faces, video, dataset, io
-src/
+pipeline/                 Phases 1-2
+  phase1_preprocessing.py  phase2_landmarks.py  fetch_models.py
+  engagement_pipeline/     alignment, mrs, pose, faces, video, dataset, io
+mrgvm/                    Phases 3-7
+  mamba.py                 pure-PyTorch S6 selective scan, bidirectional blocks
+  vision_mamba.py          patch embed, spatial + reliability-guided temporal encoders
+  geometric.py             landmark geometric descriptors
+  fusion.py                adaptive gated fusion + lightweight MLP head
+  model.py                 assembled Phase 3+4+5 model
+  data.py  train_mrgvm.py  extract_embeddings.py  ablation.py  shap_explain.py
+  README.md                architecture and design rationale
+src/                      transformer baseline stack (not a PDF phase)
   features.py  affect.py  datasets.py  models.py  baselines.py  metrics.py  train.py
-  early_detection.py           STUB — label-shift early detection
-  explain.py                   STUB — SHAP, attention rollout, deletion test
-  configs/default.json
+  early_detection.py       STUB — label-shift early detection
+  explain.py               STUB — attention rollout, deletion test
 outputs/
-  README.md                    run commands + full-dataset scaling notes
-  results/                     results.json, results.csv, train.log
-  logs/                        phase logs and resolved configs
-training_log.md                what was built, substitutions, interpretation
+  README.md                run commands + full-dataset scaling notes
+  results/  results_mrgvm/ metrics, ablation table, SHAP report
+  logs/                    phase logs and resolved configs
+training_log.md
 requirements.txt
 ```
 
 ## Not yet implemented
 
-Both are stubs with fixed signatures, so implementing them is a fill-in rather
-than a redesign:
+Two stubs with fixed signatures, from the wider project plan rather than the
+PDF's seven phases:
 
 - **`src/early_detection.py`** — predicting clip *t+1*'s engagement from clip *t*.
-  The clip ordering problem is solved and documented in the module: `ClipID =
-  <6-digit SubjectID><suffix>`; left-pad the suffix to 4 digits, first digit is
-  the session, last three a strictly-increasing within-session index. *Inferred
-  from the ID pattern, not documented by the DAiSEE authors*, and indices are not
-  dense, so only gap-of-1 pairs are safely adjacent.
-- **`src/explain.py`** — SHAP over modality-level feature blocks, attention
-  rollout over the cross-attention weights (already returned by the model), and a
-  deletion test against a random-ablation control, which is what keeps the other
-  two honest.
+  The ordering problem is solved and documented: `ClipID = <6-digit SubjectID><suffix>`;
+  left-pad the suffix to 4 digits, first digit is the session, last three a
+  strictly-increasing within-session index. *Inferred from the ID pattern, not
+  documented by the DAiSEE authors*, and indices are not dense, so only gap-of-1
+  pairs are safely adjacent.
+- **`src/explain.py`** — attention rollout and a deletion test for the
+  transformer baselines. Phase 7 SHAP for MRG-VM is fully implemented in
+  `mrgvm/shap_explain.py`.

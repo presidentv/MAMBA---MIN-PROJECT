@@ -17,3 +17,10 @@ hsemotion==0.3.0
 timm==0.9.16              # MUST be <1.0: the HSEmotion checkpoints were pickled
                           # against timm 0.x and fail at inference under timm>=1.0
                           # with AttributeError on DepthwiseSeparableConv.conv_s2d
+
+# --- Phases 3-7 : MRG-VM, ablation, SHAP ---
+# NOTE: mamba-ssm is deliberately NOT a dependency. It ships a fused CUDA kernel
+# and will not build without nvcc. mrgvm/mamba.py implements the same S6
+# selective-scan recurrence in portable PyTorch, so the framework runs on CPU.
+shap==0.52.0
+matplotlib>=3.11          # SHAP plots (already pulled in by mediapipe)

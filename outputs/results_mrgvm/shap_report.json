@@ -1,0 +1,703 @@
+{
+  "checkpoint": "outputs\\checkpoints\\mrgvm.pt",
+  "surrogate_fidelity": 1.0,
+  "n_clips": 108,
+  "n_features": 136,
+  "per_feature_importance": [
+    {
+      "feature": "yaw_mean",
+      "mean_abs_shap": 0.02099433613306978,
+      "share": 0.04819326679473963
+    },
+    {
+      "feature": "gaze_yaw_mean",
+      "mean_abs_shap": 0.019661313869106772,
+      "share": 0.04513326541135206
+    },
+    {
+      "feature": "geo_nose_chin_dist_mean",
+      "mean_abs_shap": 0.013818862741513123,
+      "share": 0.031721705067520534
+    },
+    {
+      "feature": "geo_brow_eye_right_mean",
+      "mean_abs_shap": 0.012894765235297992,
+      "share": 0.029600405428460812
+    },
+    {
+      "feature": "geo_face_width_std",
+      "mean_abs_shap": 0.012165741293193174,
+      "share": 0.027926904293730095
+    },
+    {
+      "feature": "geo_face_height_max",
+      "mean_abs_shap": 0.011904361378882452,
+      "share": 0.02732689713630821
+    },
+    {
+      "feature": "geo_eye_openness_asymmetry_mean",
+      "mean_abs_shap": 0.011312558234910763,
+      "share": 0.02596839136472214
+    },
+    {
+      "feature": "geo_face_width_max",
+      "mean_abs_shap": 0.01015334637033448,
+      "share": 0.02330737811300263
+    },
+    {
+      "feature": "geo_nose_chin_dist_min",
+      "mean_abs_shap": 0.010036818556419873,
+      "share": 0.02303988425230615
+    },
+    {
+      "feature": "geo_nose_chin_dist_max",
+      "mean_abs_shap": 0.00995184061592194,
+      "share": 0.022844814280475346
+    },
+    {
+      "feature": "ear_max",
+      "mean_abs_shap": 0.009577188224275734,
+      "share": 0.02198478600658999
+    },
+    {
+      "feature": "geo_face_width_mean",
+      "mean_abs_shap": 0.00893102510483089,
+      "share": 0.020501494922225836
+    },
+    {
+      "feature": "geo_brow_eye_right_max",
+      "mean_abs_shap": 0.008261884471452605,
+      "share": 0.01896545811385997
+    },
+    {
+      "feature": "geo_eye_openness_asymmetry_std",
+      "mean_abs_shap": 0.008019427869230902,
+      "share": 0.018408890111759106
+    },
+    {
+      "feature": "geo_face_height_std",
+      "mean_abs_shap": 0.007412716144346583,
+      "share": 0.017016161147169966
+    },
+    {
+      "feature": "geo_face_height_min",
+      "mean_abs_shap": 0.007305026856425016,
+      "share": 0.016768956446299974
+    },
+    {
+      "feature": "geo_brow_eye_right_min",
+      "mean_abs_shap": 0.007102201467624408,
+      "share": 0.01630336334474829
+    },
+    {
+      "feature": "geo_brow_eye_left_mean",
+      "mean_abs_shap": 0.00706889996972593,
+      "share": 0.016226918537791152
+    },
+    {
+      "feature": "geo_face_height_mean",
+      "mean_abs_shap": 0.00652368763514261,
+      "share": 0.014975363673954894
+    },
+    {
+      "feature": "geo_mouth_openness_min",
+      "mean_abs_shap": 0.006411330174569228,
+      "share": 0.014717443011950104
+    },
+    {
+      "feature": "gaze_std_yaw_min",
+      "mean_abs_shap": 0.0061918150931006685,
+      "share": 0.014213538110188564
+    },
+    {
+      "feature": "geo_aspect_ratio_max",
+      "mean_abs_shap": 0.005555904071045359,
+      "share": 0.012753781090515375
+    },
+    {
+      "feature": "geo_brow_eye_left_min",
+      "mean_abs_shap": 0.005536066286684775,
+      "share": 0.012708242730633626
+    },
+    {
+      "feature": "iris_rel_x_mean",
+      "mean_abs_shap": 0.0054491916645410515,
+      "share": 0.012508818856683653
+    },
+    {
+      "feature": "geo_landmark_energy_min",
+      "mean_abs_shap": 0.005306718719646061,
+      "share": 0.012181766998466475
+    },
+    {
+      "feature": "gaze_pitch_max",
+      "mean_abs_shap": 0.005030604934185839,
+      "share": 0.011547937700695569
+    },
+    {
+      "feature": "geo_brow_asymmetry_max",
+      "mean_abs_shap": 0.004776920763614536,
+      "share": 0.01096559640462157
+    },
+    {
+      "feature": "vision_mamba_pc5",
+      "mean_abs_shap": 0.004337544819846097,
+      "share": 0.009956992848547768
+    },
+    {
+      "feature": "iris_rel_x_max",
+      "mean_abs_shap": 0.0041595462259181445,
+      "share": 0.009548390563060592
+    },
+    {
+      "feature": "geo_landmark_energy_max",
+      "mean_abs_shap": 0.0038970191384779533,
+      "share": 0.008945750027743931
+    },
+    {
+      "feature": "yaw_max",
+      "mean_abs_shap": 0.0038627441222787253,
+      "share": 0.008867070473905527
+    },
+    {
+      "feature": "head_std_yaw_min",
+      "mean_abs_shap": 0.0038506399947621883,
+      "share": 0.008839285006290613
+    },
+    {
+      "feature": "vision_mamba_pc7",
+      "mean_abs_shap": 0.003664544520262086,
+      "share": 0.008412096035178064
+    },
+    {
+      "feature": "gaze_yaw_std",
+      "mean_abs_shap": 0.003663414075619183,
+      "share": 0.008409501058136313
+    },
+    {
+      "feature": "geo_face_width_min",
+      "mean_abs_shap": 0.003595287913185268,
+      "share": 0.008253114959472884
+    },
+    {
+      "feature": "geo_brow_asymmetry_mean",
+      "mean_abs_shap": 0.003521267475552295,
+      "share": 0.00808319833641329
+    },
+    {
+      "feature": "geo_aspect_ratio_std",
+      "mean_abs_shap": 0.0035040113524795516,
+      "share": 0.008043586274483042
+    },
+    {
+      "feature": "pitch_mean",
+      "mean_abs_shap": 0.0034699611513977517,
+      "share": 0.007965422791972878
+    },
+    {
+      "feature": "geo_aspect_ratio_mean",
+      "mean_abs_shap": 0.00345688351149282,
+      "share": 0.007935402591048727
+    },
+    {
+      "feature": "pitch_min",
+      "mean_abs_shap": 0.0034338306096490996,
+      "share": 0.007882483811340454
+    },
+    {
+      "feature": "gaze_yaw_max",
+      "mean_abs_shap": 0.0033515485101939823,
+      "share": 0.007693602241266633
+    },
+    {
+      "feature": "vision_mamba_pc2",
+      "mean_abs_shap": 0.0032792521497817953,
+      "share": 0.007527643300552859
+    },
+    {
+      "feature": "ear_normalised_max",
+      "mean_abs_shap": 0.003233869814282548,
+      "share": 0.00742346648883465
+    },
+    {
+      "feature": "geo_mouth_width_mean",
+      "mean_abs_shap": 0.0032158133910307296,
+      "share": 0.007382017308559646
+    },
+    {
+      "feature": "geo_eye_openness_asymmetry_max",
+      "mean_abs_shap": 0.0032007224352811055,
+      "share": 0.007347375467445002
+    },
+    {
+      "feature": "roll_max",
+      "mean_abs_shap": 0.0031868694814381395,
+      "share": 0.007315575505006673
+    },
+    {
+      "feature": "geo_landmark_energy_std",
+      "mean_abs_shap": 0.0031257883668984955,
+      "share": 0.00717536157156906
+    },
+    {
+      "feature": "yaw_std",
+      "mean_abs_shap": 0.003016913247360888,
+      "share": 0.006925434750833821
+    },
+    {
+      "feature": "gaze_dispersion_std",
+      "mean_abs_shap": 0.0030036086268859794,
+      "share": 0.006894893507705869
+    },
+    {
+      "feature": "geo_landmark_energy_mean",
+      "mean_abs_shap": 0.0029258570395257195,
+      "share": 0.006716411893921227
+    },
+    {
+      "feature": "geo_landmark_velocity_max",
+      "mean_abs_shap": 0.0028005152982458,
+      "share": 0.006428685340448296
+    },
+    {
+      "feature": "head_std_pitch_std",
+      "mean_abs_shap": 0.0027735543997888914,
+      "share": 0.006366795611517406
+    },
+    {
+      "feature": "iris_rel_x_min",
+      "mean_abs_shap": 0.002745096357732826,
+      "share": 0.006301469134672846
+    },
+    {
+      "feature": "geo_aspect_ratio_min",
+      "mean_abs_shap": 0.002602985607273555,
+      "share": 0.005975248707035877
+    },
+    {
+      "feature": "gaze_std_yaw_mean",
+      "mean_abs_shap": 0.002535883531610611,
+      "share": 0.00582121343702745
+    },
+    {
+      "feature": "vision_mamba_pc3",
+      "mean_abs_shap": 0.002495765313195816,
+      "share": 0.005729120598695289
+    },
+    {
+      "feature": "geo_landmark_velocity_mean",
+      "mean_abs_shap": 0.0024088710344535445,
+      "share": 0.005529651602304097
+    },
+    {
+      "feature": "gaze_std_pitch_std",
+      "mean_abs_shap": 0.002166258264894766,
+      "share": 0.0049727251123666775
+    },
+    {
+      "feature": "geo_nose_chin_dist_std",
+      "mean_abs_shap": 0.002104829186917383,
+      "share": 0.004831712416125445
+    },
+    {
+      "feature": "vision_mamba_pc6",
+      "mean_abs_shap": 0.002104334470185421,
+      "share": 0.0048305767757651046
+    },
+    {
+      "feature": "gaze_pitch_min",
+      "mean_abs_shap": 0.002087324808108533,
+      "share": 0.004791530474069069
+    },
+    {
+      "feature": "head_std_pitch_min",
+      "mean_abs_shap": 0.002085359229365238,
+      "share": 0.004787018416141576
+    },
+    {
+      "feature": "geo_mouth_openness_max",
+      "mean_abs_shap": 0.001984789257627457,
+      "share": 0.004556156366073522
+    },
+    {
+      "feature": "ear_normalised_mean",
+      "mean_abs_shap": 0.001963170864386195,
+      "share": 0.004506530553352127
+    },
+    {
+      "feature": "head_std_pitch_max",
+      "mean_abs_shap": 0.0019469370500069044,
+      "share": 0.004469265238434878
+    },
+    {
+      "feature": "geo_landmark_velocity_std",
+      "mean_abs_shap": 0.0018810702155141598,
+      "share": 0.004318065509731208
+    },
+    {
+      "feature": "roll_mean",
+      "mean_abs_shap": 0.001870537314094781,
+      "share": 0.00429388684911487
+    },
+    {
+      "feature": "gaze_pitch_mean",
+      "mean_abs_shap": 0.0018548878159296395,
+      "share": 0.004257962853447846
+    },
+    {
+      "feature": "iris_rel_y_min",
+      "mean_abs_shap": 0.00177475358995402,
+      "share": 0.004074011805538798
+    },
+    {
+      "feature": "geo_mouth_width_min",
+      "mean_abs_shap": 0.0017032421040967748,
+      "share": 0.003909854573085144
+    },
+    {
+      "feature": "iris_rel_y_max",
+      "mean_abs_shap": 0.001694272963323325,
+      "share": 0.0038892655822509174
+    },
+    {
+      "feature": "pitch_std",
+      "mean_abs_shap": 0.0016815694576309183,
+      "share": 0.003860104220101519
+    },
+    {
+      "feature": "is_blink_mean",
+      "mean_abs_shap": 0.0016667529545695502,
+      "share": 0.003826092395175232
+    },
+    {
+      "feature": "roll_min",
+      "mean_abs_shap": 0.0016381132344177316,
+      "share": 0.0037603488696141096
+    },
+    {
+      "feature": "iris_rel_y_std",
+      "mean_abs_shap": 0.0016325601401398443,
+      "share": 0.003747601538506601
+    },
+    {
+      "feature": "geo_mouth_openness_mean",
+      "mean_abs_shap": 0.0015790410823670322,
+      "share": 0.003624746583079579
+    },
+    {
+      "feature": "gaze_std_pitch_max",
+      "mean_abs_shap": 0.0015749095824834493,
+      "share": 0.003615262573921589
+    },
+    {
+      "feature": "head_std_yaw_std",
+      "mean_abs_shap": 0.0015582823679900768,
+      "share": 0.0035770941946476073
+    },
+    {
+      "feature": "blink_rate_window_mean",
+      "mean_abs_shap": 0.00155641352734935,
+      "share": 0.0035728042025742913
+    },
+    {
+      "feature": "geo_brow_eye_left_max",
+      "mean_abs_shap": 0.0014843724131580168,
+      "share": 0.0034074311889001714
+    },
+    {
+      "feature": "geo_brow_asymmetry_std",
+      "mean_abs_shap": 0.001433573639019257,
+      "share": 0.0032908207440926936
+    },
+    {
+      "feature": "ear_normalised_min",
+      "mean_abs_shap": 0.0014306782476139447,
+      "share": 0.0032841742671768735
+    },
+    {
+      "feature": "head_std_pitch_mean",
+      "mean_abs_shap": 0.001408245480827239,
+      "share": 0.003232679030183266
+    },
+    {
+      "feature": "vision_mamba_pc1",
+      "mean_abs_shap": 0.0014003694779424738,
+      "share": 0.003214599377371395
+    },
+    {
+      "feature": "vision_mamba_pc8",
+      "mean_abs_shap": 0.0013965846245919589,
+      "share": 0.003205911108014165
+    },
+    {
+      "feature": "gaze_std_yaw_std",
+      "mean_abs_shap": 0.001391338979159742,
+      "share": 0.003193869536981718
+    },
+    {
+      "feature": "ear_mean",
+      "mean_abs_shap": 0.0013845807515182344,
+      "share": 0.0031783557781411265
+    },
+    {
+      "feature": "head_std_yaw_mean",
+      "mean_abs_shap": 0.0013796223524396825,
+      "share": 0.0031669735916241147
+    },
+    {
+      "feature": "geo_mouth_width_max",
+      "mean_abs_shap": 0.0013792711802981788,
+      "share": 0.0031661674631235943
+    },
+    {
+      "feature": "gaze_yaw_min",
+      "mean_abs_shap": 0.0013450791463822745,
+      "share": 0.0030876783981529546
+    },
+    {
+      "feature": "ear_min",
+      "mean_abs_shap": 0.0013226211084145084,
+      "share": 0.0030361251502385284
+    },
+    {
+      "feature": "geo_eye_openness_asymmetry_min",
+      "mean_abs_shap": 0.0013044834137826194,
+      "share": 0.0029944894085367816
+    },
+    {
+      "feature": "blink_rate_window_std",
+      "mean_abs_shap": 0.001289557463414645,
+      "share": 0.002960226343313406
+    },
+    {
+      "feature": "geo_mouth_openness_std",
+      "mean_abs_shap": 0.0012697761627058957,
+      "share": 0.0029148176437212305
+    },
+    {
+      "feature": "ear_normalised_std",
+      "mean_abs_shap": 0.001267479627775424,
+      "share": 0.002909545863756094
+    },
+    {
+      "feature": "gaze_dispersion_max",
+      "mean_abs_shap": 0.001266605662627351,
+      "share": 0.002907539644779537
+    },
+    {
+      "feature": "pitch_max",
+      "mean_abs_shap": 0.0012502071841204879,
+      "share": 0.002869896337332239
+    },
+    {
+      "feature": "yaw_min",
+      "mean_abs_shap": 0.0012444004575702646,
+      "share": 0.002856566784062955
+    },
+    {
+      "feature": "is_blink_std",
+      "mean_abs_shap": 0.0011715574179838983,
+      "share": 0.002689352921301379
+    },
+    {
+      "feature": "head_std_yaw_max",
+      "mean_abs_shap": 0.0011692781015494372,
+      "share": 0.0026841206670238744
+    },
+    {
+      "feature": "gaze_dispersion_min",
+      "mean_abs_shap": 0.0011685263445302893,
+      "share": 0.002682394981278968
+    },
+    {
+      "feature": "geo_brow_asymmetry_min",
+      "mean_abs_shap": 0.0011620433598534333,
+      "share": 0.002667513052735117
+    },
+    {
+      "feature": "iris_rel_y_mean",
+      "mean_abs_shap": 0.0011400513297438162,
+      "share": 0.0026170295429107106
+    },
+    {
+      "feature": "gaze_velocity_max",
+      "mean_abs_shap": 0.0011316017739962886,
+      "share": 0.002597633278515563
+    },
+    {
+      "feature": "head_std_roll_mean",
+      "mean_abs_shap": 0.0010921185536400938,
+      "share": 0.0025069981014620574
+    },
+    {
+      "feature": "geo_mouth_width_std",
+      "mean_abs_shap": 0.0010747893128917841,
+      "share": 0.0024672181952321076
+    },
+    {
+      "feature": "gaze_velocity_mean",
+      "mean_abs_shap": 0.0010574370251528191,
+      "share": 0.0024273853837917985
+    },
+    {
+      "feature": "iris_rel_x_std",
+      "mean_abs_shap": 0.0010350442327487946,
+      "share": 0.0023759819094563337
+    },
+    {
+      "feature": "geo_brow_eye_left_std",
+      "mean_abs_shap": 0.0010052674973987318,
+      "share": 0.0023076283239032527
+    },
+    {
+      "feature": "vision_mamba_pc4",
+      "mean_abs_shap": 0.0009648273473728562,
+      "share": 0.0022147964797780938
+    },
+    {
+      "feature": "ear_std",
+      "mean_abs_shap": 0.000938378549757693,
+      "share": 0.0021540822970676516
+    },
+    {
+      "feature": "head_std_roll_std",
+      "mean_abs_shap": 0.0009142573763609262,
+      "share": 0.002098711260920362
+    },
+    {
+      "feature": "gaze_std_pitch_min",
+      "mean_abs_shap": 0.000913214283313749,
+      "share": 0.002096316802662872
+    },
+    {
+      "feature": "gaze_std_yaw_max",
+      "mean_abs_shap": 0.000907570597126733,
+      "share": 0.002083361514513121
+    },
+    {
+      "feature": "blink_rate_window_max",
+      "mean_abs_shap": 0.0008380706349666083,
+      "share": 0.0019238218083096343
+    },
+    {
+      "feature": "gaze_dispersion_mean",
+      "mean_abs_shap": 0.0007149589382894181,
+      "share": 0.0016412144038215675
+    },
+    {
+      "feature": "gaze_velocity_std",
+      "mean_abs_shap": 0.000648947282923668,
+      "share": 0.0014896822335047904
+    },
+    {
+      "feature": "gaze_pitch_std",
+      "mean_abs_shap": 0.0005982771026290289,
+      "share": 0.0013733669805718537
+    },
+    {
+      "feature": "head_std_roll_min",
+      "mean_abs_shap": 0.0005929131607788158,
+      "share": 0.0013610538557833258
+    },
+    {
+      "feature": "head_std_roll_max",
+      "mean_abs_shap": 0.0005534035063031384,
+      "share": 0.0012703579982413001
+    },
+    {
+      "feature": "gaze_std_pitch_mean",
+      "mean_abs_shap": 0.0005404049178294752,
+      "share": 0.001240519262770188
+    },
+    {
+      "feature": "off_screen_mean",
+      "mean_abs_shap": 0.0005317899938425489,
+      "share": 0.001220743389530531
+    },
+    {
+      "feature": "geo_brow_eye_right_std",
+      "mean_abs_shap": 0.0005109425084713063,
+      "share": 0.0011728872240329646
+    },
+    {
+      "feature": "off_screen_std",
+      "mean_abs_shap": 0.0004483861421464726,
+      "share": 0.0010292867961416848
+    },
+    {
+      "feature": "roll_std",
+      "mean_abs_shap": 0.00034390960915320974,
+      "share": 0.0007894570917671502
+    },
+    {
+      "feature": "is_fixation_mean",
+      "mean_abs_shap": 0.0003169999289748582,
+      "share": 0.0007276849362688098
+    },
+    {
+      "feature": "off_screen_max",
+      "mean_abs_shap": 0.0002498853903500989,
+      "share": 0.0005736210570755057
+    },
+    {
+      "feature": "is_blink_max",
+      "mean_abs_shap": 0.00018449352562568673,
+      "share": 0.00042351163885460594
+    },
+    {
+      "feature": "is_fixation_std",
+      "mean_abs_shap": 0.0001829853608769428,
+      "share": 0.00042004959148878577
+    },
+    {
+      "feature": "off_screen_min",
+      "mean_abs_shap": 6.410752934652682e-05,
+      "share": 0.00014716117936599955
+    },
+    {
+      "feature": "is_fixation_min",
+      "mean_abs_shap": 2.9135010001855197e-05,
+      "share": 6.68804815349742e-05
+    },
+    {
+      "feature": "geo_landmark_velocity_min",
+      "mean_abs_shap": 0.0,
+      "share": 0.0
+    },
+    {
+      "feature": "gaze_velocity_min",
+      "mean_abs_shap": 0.0,
+      "share": 0.0
+    },
+    {
+      "feature": "is_blink_min",
+      "mean_abs_shap": 0.0,
+      "share": 0.0
+    },
+    {
+      "feature": "blink_rate_window_min",
+      "mean_abs_shap": 0.0,
+      "share": 0.0
+    },
+    {
+      "feature": "is_fixation_max",
+      "mean_abs_shap": 0.0,
+      "share": 0.0
+    }
+  ],
+  "group_importance": {
+    "eye_gaze": 0.08425933702572137,
+    "blink_patterns": 0.05166200466513942,
+    "head_movement": 0.10123035467676673,
+    "facial_dynamics": 0.17883307480483387,
+    "appearance_vision_mamba": 0.0196432227231785
+  },
+  "group_share": {
+    "eye_gaze": 0.1934203912660093,
+    "blink_patterns": 0.11859202206714864,
+    "head_movement": 0.23237798326848969,
+    "facial_dynamics": 0.4105178668744497,
+    "appearance_vision_mamba": 0.045091736523902734
+  },
+  "note": "SHAP is computed over a RandomForest surrogate fitted to the MRG-VM model's own predictions. surrogate_fidelity reports how faithfully the surrogate reproduces those predictions; below ~0.8 the attributions should not be read as explanations of MRG-VM itself."
+}
