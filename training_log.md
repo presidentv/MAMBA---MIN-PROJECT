@@ -15,7 +15,7 @@ Re-run instructions: [`outputs/README.md`](outputs/README.md) and [`mrgvm/README
 | 3 — MRG-VM | deep behavioural embeddings | **run** — 128-d per clip, `outputs/embeddings/` |
 | 4 — Adaptive feature fusion | optimised feature representation | **run** — 256-d fused vector + 128-d gate |
 | 5 — MLP classifier | trained model | **run** — `outputs/checkpoints/mrgvm.pt`, 1.17 M params |
-| 6 — Evaluations + ablation | ablation table | **run** — 6 variants, `outputs/results_mrgvm/ablation_results.csv` |
+| 6 — Evaluations + ablation | ablation table | **run** — 7 variants, `outputs/results_mrgvm/ablation_results.csv` |
 | 7 — Explainable AI (SHAP) | explainable predictions | **run** — `shap_report.json` + 2 PNGs |
 
 ---
@@ -48,43 +48,84 @@ What the runs legitimately establish:
    features (0.349). At n=36 that ordering is exactly what you would expect: a
    1.17 M-parameter backbone has nothing to constrain it. MRG-VM train macro-F1
    reaches 0.570 against 0.392 validation.
-4. **The reliability guidance is live, not decorative.** Verified directly:
-   changing `delta_scale` measurably changes the Mamba output, and the
+4. **The Mamba implementation is correct.** Gradients are finite, and the
    bidirectional scan was confirmed by perturbing timestep 15 and observing the
-   change propagate back to timestep 2.
+   change propagate back to timestep 2. The reliability guidance is wired
+   correctly too — but Phase 6 showed that only one of its two mechanisms
+   actually affects predictions. See the Phase 6 section, finding 2.
 
 ---
 
 ## Phase 6 — ablation study
 
-See `outputs/results_mrgvm/ablation_results.csv` for the full table and
-`ablation_results.json` for the per-component deltas against the full model.
+Seven variants, each removing exactly one component, sharing one seed, one data
+cache and one training schedule. Full table:
+`outputs/results_mrgvm/ablation_results.csv`.
 
-Six variants, each removing exactly one component, sharing one seed, one data
-cache and one training schedule:
+| variant | test macro-F1 | Δ vs full | val macro-F1 | params |
+|---|---|---|---|---|
+| `no_vision_mamba` (geometry only) | **0.407** | **+0.121** | 0.236 | 42k |
+| `concat_fusion` | 0.287 | +0.001 | 0.342 | 1.12M |
+| `full` | 0.286 | — | 0.392 | 1.17M |
+| `guide_pooling_only` | 0.286 | +0.000 | 0.392 | 1.17M |
+| `no_mrs_guidance` | 0.261 | −0.025 | 0.389 | 1.17M |
+| `guide_delta_only` | 0.261 | −0.025 | 0.389 | 1.17M |
+| `no_landmarks` (Mamba only) | 0.052 | −0.234 | 0.194 | 1.09M |
 
-| variant | removes |
-|---|---|
-| `full` | nothing — reference |
-| `no_mrs` | the score entirely (all retained frames set to MRS = 1.0) |
-| `no_mrs_guidance` | guidance only — Phase 1 still gates frames, but MRS no longer steers `dt` or pooling |
-| `no_vision_mamba` | the appearance stream (landmark geometry only) |
-| `no_landmarks` | the geometric stream (Vision Mamba only) |
-| `concat_fusion` | the gate (plain concatenation, matched capacity) |
+### Three findings, in order of how much they should change the writeup
 
-The `no_mrs` vs `no_mrs_guidance` pair is the one that matters: it separates
-"filtering bad frames helped" from "letting reliability steer the SSM helped".
-Those are different claims and are routinely conflated in papers that report a
-quality-filtering step.
+**1. The Vision Mamba branch earns nothing here — removing it *helps*.**
+Dropping 1.1 M parameters of learned appearance raises test macro-F1 from 0.286
+to 0.407, while dropping the 32 hand-engineered landmark features collapses the
+model to 0.052. Three independent lines of evidence agree: the ablation, SHAP
+putting appearance at 4.5%, and the fusion gate sitting at 0.49 (range
+0.35–0.63, i.e. barely committing either way).
 
-**Caveat that applies to the whole table:** at n=36 with a single seed, a
-macro-F1 difference below roughly ±0.10 is indistinguishable from seed noise.
-The ablation harness is correct and will produce a meaningful table on full
-DAiSEE; the current numbers should be read as a demonstration that it runs, not
-as evidence about any component's value. Multiple seeds per variant are the
-obvious next step and are a one-line change (`--seed`).
+**Do not over-read it.** `no_vision_mamba` has the *worst* validation macro-F1
+(0.236) and the *best* test (0.407). Early stopping selects on validation, so
+this configuration would never have been chosen by the training loop. That
+val/test inversion is direct evidence the gaps are noise-dominated at n=36. The
+defensible claim is "the deep branch has no data to learn from yet", not
+"geometry beats Vision Mamba by 0.12".
 
----
+**2. Of the two reliability-guidance mechanisms, only pooling does anything.**
+`full` == `guide_pooling_only` and `no_mrs_guidance` == `guide_delta_only`, to
+four decimals. Toggling `guide_delta` moves the clip embedding by ~7e-5 relative
+and flips zero predictions.
+
+This was checked rather than assumed: with matched weights the outputs *do*
+differ, so the mechanism is wired correctly. The cause is the data. Once Phase 1
+has gated, retained-frame MRS is 0.93 ± 0.049, so `scale = 0.25 + 0.75·MRS`
+gives 0.95 ± 0.037 — a rescale with under 4% relative spread, which is exactly
+what the learned `dt_proj` bias absorbs.
+
+So the novel contribution, as parameterised, reduces to **MRS-weighted pooling**,
+worth +0.025 test macro-F1. `delta_map='clip_normalised'` (standardise MRS within
+each clip, so dt responds to *relative* reliability) measures 8.3× stronger and
+is implemented but not default, so this table stays reproducible. It is the first
+thing to try at full scale.
+
+**3. Adaptive fusion is indistinguishable from plain concatenation**
+(0.287 vs 0.286). At this sample size the gate has nothing to learn.
+
+### Two limitations of the ablation itself
+
+- **The frame gate is not ablated by any row here.** By Phase 6, Phase 1 has
+  already discarded sub-threshold frames; undoing that needs a Phase 1 re-run at
+  `--mrs-threshold 0`. On this sample that experiment is vacuous regardless —
+  **the gate rejected 1 frame out of 5,403**, so there is nothing for it to have
+  changed. The gate only becomes measurable on data containing genuinely bad
+  frames.
+- **Single seed.** At n=36, a macro-F1 gap under roughly ±0.10 is
+  indistinguishable from seed noise, which covers every row except
+  `no_landmarks`. Multiple seeds per variant is a one-line change (`--seed`) and
+  is the prerequisite for reading this table as evidence.
+
+An earlier version of this study also contained a redundant row: `no_mrs`
+(setting every frame to MRS = 1.0) is *provably* the same experiment as
+`no_mrs_guidance`, since mrs = 1 makes the dt map the identity and the weighted
+pool a uniform mean. It produced identical metrics and has been removed; the
+reasoning is recorded in `mrgvm/ablation.py` so it is not reintroduced.
 
 ## Phase 7 — SHAP
 

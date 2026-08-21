@@ -58,10 +58,24 @@ attention-bias hacks.
 **2. Reliability-weighted pooling** (`vision_mamba.guide_pooling`). The temporal
 pool is an MRS-weighted mean rather than a flat one.
 
-The mapping is `scale = min_delta_scale + (1 − min_delta_scale) · mrs`, so a
-perfect frame is unmodified and the worst survivor is damped to `min_delta_scale`
-(0.25 by default) rather than silenced — zeroing it would make the block ignore
-real motion, which is not what "guided" should mean.
+The default mapping is `scale = min_delta_scale + (1 − min_delta_scale) · mrs`,
+so a perfect frame is unmodified and the worst survivor is damped to
+`min_delta_scale` (0.25) rather than silenced — zeroing it would make the block
+ignore real motion, which is not what "guided" should mean.
+
+**Phase 6 found that mechanism 1 does nothing on this data**, and it is worth
+being blunt about why. Once Phase 1 has gated, retained-frame MRS is
+0.93 ± 0.049, so the linear map yields a multiplier of 0.95 ± 0.037 — under 4%
+relative spread. A near-constant rescale of `dt` is precisely what the learned
+`dt_proj` bias absorbs, so toggling `guide_delta` moved the clip embedding by
+~7e-5 relative and flipped zero predictions. Confirmed with matched weights and
+a genuinely non-zero output delta, so this is a parameterisation problem, not a
+wiring fault.
+
+`delta_map='clip_normalised'` standardises MRS *within each clip* first, so `dt`
+responds to **relative** reliability rather than a near-constant absolute score.
+Measured 8.3× stronger on the same batch. Not the default, so the published
+ablation stays reproducible — but it is the first thing to try at full scale.
 
 ---
 
@@ -128,7 +142,7 @@ backbone emits noise)
 ```
 
 Useful overrides: `--epochs`, `--batch-size`, `--image-size`, `--seed`,
-`--variants full no_mrs`, `--device cuda`.
+`--variants full no_landmarks`, `--device cuda`.
 
 ---
 
@@ -137,18 +151,30 @@ Useful overrides: `--epochs`, `--batch-size`, `--image-size`, `--seed`,
 Each row removes exactly one component from the full model, sharing one seed,
 one data cache and one schedule, so deltas are attributable:
 
-| variant | what it removes |
-|---|---|
-| `full` | nothing — the reference |
-| `no_mrs` | the score entirely (every retained frame set to MRS = 1.0) |
-| `no_mrs_guidance` | guidance only — frames are still gated in Phase 1, but MRS no longer steers `dt` or pooling |
-| `no_vision_mamba` | the appearance stream (landmark geometry only) |
-| `no_landmarks` | the geometric stream (Vision Mamba only) |
-| `concat_fusion` | the gate (plain concatenation at matched capacity) |
+| variant | what it removes | test macro-F1 |
+|---|---|---|
+| `full` | nothing — the reference | 0.286 |
+| `no_mrs_guidance` | both guidance mechanisms | 0.261 |
+| `guide_delta_only` | pooling guidance | 0.261 |
+| `guide_pooling_only` | dt guidance | 0.286 |
+| `no_vision_mamba` | the appearance stream (geometry only) | **0.407** |
+| `no_landmarks` | the geometric stream (Vision Mamba only) | 0.052 |
+| `concat_fusion` | the gate (plain concat, matched capacity) | 0.287 |
 
-`no_mrs` versus `no_mrs_guidance` is the pair that matters: it separates
-"filtering bad frames helped" from "letting reliability steer the SSM helped",
-which are different claims and are usually conflated.
+**What this measured.** Removing the Vision Mamba branch *improves* the model
+(+0.121) while removing the landmark stream collapses it (−0.234) — though
+`no_vision_mamba` also has the worst *validation* score, so the gap is
+noise-dominated at n=36 and the honest claim is "the deep branch has no data to
+learn from yet".
+
+The `guide_*` rows pair up exactly: dt guidance changes nothing, pooling
+guidance is worth +0.025. Verified as a real effect and not a wiring fault — see
+`vision_mamba.reliability_to_delta_scale`.
+
+**What it cannot measure.** The frame **gate**. By Phase 6 the sub-threshold
+frames are already gone; undoing that needs a Phase 1 re-run at
+`--mrs-threshold 0`, and on this sample the gate rejected 1 frame out of 5,403,
+so there is nothing to recover.
 
 ---
 

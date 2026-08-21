@@ -1,0 +1,102 @@
+23:25:34 | INFO    | mrgvm.ablation | Device: cpu | variants: ['full', 'no_mrs_guidance', 'guide_delta_only', 'guide_pooling_only', 'no_vision_mamba', 'no_landmarks', 'concat_fusion']
+23:25:34 | INFO    | mrgvm.ablation | ==============================================================================
+23:25:34 | INFO    | mrgvm.ablation | ABLATION: full               Full MRG-VM: MRS guidance + Vision Mamba + landmarks + adaptive fusion
+23:25:34 | INFO    | mrgvm.ablation | Building data cache (use_mrs_gate=True)...
+23:25:49 | INFO    | mrgvm.data     | Loaded 108 clips, 5384 frames, geometric dim 32 (~203 MB cached)
+23:25:49 | INFO    | mrgvm.data     | Split integrity OK: 16 subjects, none shared across splits
+23:25:50 | INFO    | mrgvm.train    | [ablation_full] 1170884 trainable parameters | geometric dim 32
+23:26:14 | INFO    | mrgvm.train    | [ablation_full] epoch  0  train loss 1.5832 f1 0.184 | val loss 1.4151 f1 0.298 acc 0.472  (23.3s)
+23:27:58 | INFO    | mrgvm.train    | [ablation_full] epoch  5  train loss 1.2333 f1 0.396 | val loss 1.4364 f1 0.282 acc 0.417  (20.2s)
+23:29:40 | INFO    | mrgvm.train    | [ablation_full] epoch 10  train loss 1.1213 f1 0.557 | val loss 1.4798 f1 0.290 acc 0.361  (20.2s)
+23:31:23 | INFO    | mrgvm.train    | [ablation_full] epoch 15  train loss 0.9717 f1 0.673 | val loss 1.6118 f1 0.283 acc 0.389  (20.4s)
+23:32:24 | INFO    | mrgvm.train    | [ablation_full] early stopping at epoch 18 (best 8)
+23:32:33 | INFO    | mrgvm.ablation |   Train       macro-F1 0.570 | acc 0.639 | QWK 0.741
+23:32:33 | INFO    | mrgvm.ablation |   Validation  macro-F1 0.392 | acc 0.472 | QWK 0.206
+23:32:33 | INFO    | mrgvm.ablation |   Test        macro-F1 0.286 | acc 0.472 | QWK 0.170
+23:32:33 | INFO    | mrgvm.ablation | ==============================================================================
+23:32:33 | INFO    | mrgvm.ablation | ABLATION: no_mrs_guidance    MRS no longer guides dt or pooling (score removed from the model)
+23:32:33 | INFO    | mrgvm.train    | [ablation_no_mrs_guidance] 1170884 trainable parameters | geometric dim 32
+23:32:53 | INFO    | mrgvm.train    | [ablation_no_mrs_guidance] epoch  0  train loss 1.5821 f1 0.184 | val loss 1.4152 f1 0.298 acc 0.472  (20.6s)
+23:34:36 | INFO    | mrgvm.train    | [ablation_no_mrs_guidance] epoch  5  train loss 1.2344 f1 0.396 | val loss 1.4354 f1 0.282 acc 0.417  (20.6s)
+23:36:18 | INFO    | mrgvm.train    | [ablation_no_mrs_guidance] epoch 10  train loss 1.1234 f1 0.514 | val loss 1.4786 f1 0.290 acc 0.361  (20.2s)
+23:38:01 | INFO    | mrgvm.train    | [ablation_no_mrs_guidance] epoch 15  train loss 0.9666 f1 0.673 | val loss 1.6122 f1 0.275 acc 0.389  (20.7s)
+23:39:45 | INFO    | mrgvm.train    | [ablation_no_mrs_guidance] epoch 20  train loss 0.8476 f1 0.796 | val loss 1.6858 f1 0.315 acc 0.389  (20.6s)
+23:40:27 | INFO    | mrgvm.train    | [ablation_no_mrs_guidance] early stopping at epoch 22 (best 12)
+23:40:35 | INFO    | mrgvm.ablation |   Train       macro-F1 0.612 | acc 0.639 | QWK 0.734
+23:40:35 | INFO    | mrgvm.ablation |   Validation  macro-F1 0.389 | acc 0.472 | QWK 0.044
+23:40:35 | INFO    | mrgvm.ablation |   Test        macro-F1 0.261 | acc 0.361 | QWK 0.252
+23:40:35 | INFO    | mrgvm.ablation | ==============================================================================
+23:40:35 | INFO    | mrgvm.ablation | ABLATION: guide_delta_only   MRS guides dt but pooling is unweighted
+23:40:35 | INFO    | mrgvm.train    | [ablation_guide_delta_only] 1170884 trainable parameters | geometric dim 32
+23:40:56 | INFO    | mrgvm.train    | [ablation_guide_delta_only] epoch  0  train loss 1.5821 f1 0.184 | val loss 1.4152 f1 0.298 acc 0.472  (20.7s)
+23:42:39 | INFO    | mrgvm.train    | [ablation_guide_delta_only] epoch  5  train loss 1.2344 f1 0.396 | val loss 1.4354 f1 0.282 acc 0.417  (20.5s)
+23:44:21 | INFO    | mrgvm.train    | [ablation_guide_delta_only] epoch 10  train loss 1.1234 f1 0.514 | val loss 1.4786 f1 0.290 acc 0.361  (20.5s)
+23:46:04 | INFO    | mrgvm.train    | [ablation_guide_delta_only] epoch 15  train loss 0.9666 f1 0.673 | val loss 1.6122 f1 0.275 acc 0.389  (20.5s)
+23:47:47 | INFO    | mrgvm.train    | [ablation_guide_delta_only] epoch 20  train loss 0.8476 f1 0.796 | val loss 1.6858 f1 0.315 acc 0.389  (20.5s)
+23:48:28 | INFO    | mrgvm.train    | [ablation_guide_delta_only] early stopping at epoch 22 (best 12)
+23:48:36 | INFO    | mrgvm.ablation |   Train       macro-F1 0.612 | acc 0.639 | QWK 0.734
+23:48:36 | INFO    | mrgvm.ablation |   Validation  macro-F1 0.389 | acc 0.472 | QWK 0.044
+23:48:36 | INFO    | mrgvm.ablation |   Test        macro-F1 0.261 | acc 0.361 | QWK 0.252
+23:48:36 | INFO    | mrgvm.ablation | ==============================================================================
+23:48:36 | INFO    | mrgvm.ablation | ABLATION: guide_pooling_only MRS weights pooling but dt is unmodulated
+23:48:36 | INFO    | mrgvm.train    | [ablation_guide_pooling_only] 1170884 trainable parameters | geometric dim 32
+23:48:57 | INFO    | mrgvm.train    | [ablation_guide_pooling_only] epoch  0  train loss 1.5832 f1 0.184 | val loss 1.4151 f1 0.298 acc 0.472  (20.5s)
+23:50:39 | INFO    | mrgvm.train    | [ablation_guide_pooling_only] epoch  5  train loss 1.2333 f1 0.396 | val loss 1.4364 f1 0.282 acc 0.417  (20.5s)
+23:52:23 | INFO    | mrgvm.train    | [ablation_guide_pooling_only] epoch 10  train loss 1.1213 f1 0.557 | val loss 1.4799 f1 0.290 acc 0.361  (20.5s)
+23:54:06 | INFO    | mrgvm.train    | [ablation_guide_pooling_only] epoch 15  train loss 0.9716 f1 0.673 | val loss 1.6119 f1 0.283 acc 0.389  (20.4s)
+23:55:09 | INFO    | mrgvm.train    | [ablation_guide_pooling_only] early stopping at epoch 18 (best 8)
+23:55:17 | INFO    | mrgvm.ablation |   Train       macro-F1 0.570 | acc 0.639 | QWK 0.741
+23:55:17 | INFO    | mrgvm.ablation |   Validation  macro-F1 0.392 | acc 0.472 | QWK 0.206
+23:55:17 | INFO    | mrgvm.ablation |   Test        macro-F1 0.286 | acc 0.472 | QWK 0.170
+23:55:17 | INFO    | mrgvm.ablation | ==============================================================================
+23:55:17 | INFO    | mrgvm.ablation | ABLATION: no_vision_mamba    Vision Mamba branch removed (landmark geometry only)
+23:55:17 | INFO    | mrgvm.train    | [ablation_no_vision_mamba] 42180 trainable parameters | geometric dim 32
+23:55:18 | INFO    | mrgvm.train    | [ablation_no_vision_mamba] epoch  0  train loss 1.4548 f1 0.179 | val loss 1.5034 f1 0.057 acc 0.083  (1.2s)
+23:55:24 | INFO    | mrgvm.train    | [ablation_no_vision_mamba] epoch  5  train loss 1.4414 f1 0.167 | val loss 1.4199 f1 0.146 acc 0.194  (1.2s)
+23:55:30 | INFO    | mrgvm.train    | [ablation_no_vision_mamba] epoch 10  train loss 1.1859 f1 0.486 | val loss 1.4225 f1 0.173 acc 0.306  (1.2s)
+23:55:36 | INFO    | mrgvm.train    | [ablation_no_vision_mamba] epoch 15  train loss 1.1157 f1 0.514 | val loss 1.4542 f1 0.208 acc 0.306  (1.2s)
+23:55:42 | INFO    | mrgvm.train    | [ablation_no_vision_mamba] epoch 20  train loss 0.9618 f1 0.768 | val loss 1.4774 f1 0.235 acc 0.333  (1.2s)
+23:55:44 | INFO    | mrgvm.train    | [ablation_no_vision_mamba] early stopping at epoch 21 (best 11)
+23:55:45 | INFO    | mrgvm.ablation |   Train       macro-F1 0.692 | acc 0.694 | QWK 0.674
+23:55:45 | INFO    | mrgvm.ablation |   Validation  macro-F1 0.236 | acc 0.333 | QWK -0.043
+23:55:45 | INFO    | mrgvm.ablation |   Test        macro-F1 0.407 | acc 0.472 | QWK 0.297
+23:55:45 | INFO    | mrgvm.ablation | ==============================================================================
+23:55:45 | INFO    | mrgvm.ablation | ABLATION: no_landmarks       Landmark geometric branch removed (Vision Mamba only)
+23:55:45 | INFO    | mrgvm.train    | [ablation_no_landmarks] 1087812 trainable parameters | geometric dim 32
+23:56:06 | INFO    | mrgvm.train    | [ablation_no_landmarks] epoch  0  train loss 1.4559 f1 0.126 | val loss 1.4056 f1 0.160 acc 0.472  (20.8s)
+23:57:50 | INFO    | mrgvm.train    | [ablation_no_landmarks] epoch  5  train loss 1.4175 f1 0.249 | val loss 1.4204 f1 0.160 acc 0.472  (20.8s)
+23:59:33 | INFO    | mrgvm.train    | [ablation_no_landmarks] epoch 10  train loss 1.4132 f1 0.237 | val loss 1.4349 f1 0.054 acc 0.111  (20.9s)
+00:01:20 | INFO    | mrgvm.train    | [ablation_no_landmarks] epoch 15  train loss 1.3373 f1 0.306 | val loss 1.4701 f1 0.050 acc 0.111  (20.8s)
+00:01:41 | INFO    | mrgvm.train    | [ablation_no_landmarks] early stopping at epoch 16 (best 6)
+00:01:50 | INFO    | mrgvm.ablation |   Train       macro-F1 0.314 | acc 0.389 | QWK 0.178
+00:01:50 | INFO    | mrgvm.ablation |   Validation  macro-F1 0.194 | acc 0.306 | QWK 0.072
+00:01:50 | INFO    | mrgvm.ablation |   Test        macro-F1 0.052 | acc 0.083 | QWK 0.004
+00:01:50 | INFO    | mrgvm.ablation | ==============================================================================
+00:01:50 | INFO    | mrgvm.ablation | ABLATION: concat_fusion      Adaptive gated fusion replaced by plain concatenation
+00:01:50 | INFO    | mrgvm.train    | [ablation_concat_fusion] 1120964 trainable parameters | geometric dim 32
+00:02:11 | INFO    | mrgvm.train    | [ablation_concat_fusion] epoch  0  train loss 1.4998 f1 0.243 | val loss 1.3998 f1 0.224 acc 0.278  (20.9s)
+00:03:55 | INFO    | mrgvm.train    | [ablation_concat_fusion] epoch  5  train loss 1.3370 f1 0.410 | val loss 1.4051 f1 0.237 acc 0.389  (21.2s)
+00:05:40 | INFO    | mrgvm.train    | [ablation_concat_fusion] epoch 10  train loss 1.2679 f1 0.391 | val loss 1.4027 f1 0.229 acc 0.333  (20.8s)
+00:07:04 | INFO    | mrgvm.train    | [ablation_concat_fusion] early stopping at epoch 14 (best 4)
+00:07:12 | INFO    | mrgvm.ablation |   Train       macro-F1 0.430 | acc 0.500 | QWK 0.154
+00:07:12 | INFO    | mrgvm.ablation |   Validation  macro-F1 0.342 | acc 0.472 | QWK 0.050
+00:07:12 | INFO    | mrgvm.ablation |   Test        macro-F1 0.287 | acc 0.500 | QWK 0.100
+00:07:12 | INFO    | mrgvm.ablation | ==============================================================================
+00:07:12 | INFO    | mrgvm.ablation | PHASE 6 ABLATION SUMMARY (Test split, macro-F1 is the headline)
+00:07:12 | INFO    | mrgvm.ablation |   variant             macro-F1  accuracy       QWK     params
+00:07:12 | INFO    | mrgvm.ablation |   no_vision_mamba        0.407     0.472     0.297      42180
+00:07:12 | INFO    | mrgvm.ablation |   concat_fusion          0.287     0.500     0.100    1120964
+00:07:12 | INFO    | mrgvm.ablation |   full                   0.286     0.472     0.170    1170884
+00:07:12 | INFO    | mrgvm.ablation |   guide_pooling_only     0.286     0.472     0.170    1170884
+00:07:12 | INFO    | mrgvm.ablation |   no_mrs_guidance        0.261     0.361     0.252    1170884
+00:07:12 | INFO    | mrgvm.ablation |   guide_delta_only       0.261     0.361     0.252    1170884
+00:07:12 | INFO    | mrgvm.ablation |   no_landmarks           0.052     0.083     0.004    1087812
+00:07:12 | INFO    | mrgvm.ablation | ------------------------------------------------------------------------------
+00:07:12 | INFO    | mrgvm.ablation |   Contribution of each removed component (negative = removing it HURT):
+00:07:12 | INFO    | mrgvm.ablation |     no_vision_mamba    delta macro-F1 +0.121
+00:07:12 | INFO    | mrgvm.ablation |     concat_fusion      delta macro-F1 +0.001
+00:07:12 | INFO    | mrgvm.ablation |     guide_pooling_only delta macro-F1 +0.000
+00:07:12 | INFO    | mrgvm.ablation |     no_mrs_guidance    delta macro-F1 -0.025
+00:07:12 | INFO    | mrgvm.ablation |     guide_delta_only   delta macro-F1 -0.025
+00:07:12 | INFO    | mrgvm.ablation |     no_landmarks       delta macro-F1 -0.234
+00:07:12 | INFO    | mrgvm.ablation | Results -> outputs\results_mrgvm\ablation_results.csv

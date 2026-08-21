@@ -38,6 +38,12 @@ class VisionMambaConfig:
     # MRS-weighted temporal mean instead of a flat mean.
     min_delta_scale: float = 0.25
     # dt multiplier floor: the worst surviving frame is damped, not silenced.
+    delta_map: str = "linear"
+    # 'linear'         = floor + (1-floor)*MRS. Measured to be too weak: on this
+    #                    data MRS is 0.93 +/- 0.049, so the multiplier is
+    #                    near-constant and dt_proj's learned bias absorbs it.
+    # 'clip_normalised'= standardise MRS within each clip first, so dt responds
+    #                    to RELATIVE reliability. Try this first at full scale.
 
 
 @dataclass

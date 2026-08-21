@@ -26,7 +26,7 @@ walking the directory tree.
 | **3** | **MRG-VM** — Vision Mamba over reliable face regions, spatial-temporal behavioural representations | [`mrgvm/mamba.py`](mrgvm/mamba.py), [`mrgvm/vision_mamba.py`](mrgvm/vision_mamba.py) | run |
 | **4** | Adaptive feature fusion of Mamba embeddings with landmark geometry, normalisation, final feature vector | [`mrgvm/fusion.py`](mrgvm/fusion.py), [`mrgvm/geometric.py`](mrgvm/geometric.py) | run |
 | **5** | Lightweight MLP engagement classifier, trained and validated | [`mrgvm/train_mrgvm.py`](mrgvm/train_mrgvm.py) | run |
-| **6** | Evaluations + ablation of MRS / Vision Mamba / landmarks / adaptive fusion | [`mrgvm/ablation.py`](mrgvm/ablation.py) | run |
+| **6** | Evaluations + ablation of MRS / Vision Mamba / landmarks / adaptive fusion | [`mrgvm/ablation.py`](mrgvm/ablation.py) | run: 7 variants |
 | **7** | SHAP feature importance and behavioural-contribution visualisation | [`mrgvm/shap_explain.py`](mrgvm/shap_explain.py) | run |
 
 `src/` additionally holds a **transformer baseline stack** (gaze + affect
@@ -151,8 +151,15 @@ reliability into the model:
    per-timestep confidence into an SSM; a transformer has no clean equivalent.
 2. **Reliability-weighted pooling.** The temporal pool is MRS-weighted.
 
-Both are independently ablatable, which is what lets Phase 6 separate "filtering
-bad frames helped" from "letting reliability steer the SSM helped".
+Both are independently ablatable — and Phase 6 found that **only pooling
+matters**: dt guidance flips zero predictions, because retained-frame MRS is
+0.93 ± 0.049 and a near-constant dt rescale is absorbed by `dt_proj`'s learned
+bias. `delta_map='clip_normalised'` is the implemented fix.
+
+Note what Phase 6 *cannot* test: the frame **gate** itself. By then Phase 1 has
+already discarded sub-threshold frames, so undoing it needs a Phase 1 re-run at
+`--mrs-threshold 0` — and on this sample that is vacuous anyway, since the gate
+rejected 1 frame out of 5,403.
 
 The Mamba is hand-written in PyTorch because `mamba-ssm` requires CUDA/`nvcc`
 and this is a CPU-only machine — same S6 algorithm, no fused kernel. Blocks are
@@ -183,7 +190,33 @@ would expect: a 1.17 M-parameter backbone has nothing to constrain it, while a
 strongly regularised linear model on 29 hand-engineered features does not
 overfit. Train macro-F1 reaches 0.570 against 0.392 validation.
 
-Phase 6 ablation results: `outputs/results_mrgvm/ablation_results.csv`.
+### Phase 6 ablation (test split)
+
+| variant | macro-F1 | Δ vs full | val macro-F1 | params |
+|---|---|---|---|---|
+| `no_vision_mamba` (geometry only) | **0.407** | **+0.121** | 0.236 | 42k |
+| `concat_fusion` | 0.287 | +0.001 | 0.342 | 1.12M |
+| `full` | 0.286 | — | 0.392 | 1.17M |
+| `guide_pooling_only` | 0.286 | +0.000 | 0.392 | 1.17M |
+| `no_mrs_guidance` | 0.261 | −0.025 | 0.389 | 1.17M |
+| `guide_delta_only` | 0.261 | −0.025 | 0.389 | 1.17M |
+| `no_landmarks` (Mamba only) | 0.052 | −0.234 | 0.194 | 1.09M |
+
+**Removing the Vision Mamba branch improves the model**; removing the 32
+hand-engineered landmark features collapses it. SHAP agrees independently
+(appearance = 4.5% of attribution) as does the fusion gate (0.49, barely
+committing). But `no_vision_mamba` has the *worst* validation macro-F1 and the
+*best* test — an inversion that is direct evidence these gaps are noise-dominated
+at n=36. The defensible claim is "the deep branch has no data to learn from yet".
+
+**Only one of the two reliability-guidance mechanisms does anything.** `full` and
+`guide_pooling_only` score identically, as do `no_mrs_guidance` and
+`guide_delta_only` — toggling dt guidance flips zero predictions. Not a wiring
+fault (verified with matched weights and a non-zero output delta): retained-frame
+MRS is 0.93 ± 0.049, so the linear dt map is near-constant and `dt_proj`'s learned
+bias absorbs it. `delta_map='clip_normalised'` is implemented as the fix and
+measures 8.3× stronger, left non-default so this table stays reproducible.
+
 Phase 7 SHAP: `outputs/results_mrgvm/shap_report.json` and the two PNGs.
 
 `train_mrgvm.py` prints the per-split class distribution and warns for every

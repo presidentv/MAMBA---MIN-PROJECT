@@ -71,7 +71,7 @@ class MRGVMModel(nn.Module):
                 spatial_depth=vm.spatial_depth, temporal_depth=vm.temporal_depth,
                 d_state=vm.d_state, dropout=vm.dropout, max_frames=vm.max_frames,
                 guide_delta=vm.guide_delta, guide_pooling=vm.guide_pooling,
-                min_delta_scale=vm.min_delta_scale,
+                min_delta_scale=vm.min_delta_scale, delta_map=vm.delta_map,
             )
             mamba_dim = vm.d_model
 

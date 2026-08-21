@@ -30,11 +30,28 @@ are switchable so Phase 6 can ablate them independently:
    is an MRS-weighted mean rather than a flat mean, so unreliable frames
    contribute proportionally less to the clip embedding.
 
-The mapping from MRS to a dt multiplier is
+The default mapping from MRS to a dt multiplier is
 ``scale = min_scale + (1 - min_scale) * mrs``, so a perfect frame is unmodified
 (scale 1) and the worst surviving frame is damped to ``min_scale`` rather than
 silenced. Zeroing it outright would make the block ignore real motion and is not
 what "guided" should mean.
+
+WHAT PHASE 6 ACTUALLY MEASURED, STATED PLAINLY
+----------------------------------------------
+Of the two mechanisms, only **pooling** moved the needle. Toggling
+``guide_delta`` changed the clip embedding by ~7e-5 relative and did not flip a
+single prediction, so ``full`` and ``guide_pooling_only`` scored identically, as
+did ``no_mrs_guidance`` and ``guide_delta_only``. This is not a wiring fault --
+it was verified with matched weights and a genuinely non-zero output delta. The
+cause is the data: once Phase 1 has gated, retained-frame MRS is 0.93 +/- 0.049,
+so the linear map produces a near-constant multiplier that the learned
+``dt_proj`` bias simply absorbs.
+
+``delta_map='clip_normalised'`` is the fix -- standardise MRS within each clip so
+dt responds to *relative* reliability. Measured 8.3x stronger than ``linear`` on
+the same batch. It is not the default, so the reported Phase 6 table stays
+reproducible; it is the first thing to try on full DAiSEE, where MRS spread
+should be much wider.
 """
 
 from __future__ import annotations
@@ -113,6 +130,7 @@ class ReliabilityGuidedTemporalMamba(nn.Module):
         guide_delta: bool = True,
         guide_pooling: bool = True,
         min_delta_scale: float = 0.25,
+        delta_map: str = "linear",
     ) -> None:
         super().__init__()
         self.position = nn.Parameter(torch.zeros(1, max_frames, d_model))
@@ -123,10 +141,44 @@ class ReliabilityGuidedTemporalMamba(nn.Module):
         self.guide_delta = guide_delta
         self.guide_pooling = guide_pooling
         self.min_delta_scale = min_delta_scale
+        self.delta_map = delta_map
 
-    def reliability_to_delta_scale(self, mrs: torch.Tensor) -> torch.Tensor:
+    def reliability_to_delta_scale(
+        self, mrs: torch.Tensor, mask: Optional[torch.Tensor] = None
+    ) -> torch.Tensor:
+        """Map MRS to a dt multiplier.
+
+        MEASURED LIMITATION OF ``linear`` -- keep this in mind before claiming the
+        dt guidance does anything. On the DAiSEE sample, retained-frame MRS is
+        0.93 +/- 0.049, so ``0.25 + 0.75*mrs`` yields 0.95 +/- 0.037: a rescale
+        whose relative spread is under 4%. A near-constant rescale of dt is
+        precisely what the learned ``dt_proj`` bias absorbs, and the Phase 6
+        ablation confirmed the consequence -- toggling ``guide_delta`` moved the
+        clip embedding by ~7e-5 relative and changed not a single prediction.
+        The mechanism is correctly wired; it is the parameterisation that is too
+        weak, because absolute MRS barely varies once Phase 1 has gated.
+
+        ``clip_normalised`` addresses that directly: it standardises MRS *within
+        each clip* before mapping, so what drives dt is how reliable a frame is
+        **relative to its own clip** rather than an absolute score that is
+        near-constant by construction. Left off by default so the reported
+        Phase 6 table stays reproducible; it is the variant worth testing first
+        on full DAiSEE, where MRS spread is expected to be far wider.
+        """
         floor = self.min_delta_scale
-        return floor + (1.0 - floor) * mrs.clamp(0.0, 1.0)
+        mrs = mrs.clamp(0.0, 1.0)
+
+        if self.delta_map == "clip_normalised":
+            weights = mask.to(mrs.dtype) if mask is not None else torch.ones_like(mrs)
+            denominator = weights.sum(dim=1, keepdim=True).clamp(min=1.0)
+            mean = (mrs * weights).sum(dim=1, keepdim=True) / denominator
+            variance = (((mrs - mean) ** 2) * weights).sum(dim=1, keepdim=True) / denominator
+            centred = (mrs - mean) / torch.sqrt(variance.clamp(min=1e-8))
+            # Squash to [0, 1] so the floor still bounds the multiplier.
+            relative = torch.sigmoid(centred)
+            return floor + (1.0 - floor) * relative
+
+        return floor + (1.0 - floor) * mrs
 
     def forward(
         self, frame_embeddings: torch.Tensor, mrs: torch.Tensor, mask: torch.Tensor
@@ -146,7 +198,7 @@ class ReliabilityGuidedTemporalMamba(nn.Module):
 
         delta_scale = None
         if self.guide_delta:
-            delta_scale = self.reliability_to_delta_scale(mrs)
+            delta_scale = self.reliability_to_delta_scale(mrs, mask)
             # Padding contributes nothing: floor its dt so the state barely moves.
             delta_scale = torch.where(mask, delta_scale, torch.full_like(delta_scale, 1e-3))
 
@@ -176,6 +228,7 @@ class MRGVisionMamba(nn.Module):
         guide_delta: bool = True,
         guide_pooling: bool = True,
         min_delta_scale: float = 0.25,
+        delta_map: str = "linear",
     ) -> None:
         super().__init__()
         self.d_model = d_model
@@ -184,7 +237,7 @@ class MRGVisionMamba(nn.Module):
         )
         self.temporal = ReliabilityGuidedTemporalMamba(
             d_model, temporal_depth, d_state, dropout, max_frames,
-            guide_delta, guide_pooling, min_delta_scale,
+            guide_delta, guide_pooling, min_delta_scale, delta_map,
         )
 
     @property
