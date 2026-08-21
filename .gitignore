@@ -1,0 +1,71 @@
+# ---------------------------------------------------------------------------
+# Data — NEVER commit. See README "Data is not in this repository".
+# ---------------------------------------------------------------------------
+# DAiSEE is licence-restricted research data (per-user registration required)
+# and contains video of identifiable people. It must not be redistributed.
+Datasets/
+DAiSEE/
+*.avi
+*.mp4
+*.mov
+*.mkv
+
+# Derived personal/biometric data produced by the pipeline:
+#   phase1_reliable_frames/  aligned face crops of research subjects
+#   phase2_landmarks/        478-point facial landmark tables
+#   features/                facial-expression embeddings
+outputs/phase1_reliable_frames/
+outputs/phase2_landmarks/
+outputs/features/
+outputs/checkpoints/
+
+# Run manifests carry the DAiSEE label values per clip; the run statistics they
+# summarise are reproduced in outputs/README.md and training_log.md instead.
+outputs/phase1_manifest.csv
+outputs/phase2_manifest.csv
+outputs/logs/phase2_warnings.csv
+
+# Any alternative output root
+outputs_full/
+outputs_*/
+!outputs/
+
+# ---------------------------------------------------------------------------
+# Environment and caches
+# ---------------------------------------------------------------------------
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# MediaPipe model bundles — fetched on demand by pipeline/fetch_models.py
+models/
+*.tflite
+*.task
+
+# HSEmotion checkpoint cache
+.hsemotion/
+
+# ---------------------------------------------------------------------------
+# Documents kept out of version control
+# ---------------------------------------------------------------------------
+# Third-party copyrighted papers
+*.pdf
+# Personal project notes and academic deliverables
+memory.md
+*.docx
+*.pptx
+
+# ---------------------------------------------------------------------------
+# OS / editor
+# ---------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp

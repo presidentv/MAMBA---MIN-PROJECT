@@ -1,0 +1,33 @@
+{
+  "_comment": "Default pipeline configuration. Any subset of keys may be given; anything omitted falls back to the dataclass default in engagement_pipeline/config.py. CLI flags override this file.",
+
+  "phase1": {
+    "sample_fps": 5.0,
+    "min_detection_confidence": 0.4,
+    "use_mesh_for_pose": true,
+    "output_size": 224,
+    "image_format": "png",
+    "blur_var_reference": 150.0,
+    "max_head_deviation_deg": 60.0,
+    "max_flow_magnitude_px": 8.0,
+    "weights": {
+      "blur": 1.0,
+      "face_visibility": 1.0,
+      "head_rotation": 1.0,
+      "eye_visibility": 1.0,
+      "motion_consistency": 1.0
+    },
+    "mrs_threshold": 0.5,
+    "low_retention_warn_ratio": 0.30,
+    "splits": ["Train", "Validation", "Test"]
+  },
+
+  "phase2": {
+    "min_face_detection_confidence": 0.3,
+    "min_face_presence_confidence": 0.3,
+    "min_tracking_confidence": 0.3,
+    "output_blendshapes": false,
+    "track_break_threshold": 0.08,
+    "splits": ["Train", "Validation", "Test"]
+  }
+}

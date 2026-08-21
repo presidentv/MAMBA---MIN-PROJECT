@@ -1,0 +1,51 @@
+{
+  "sample_fps": 5.0,
+  "max_frames_per_clip": 0,
+  "min_detection_confidence": 0.4,
+  "use_mesh_for_pose": true,
+  "max_subject_jump_ratio": 1.5,
+  "output_size": 224,
+  "desired_left_eye_x": 0.35,
+  "desired_eye_y": 0.38,
+  "image_format": "png",
+  "jpeg_quality": 95,
+  "save_normalized_npy": false,
+  "norm_mean": [
+    0.485,
+    0.456,
+    0.406
+  ],
+  "norm_std": [
+    0.229,
+    0.224,
+    0.225
+  ],
+  "blur_var_reference": 150.0,
+  "max_head_deviation_deg": 60.0,
+  "max_flow_magnitude_px": 8.0,
+  "eye_bbox_margin": 0.25,
+  "weights": {
+    "blur": 1.0,
+    "face_visibility": 1.0,
+    "head_rotation": 1.0,
+    "eye_visibility": 1.0,
+    "motion_consistency": 1.0
+  },
+  "mrs_threshold": 0.5,
+  "low_retention_warn_ratio": 0.3,
+  "workers": 1,
+  "splits": [
+    "Train",
+    "Validation",
+    "Test"
+  ],
+  "video_extensions": [
+    ".avi",
+    ".mp4",
+    ".mov",
+    ".mkv",
+    ".webm"
+  ],
+  "limit_clips": 0,
+  "overwrite": true
+}

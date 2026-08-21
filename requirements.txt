@@ -1,0 +1,19 @@
+# Pinned to the versions this pipeline was built and verified against.
+# Python 3.13 (the repo venv is .venv/, created from Python 3.13.3).
+
+# --- Phase 1 / Phase 2 : preprocessing, MRS, landmarks ---
+opencv-python==5.0.0.93
+mediapipe==1.0.1          # 1.x dropped the legacy `mediapipe.solutions` API;
+                          # this pipeline uses the Tasks API (see pipeline/engagement_pipeline/models.py)
+numpy==2.5.2
+pandas==3.0.5
+pyarrow==25.0.1
+
+# --- Steps 1-6 : features, affect branch, training ---
+torch==2.13.0             # CPU build: --index-url https://download.pytorch.org/whl/cpu
+torchvision==0.28.0
+scikit-learn==1.9.0
+hsemotion==0.3.0
+timm==0.9.16              # MUST be <1.0: the HSEmotion checkpoints were pickled
+                          # against timm 0.x and fail at inference under timm>=1.0
+                          # with AttributeError on DepthwiseSeparableConv.conv_s2d

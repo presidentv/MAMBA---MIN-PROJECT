@@ -1,0 +1,235 @@
+23:15:56 | INFO    | phase2                 | Phase 2 configuration: Phase2Config(min_face_detection_confidence=0.3, min_face_presence_confidence=0.3, min_tracking_confidence=0.3, output_blendshapes=False, track_break_threshold=0.08, workers=1, splits=('Train', 'Validation', 'Test'), limit_clips=0, overwrite=True)
+23:15:56 | INFO    | phase2                 | Found 108 Phase 1 clip directories
+23:15:56 | INFO    | engagement_pipeline.dataset | Loaded 36 label rows for split Train
+23:15:56 | INFO    | engagement_pipeline.dataset | Loaded 36 label rows for split Validation
+23:15:56 | INFO    | engagement_pipeline.dataset | Loaded 36 label rows for split Test
+23:15:57 | INFO    | phase2                 | [1/108] Train/110001/1100011002
+23:15:57 | INFO    | phase2                 | Train/110001/1100011002: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:15:57 | INFO    | phase2                 | [2/108] Train/110001/1100011003
+23:15:58 | INFO    | phase2                 | Train/110001/1100011003: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:15:58 | INFO    | phase2                 | [3/108] Train/110001/1100011004
+23:15:59 | INFO    | phase2                 | Train/110001/1100011004: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:15:59 | INFO    | phase2                 | [4/108] Train/110001/1100011005
+23:16:01 | INFO    | phase2                 | Train/110001/1100011005: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:01 | INFO    | phase2                 | [5/108] Train/110001/1100011006
+23:16:02 | INFO    | phase2                 | Train/110001/1100011006: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:02 | INFO    | phase2                 | [6/108] Train/110001/1100011007
+23:16:04 | INFO    | phase2                 | Train/110001/1100011007: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:04 | INFO    | phase2                 | [7/108] Train/110001/1100011009
+23:16:05 | INFO    | phase2                 | Train/110001/1100011009: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:05 | INFO    | phase2                 | [8/108] Train/110001/1100011012
+23:16:06 | INFO    | phase2                 | Train/110001/1100011012: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:06 | INFO    | phase2                 | [9/108] Train/110001/1100011040
+23:16:08 | INFO    | phase2                 | Train/110001/1100011040: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:08 | INFO    | phase2                 | [10/108] Train/110001/1100011048
+23:16:09 | INFO    | phase2                 | Train/110001/1100011048: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:09 | INFO    | phase2                 | [11/108] Train/110001/1100012010
+23:16:11 | INFO    | phase2                 | Train/110001/1100012010: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:11 | INFO    | phase2                 | [12/108] Train/110002/1100021003
+23:16:12 | INFO    | phase2                 | Train/110002/1100021003: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:12 | INFO    | phase2                 | [13/108] Train/110002/1100021015
+23:16:13 | INFO    | phase2                 | Train/110002/1100021015: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:13 | INFO    | phase2                 | [14/108] Train/110002/1100021055
+23:16:15 | INFO    | phase2                 | Train/110002/1100021055: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:15 | INFO    | phase2                 | [15/108] Train/110002/1100022005
+23:16:16 | INFO    | phase2                 | Train/110002/1100022005: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:16 | INFO    | phase2                 | [16/108] Train/110002/1100022022
+23:16:17 | INFO    | phase2                 | Train/110002/1100022022: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:17 | INFO    | phase2                 | [17/108] Train/110002/1100022047
+23:16:19 | INFO    | phase2                 | Train/110002/1100022047: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:19 | INFO    | phase2                 | [18/108] Train/110013/1100131017
+23:16:20 | INFO    | phase2                 | Train/110013/1100131017: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:20 | INFO    | phase2                 | [19/108] Train/111003/1110031003
+23:16:22 | INFO    | phase2                 | Train/111003/1110031003: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:22 | INFO    | phase2                 | [20/108] Train/111003/1110031007
+23:16:23 | INFO    | phase2                 | Train/111003/1110031007: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:23 | INFO    | phase2                 | [21/108] Train/111003/1110031010
+23:16:24 | INFO    | phase2                 | Train/111003/1110031010: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:24 | INFO    | phase2                 | [22/108] Train/111003/1110031011
+23:16:26 | INFO    | phase2                 | Train/111003/1110031011: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:26 | INFO    | phase2                 | [23/108] Train/111003/1110031012
+23:16:27 | INFO    | phase2                 | Train/111003/1110031012: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:27 | INFO    | phase2                 | [24/108] Train/111003/1110031014
+23:16:28 | INFO    | phase2                 | Train/111003/1110031014: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:28 | INFO    | phase2                 | [25/108] Train/111003/1110031019
+23:16:30 | INFO    | phase2                 | Train/111003/1110031019: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:30 | INFO    | phase2                 | [26/108] Train/111003/1110031020
+23:16:31 | INFO    | phase2                 | Train/111003/1110031020: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:31 | INFO    | phase2                 | [27/108] Train/111003/1110031021
+23:16:32 | INFO    | phase2                 | Train/111003/1110031021: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:32 | INFO    | phase2                 | [28/108] Train/111003/1110031025
+23:16:34 | INFO    | phase2                 | Train/111003/1110031025: 49/49 frames landmarked, 1 track break(s) -> landmarks.parquet
+23:16:34 | INFO    | phase2                 | [29/108] Train/111003/1110031027
+23:16:35 | INFO    | phase2                 | Train/111003/1110031027: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:35 | INFO    | phase2                 | [30/108] Train/111003/1110031031
+23:16:36 | INFO    | phase2                 | Train/111003/1110031031: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:36 | INFO    | phase2                 | [31/108] Train/111003/1110031033
+23:16:38 | INFO    | phase2                 | Train/111003/1110031033: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:38 | INFO    | phase2                 | [32/108] Train/111003/1110031037
+23:16:39 | INFO    | phase2                 | Train/111003/1110031037: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:39 | INFO    | phase2                 | [33/108] Train/111003/1110031038
+23:16:41 | INFO    | phase2                 | Train/111003/1110031038: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:41 | INFO    | phase2                 | [34/108] Train/111003/1110031039
+23:16:42 | INFO    | phase2                 | Train/111003/1110031039: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:42 | INFO    | phase2                 | [35/108] Train/111003/1110031040
+23:16:43 | INFO    | phase2                 | Train/111003/1110031040: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:43 | INFO    | phase2                 | [36/108] Train/111003/1110031063
+23:16:45 | INFO    | phase2                 | Train/111003/1110031063: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:45 | INFO    | phase2                 | [37/108] Validation/400022/4000221001
+23:16:46 | INFO    | phase2                 | Validation/400022/4000221001: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:46 | INFO    | phase2                 | [38/108] Validation/400022/4000221002
+23:16:48 | INFO    | phase2                 | Validation/400022/4000221002: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:48 | INFO    | phase2                 | [39/108] Validation/400022/4000221006
+23:16:49 | INFO    | phase2                 | Validation/400022/4000221006: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:49 | INFO    | phase2                 | [40/108] Validation/400022/4000221008
+23:16:50 | INFO    | phase2                 | Validation/400022/4000221008: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:50 | INFO    | phase2                 | [41/108] Validation/400022/4000221009
+23:16:52 | INFO    | phase2                 | Validation/400022/4000221009: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:52 | INFO    | phase2                 | [42/108] Validation/400022/4000221010
+23:16:53 | INFO    | phase2                 | Validation/400022/4000221010: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:53 | INFO    | phase2                 | [43/108] Validation/400022/4000221011
+23:16:54 | INFO    | phase2                 | Validation/400022/4000221011: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:54 | INFO    | phase2                 | [44/108] Validation/400022/4000221013
+23:16:56 | INFO    | phase2                 | Validation/400022/4000221013: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:56 | INFO    | phase2                 | [45/108] Validation/400022/4000221014
+23:16:57 | INFO    | phase2                 | Validation/400022/4000221014: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:57 | INFO    | phase2                 | [46/108] Validation/400022/4000221015
+23:16:59 | INFO    | phase2                 | Validation/400022/4000221015: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:16:59 | INFO    | phase2                 | [47/108] Validation/400022/4000221016
+23:17:00 | INFO    | phase2                 | Validation/400022/4000221016: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:00 | INFO    | phase2                 | [48/108] Validation/400022/4000221040
+23:17:01 | INFO    | phase2                 | Validation/400022/4000221040: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:01 | INFO    | phase2                 | [49/108] Validation/400022/4000221042
+23:17:03 | INFO    | phase2                 | Validation/400022/4000221042: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:03 | INFO    | phase2                 | [50/108] Validation/400022/4000222031
+23:17:04 | INFO    | phase2                 | Validation/400022/4000222031: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:04 | INFO    | phase2                 | [51/108] Validation/400022/4000222032
+23:17:06 | INFO    | phase2                 | Validation/400022/4000222032: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:06 | INFO    | phase2                 | [52/108] Validation/400022/4000222068
+23:17:07 | INFO    | phase2                 | Validation/400022/4000222068: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:07 | INFO    | phase2                 | [53/108] Validation/410019/4100191012
+23:17:09 | INFO    | phase2                 | Validation/410019/4100191012: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:09 | INFO    | phase2                 | [54/108] Validation/410019/4100192029
+23:17:10 | INFO    | phase2                 | Validation/410019/4100192029: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:10 | INFO    | phase2                 | [55/108] Validation/556463/5564630110
+23:17:11 | INFO    | phase2                 | Validation/556463/5564630110: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:11 | INFO    | phase2                 | [56/108] Validation/556463/5564630112
+23:17:13 | INFO    | phase2                 | Validation/556463/5564630112: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:13 | INFO    | phase2                 | [57/108] Validation/556463/5564630115
+23:17:14 | INFO    | phase2                 | Validation/556463/5564630115: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:14 | INFO    | phase2                 | [58/108] Validation/556463/5564630117
+23:17:15 | INFO    | phase2                 | Validation/556463/5564630117: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:15 | INFO    | phase2                 | [59/108] Validation/556463/556463012
+23:17:17 | INFO    | phase2                 | Validation/556463/556463012: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:17 | INFO    | phase2                 | [60/108] Validation/556463/5564630121
+23:17:18 | INFO    | phase2                 | Validation/556463/5564630121: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:18 | INFO    | phase2                 | [61/108] Validation/556463/5564630122
+23:17:19 | INFO    | phase2                 | Validation/556463/5564630122: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:19 | INFO    | phase2                 | [62/108] Validation/556463/5564630123
+23:17:21 | INFO    | phase2                 | Validation/556463/5564630123: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:21 | INFO    | phase2                 | [63/108] Validation/556463/5564630126
+23:17:22 | INFO    | phase2                 | Validation/556463/5564630126: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:22 | INFO    | phase2                 | [64/108] Validation/556463/5564630127
+23:17:23 | INFO    | phase2                 | Validation/556463/5564630127: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:23 | INFO    | phase2                 | [65/108] Validation/556463/5564630128
+23:17:25 | INFO    | phase2                 | Validation/556463/5564630128: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:25 | INFO    | phase2                 | [66/108] Validation/556463/5564630130
+23:17:26 | INFO    | phase2                 | Validation/556463/5564630130: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:26 | INFO    | phase2                 | [67/108] Validation/556463/5564630132
+23:17:27 | INFO    | phase2                 | Validation/556463/5564630132: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:27 | INFO    | phase2                 | [68/108] Validation/556463/5564630163
+23:17:29 | INFO    | phase2                 | Validation/556463/5564630163: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:29 | INFO    | phase2                 | [69/108] Validation/556463/5564630211
+23:17:30 | INFO    | phase2                 | Validation/556463/5564630211: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:30 | INFO    | phase2                 | [70/108] Validation/556463/5564630233
+23:17:31 | INFO    | phase2                 | Validation/556463/5564630233: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:31 | INFO    | phase2                 | [71/108] Validation/567496/5674960225
+23:17:33 | INFO    | phase2                 | Validation/567496/5674960225: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:33 | INFO    | phase2                 | [72/108] Validation/567496/5674960234
+23:17:34 | INFO    | phase2                 | Validation/567496/5674960234: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:34 | INFO    | phase2                 | [73/108] Test/500044/5000441001
+23:17:36 | INFO    | phase2                 | Test/500044/5000441001: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:36 | INFO    | phase2                 | [74/108] Test/500044/5000441002
+23:17:37 | INFO    | phase2                 | Test/500044/5000441002: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:37 | INFO    | phase2                 | [75/108] Test/500044/5000441003
+23:17:38 | INFO    | phase2                 | Test/500044/5000441003: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:38 | INFO    | phase2                 | [76/108] Test/500044/5000441005
+23:17:40 | INFO    | phase2                 | Test/500044/5000441005: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:40 | INFO    | phase2                 | [77/108] Test/500044/5000441006
+23:17:41 | INFO    | phase2                 | Test/500044/5000441006: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:41 | INFO    | phase2                 | [78/108] Test/500044/5000441007
+23:17:42 | INFO    | phase2                 | Test/500044/5000441007: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:42 | INFO    | phase2                 | [79/108] Test/500044/5000441009
+23:17:44 | INFO    | phase2                 | Test/500044/5000441009: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:44 | INFO    | phase2                 | [80/108] Test/500044/5000441014
+23:17:45 | INFO    | phase2                 | Test/500044/5000441014: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:45 | INFO    | phase2                 | [81/108] Test/500044/5000441015
+23:17:47 | INFO    | phase2                 | Test/500044/5000441015: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:47 | INFO    | phase2                 | [82/108] Test/500044/5000441016
+23:17:48 | INFO    | phase2                 | Test/500044/5000441016: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:48 | INFO    | phase2                 | [83/108] Test/500044/5000441024
+23:17:49 | INFO    | phase2                 | Test/500044/5000441024: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:49 | INFO    | phase2                 | [84/108] Test/500044/5000441031
+23:17:51 | INFO    | phase2                 | Test/500044/5000441031: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:51 | INFO    | phase2                 | [85/108] Test/500044/5000441034
+23:17:52 | INFO    | phase2                 | Test/500044/5000441034: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:52 | INFO    | phase2                 | [86/108] Test/500044/5000441058
+23:17:54 | INFO    | phase2                 | Test/500044/5000441058: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:54 | INFO    | phase2                 | [87/108] Test/500067/5000671029
+23:17:55 | INFO    | phase2                 | Test/500067/5000671029: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:55 | INFO    | phase2                 | [88/108] Test/500095/5000952016
+23:17:56 | INFO    | phase2                 | Test/500095/5000952016: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:56 | INFO    | phase2                 | [89/108] Test/510009/5100091062
+23:17:58 | INFO    | phase2                 | Test/510009/5100091062: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:58 | INFO    | phase2                 | [90/108] Test/510034/5100342022
+23:17:59 | INFO    | phase2                 | Test/510034/5100342022: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:17:59 | INFO    | phase2                 | [91/108] Test/826412/826412010
+23:18:01 | INFO    | phase2                 | Test/826412/826412010: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:18:01 | INFO    | phase2                 | [92/108] Test/826412/8264120110
+23:18:02 | INFO    | phase2                 | Test/826412/8264120110: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:18:02 | INFO    | phase2                 | [93/108] Test/826412/8264120111
+23:18:04 | INFO    | phase2                 | Test/826412/8264120111: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:18:04 | INFO    | phase2                 | [94/108] Test/826412/8264120112
+23:18:05 | INFO    | phase2                 | Test/826412/8264120112: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:18:05 | INFO    | phase2                 | [95/108] Test/826412/8264120113
+23:18:06 | INFO    | phase2                 | Test/826412/8264120113: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:18:06 | INFO    | phase2                 | [96/108] Test/826412/8264120116
+23:18:08 | INFO    | phase2                 | Test/826412/8264120116: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:18:08 | INFO    | phase2                 | [97/108] Test/826412/8264120117
+23:18:09 | INFO    | phase2                 | Test/826412/8264120117: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:18:09 | INFO    | phase2                 | [98/108] Test/826412/8264120119
+23:18:11 | INFO    | phase2                 | Test/826412/8264120119: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:18:11 | INFO    | phase2                 | [99/108] Test/826412/8264120120
+23:18:12 | INFO    | phase2                 | Test/826412/8264120120: 41/50 frames landmarked, 1 track break(s) -> landmarks.parquet
+23:18:12 | INFO    | phase2                 | [100/108] Test/826412/8264120123
+23:18:13 | INFO    | phase2                 | Test/826412/8264120123: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:18:13 | INFO    | phase2                 | [101/108] Test/826412/8264120124
+23:18:15 | INFO    | phase2                 | Test/826412/8264120124: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:18:15 | INFO    | phase2                 | [102/108] Test/826412/8264120132
+23:18:16 | INFO    | phase2                 | Test/826412/8264120132: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:18:16 | INFO    | phase2                 | [103/108] Test/826412/8264120139
+23:18:18 | INFO    | phase2                 | Test/826412/8264120139: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:18:18 | INFO    | phase2                 | [104/108] Test/826412/8264120165
+23:18:19 | INFO    | phase2                 | Test/826412/8264120165: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:18:19 | INFO    | phase2                 | [105/108] Test/826412/8264120210
+23:18:20 | INFO    | phase2                 | Test/826412/8264120210: 48/50 frames landmarked, 1 track break(s) -> landmarks.parquet
+23:18:20 | INFO    | phase2                 | [106/108] Test/826412/8264120240
+23:18:22 | INFO    | phase2                 | Test/826412/8264120240: 43/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:18:22 | INFO    | phase2                 | [107/108] Test/907001/9070011060
+23:18:23 | INFO    | phase2                 | Test/907001/9070011060: 53/53 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:18:23 | INFO    | phase2                 | [108/108] Test/987736/9877360133
+23:18:25 | INFO    | phase2                 | Test/987736/9877360133: 50/50 frames landmarked, 0 track break(s) -> landmarks.parquet
+23:18:25 | INFO    | phase2                 | Manifest written: outputs\phase2_manifest.csv
+23:18:25 | INFO    | phase2                 | ==============================================================================
+23:18:25 | INFO    | phase2                 | PHASE 2 SUMMARY
+23:18:25 | INFO    | phase2                 |   clips processed          : 108
+23:18:25 | INFO    | phase2                 |   clips ok                 : 108
+23:18:25 | INFO    | phase2                 |   frames landmarked (total): 5384
+23:18:25 | INFO    | phase2                 |   frames mesh-failed       : 18
+23:18:25 | INFO    | phase2                 |   clips missing a label    : 0
+23:18:25 | INFO    | phase2                 |   total track breaks       : 3
+23:18:25 | INFO    | phase2                 |   Test       : 36 clips, 1785 frames, success 99.0%
+23:18:25 | INFO    | phase2                 |   Train      : 36 clips, 1799 frames, success 100.0%
+23:18:25 | INFO    | phase2                 |   Validation : 36 clips, 1800 frames, success 100.0%
+23:18:25 | WARNING | phase2                 |   3 clip(s) flagged -> logs/phase2_warnings.csv
+23:18:25 | INFO    | phase2                 | ==============================================================================

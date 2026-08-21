@@ -1,0 +1,68 @@
+{
+  "gaze": {
+    "iris_gain_deg": 40.0,
+    "saccade_velocity_threshold": 30.0,
+    "rolling_window": 5,
+    "blink_ear_ratio": 0.75,
+    "blink_min_separation": 1,
+    "off_screen_yaw_deg": 25.0,
+    "off_screen_pitch_deg": 20.0,
+    "min_frames": 4
+  },
+  "affect": {
+    "model_name": "enet_b0_8_best_afew",
+    "device": "cpu",
+    "batch_size": 32,
+    "save_embeddings": true
+  },
+  "data": {
+    "max_sequence_length": 50,
+    "affect_feature_set": "probs",
+    "target": "Engagement",
+    "auxiliary_targets": [
+      "Boredom",
+      "Confusion",
+      "Frustration"
+    ],
+    "num_classes": 4,
+    "standardize": true,
+    "batch_size": 8,
+    "num_workers": 0
+  },
+  "model": {
+    "d_model": 128,
+    "num_layers": 2,
+    "num_heads": 4,
+    "dim_feedforward": 256,
+    "dropout": 0.3,
+    "max_len": 512,
+    "pooling": "masked_mean",
+    "loss": "coral",
+    "class_weighting": true
+  },
+  "train": {
+    "epochs": 40,
+    "learning_rate": 0.0003,
+    "weight_decay": 0.01,
+    "warmup_epochs": 3,
+    "scheduler": "cosine",
+    "grad_clip": 1.0,
+    "early_stopping_patience": 10,
+    "monitor": "val_macro_f1",
+    "seed": 42,
+    "deterministic": true
+  },
+  "splits": [
+    "Train",
+    "Validation",
+    "Test"
+  ],
+  "models_to_run": [
+    "majority",
+    "logreg_meanpool",
+    "gaze_only",
+    "affect_only",
+    "late_fusion",
+    "cross_attention_fusion"
+  ]
+}

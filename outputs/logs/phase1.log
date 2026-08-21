@@ -1,0 +1,237 @@
+23:11:52 | INFO    | phase1                 | Phase 1 configuration: Phase1Config(sample_fps=5.0, max_frames_per_clip=0, min_detection_confidence=0.4, use_mesh_for_pose=True, max_subject_jump_ratio=1.5, output_size=224, desired_left_eye_x=0.35, desired_eye_y=0.38, image_format='png', jpeg_quality=95, save_normalized_npy=False, norm_mean=(0.485, 0.456, 0.406), norm_std=(0.229, 0.224, 0.225), blur_var_reference=150.0, max_head_deviation_deg=60.0, max_flow_magnitude_px=8.0, eye_bbox_margin=0.25, weights=MRSWeights(blur=1.0, face_visibility=1.0, head_rotation=1.0, eye_visibility=1.0, motion_consistency=1.0), mrs_threshold=0.5, low_retention_warn_ratio=0.3, workers=1, splits=('Train', 'Validation', 'Test'), video_extensions=('.avi', '.mp4', '.mov', '.mkv', '.webm'), limit_clips=0, overwrite=True)
+23:11:52 | WARNING | phase1                 | ffmpeg is not on PATH. OpenCV's bundled decoder handles the DAiSEE AVIs, so this only matters if a clip fails to open.
+23:11:52 | INFO    | engagement_pipeline.dataset | Discovered 108 clips across 3 splits under Datasets\DAiSEE_Small\DataSet
+23:11:52 | INFO    | engagement_pipeline.dataset | Loaded 36 label rows for split Train
+23:11:52 | INFO    | engagement_pipeline.dataset | Loaded 36 label rows for split Validation
+23:11:52 | INFO    | engagement_pipeline.dataset | Loaded 36 label rows for split Test
+23:11:53 | INFO    | phase1                 | Mesh-based pose enabled (slower, more accurate yaw/pitch/roll)
+23:11:53 | INFO    | phase1                 | [1/108] Test\500044\5000441001
+23:11:54 | INFO    | phase1                 | Test/500044/5000441001: 50 sampled, 50 retained (100%), mean MRS 0.926 -> mrs_scores.parquet
+23:11:54 | INFO    | phase1                 | [2/108] Test\500044\5000441002
+23:11:55 | INFO    | phase1                 | Test/500044/5000441002: 50 sampled, 50 retained (100%), mean MRS 0.912 -> mrs_scores.parquet
+23:11:55 | INFO    | phase1                 | [3/108] Test\500044\5000441003
+23:11:56 | INFO    | phase1                 | Test/500044/5000441003: 50 sampled, 50 retained (100%), mean MRS 0.947 -> mrs_scores.parquet
+23:11:56 | INFO    | phase1                 | [4/108] Test\500044\5000441005
+23:11:58 | INFO    | phase1                 | Test/500044/5000441005: 50 sampled, 50 retained (100%), mean MRS 0.946 -> mrs_scores.parquet
+23:11:58 | INFO    | phase1                 | [5/108] Test\500044\5000441006
+23:11:59 | INFO    | phase1                 | Test/500044/5000441006: 50 sampled, 50 retained (100%), mean MRS 0.954 -> mrs_scores.parquet
+23:11:59 | INFO    | phase1                 | [6/108] Test\500044\5000441007
+23:12:00 | INFO    | phase1                 | Test/500044/5000441007: 50 sampled, 50 retained (100%), mean MRS 0.959 -> mrs_scores.parquet
+23:12:00 | INFO    | phase1                 | [7/108] Test\500044\5000441009
+23:12:01 | INFO    | phase1                 | Test/500044/5000441009: 50 sampled, 50 retained (100%), mean MRS 0.966 -> mrs_scores.parquet
+23:12:01 | INFO    | phase1                 | [8/108] Test\500044\5000441014
+23:12:03 | INFO    | phase1                 | Test/500044/5000441014: 50 sampled, 50 retained (100%), mean MRS 0.929 -> mrs_scores.parquet
+23:12:03 | INFO    | phase1                 | [9/108] Test\500044\5000441015
+23:12:04 | INFO    | phase1                 | Test/500044/5000441015: 50 sampled, 50 retained (100%), mean MRS 0.948 -> mrs_scores.parquet
+23:12:04 | INFO    | phase1                 | [10/108] Test\500044\5000441016
+23:12:05 | INFO    | phase1                 | Test/500044/5000441016: 50 sampled, 50 retained (100%), mean MRS 0.952 -> mrs_scores.parquet
+23:12:05 | INFO    | phase1                 | [11/108] Test\500044\5000441024
+23:12:06 | INFO    | phase1                 | Test/500044/5000441024: 50 sampled, 50 retained (100%), mean MRS 0.961 -> mrs_scores.parquet
+23:12:06 | INFO    | phase1                 | [12/108] Test\500044\5000441031
+23:12:08 | INFO    | phase1                 | Test/500044/5000441031: 50 sampled, 50 retained (100%), mean MRS 0.954 -> mrs_scores.parquet
+23:12:08 | INFO    | phase1                 | [13/108] Test\500044\5000441034
+23:12:09 | INFO    | phase1                 | Test/500044/5000441034: 50 sampled, 50 retained (100%), mean MRS 0.917 -> mrs_scores.parquet
+23:12:09 | INFO    | phase1                 | [14/108] Test\500044\5000441058
+23:12:10 | INFO    | phase1                 | Test/500044/5000441058: 50 sampled, 50 retained (100%), mean MRS 0.956 -> mrs_scores.parquet
+23:12:10 | INFO    | phase1                 | [15/108] Test\500067\5000671029
+23:12:12 | INFO    | phase1                 | Test/500067/5000671029: 50 sampled, 50 retained (100%), mean MRS 0.812 -> mrs_scores.parquet
+23:12:12 | INFO    | phase1                 | [16/108] Test\500095\5000952016
+23:12:13 | INFO    | phase1                 | Test/500095/5000952016: 50 sampled, 50 retained (100%), mean MRS 0.883 -> mrs_scores.parquet
+23:12:13 | INFO    | phase1                 | [17/108] Test\510009\5100091062
+23:12:14 | INFO    | phase1                 | Test/510009/5100091062: 50 sampled, 50 retained (100%), mean MRS 0.816 -> mrs_scores.parquet
+23:12:14 | INFO    | phase1                 | [18/108] Test\510034\5100342022
+23:12:16 | INFO    | phase1                 | Test/510034/5100342022: 50 sampled, 50 retained (100%), mean MRS 0.685 -> mrs_scores.parquet
+23:12:16 | INFO    | phase1                 | [19/108] Test\826412\826412010
+23:12:17 | INFO    | phase1                 | Test/826412/826412010: 50 sampled, 50 retained (100%), mean MRS 0.824 -> mrs_scores.parquet
+23:12:17 | INFO    | phase1                 | [20/108] Test\826412\8264120110
+23:12:18 | INFO    | phase1                 | Test/826412/8264120110: 50 sampled, 50 retained (100%), mean MRS 0.789 -> mrs_scores.parquet
+23:12:18 | INFO    | phase1                 | [21/108] Test\826412\8264120111
+23:12:19 | INFO    | phase1                 | Test/826412/8264120111: 50 sampled, 50 retained (100%), mean MRS 0.788 -> mrs_scores.parquet
+23:12:19 | INFO    | phase1                 | [22/108] Test\826412\8264120112
+23:12:21 | INFO    | phase1                 | Test/826412/8264120112: 50 sampled, 50 retained (100%), mean MRS 0.855 -> mrs_scores.parquet
+23:12:21 | INFO    | phase1                 | [23/108] Test\826412\8264120113
+23:12:22 | INFO    | phase1                 | Test/826412/8264120113: 50 sampled, 50 retained (100%), mean MRS 0.832 -> mrs_scores.parquet
+23:12:22 | INFO    | phase1                 | [24/108] Test\826412\8264120116
+23:12:23 | INFO    | phase1                 | Test/826412/8264120116: 50 sampled, 50 retained (100%), mean MRS 0.901 -> mrs_scores.parquet
+23:12:23 | INFO    | phase1                 | [25/108] Test\826412\8264120117
+23:12:25 | INFO    | phase1                 | Test/826412/8264120117: 50 sampled, 50 retained (100%), mean MRS 0.902 -> mrs_scores.parquet
+23:12:25 | INFO    | phase1                 | [26/108] Test\826412\8264120119
+23:12:26 | INFO    | phase1                 | Test/826412/8264120119: 50 sampled, 50 retained (100%), mean MRS 0.884 -> mrs_scores.parquet
+23:12:26 | INFO    | phase1                 | [27/108] Test\826412\8264120120
+23:12:27 | INFO    | phase1                 | Test/826412/8264120120: 50 sampled, 50 retained (100%), mean MRS 0.838 -> mrs_scores.parquet
+23:12:27 | INFO    | phase1                 | [28/108] Test\826412\8264120123
+23:12:28 | INFO    | phase1                 | Test/826412/8264120123: 50 sampled, 50 retained (100%), mean MRS 0.901 -> mrs_scores.parquet
+23:12:28 | INFO    | phase1                 | [29/108] Test\826412\8264120124
+23:12:30 | INFO    | phase1                 | Test/826412/8264120124: 50 sampled, 50 retained (100%), mean MRS 0.873 -> mrs_scores.parquet
+23:12:30 | INFO    | phase1                 | [30/108] Test\826412\8264120132
+23:12:31 | INFO    | phase1                 | Test/826412/8264120132: 50 sampled, 50 retained (100%), mean MRS 0.835 -> mrs_scores.parquet
+23:12:31 | INFO    | phase1                 | [31/108] Test\826412\8264120139
+23:12:32 | INFO    | phase1                 | Test/826412/8264120139: 50 sampled, 50 retained (100%), mean MRS 0.908 -> mrs_scores.parquet
+23:12:32 | INFO    | phase1                 | [32/108] Test\826412\8264120165
+23:12:34 | INFO    | phase1                 | Test/826412/8264120165: 50 sampled, 50 retained (100%), mean MRS 0.716 -> mrs_scores.parquet
+23:12:34 | INFO    | phase1                 | [33/108] Test\826412\8264120210
+23:12:35 | INFO    | phase1                 | Test/826412/8264120210: 50 sampled, 50 retained (100%), mean MRS 0.760 -> mrs_scores.parquet
+23:12:35 | INFO    | phase1                 | [34/108] Test\826412\8264120240
+23:12:36 | INFO    | phase1                 | Test/826412/8264120240: 50 sampled, 50 retained (100%), mean MRS 0.698 -> mrs_scores.parquet
+23:12:36 | INFO    | phase1                 | [35/108] Test\907001\9070011060
+23:12:38 | INFO    | phase1                 | Test/907001/9070011060: 53 sampled, 53 retained (100%), mean MRS 0.785 -> mrs_scores.parquet
+23:12:38 | INFO    | phase1                 | [36/108] Test\987736\9877360133
+23:12:39 | INFO    | phase1                 | Test/987736/9877360133: 50 sampled, 50 retained (100%), mean MRS 0.718 -> mrs_scores.parquet
+23:12:39 | INFO    | phase1                 | [37/108] Train\110001\1100011002
+23:12:40 | INFO    | phase1                 | Train/110001/1100011002: 50 sampled, 50 retained (100%), mean MRS 0.833 -> mrs_scores.parquet
+23:12:40 | INFO    | phase1                 | [38/108] Train\110001\1100011003
+23:12:42 | INFO    | phase1                 | Train/110001/1100011003: 50 sampled, 50 retained (100%), mean MRS 0.912 -> mrs_scores.parquet
+23:12:42 | INFO    | phase1                 | [39/108] Train\110001\1100011004
+23:12:43 | INFO    | phase1                 | Train/110001/1100011004: 50 sampled, 50 retained (100%), mean MRS 0.915 -> mrs_scores.parquet
+23:12:43 | INFO    | phase1                 | [40/108] Train\110001\1100011005
+23:12:44 | INFO    | phase1                 | Train/110001/1100011005: 50 sampled, 50 retained (100%), mean MRS 0.887 -> mrs_scores.parquet
+23:12:44 | INFO    | phase1                 | [41/108] Train\110001\1100011006
+23:12:45 | INFO    | phase1                 | Train/110001/1100011006: 50 sampled, 50 retained (100%), mean MRS 0.818 -> mrs_scores.parquet
+23:12:45 | INFO    | phase1                 | [42/108] Train\110001\1100011007
+23:12:47 | INFO    | phase1                 | Train/110001/1100011007: 50 sampled, 50 retained (100%), mean MRS 0.858 -> mrs_scores.parquet
+23:12:47 | INFO    | phase1                 | [43/108] Train\110001\1100011009
+23:12:48 | INFO    | phase1                 | Train/110001/1100011009: 50 sampled, 50 retained (100%), mean MRS 0.886 -> mrs_scores.parquet
+23:12:48 | INFO    | phase1                 | [44/108] Train\110001\1100011012
+23:12:49 | INFO    | phase1                 | Train/110001/1100011012: 50 sampled, 50 retained (100%), mean MRS 0.889 -> mrs_scores.parquet
+23:12:49 | INFO    | phase1                 | [45/108] Train\110001\1100011040
+23:12:51 | INFO    | phase1                 | Train/110001/1100011040: 50 sampled, 50 retained (100%), mean MRS 0.860 -> mrs_scores.parquet
+23:12:51 | INFO    | phase1                 | [46/108] Train\110001\1100011048
+23:12:52 | INFO    | phase1                 | Train/110001/1100011048: 50 sampled, 50 retained (100%), mean MRS 0.854 -> mrs_scores.parquet
+23:12:52 | INFO    | phase1                 | [47/108] Train\110001\1100012010
+23:12:53 | INFO    | phase1                 | Train/110001/1100012010: 50 sampled, 50 retained (100%), mean MRS 0.910 -> mrs_scores.parquet
+23:12:53 | INFO    | phase1                 | [48/108] Train\110002\1100021003
+23:12:55 | INFO    | phase1                 | Train/110002/1100021003: 50 sampled, 50 retained (100%), mean MRS 0.879 -> mrs_scores.parquet
+23:12:55 | INFO    | phase1                 | [49/108] Train\110002\1100021015
+23:12:56 | INFO    | phase1                 | Train/110002/1100021015: 50 sampled, 50 retained (100%), mean MRS 0.852 -> mrs_scores.parquet
+23:12:56 | INFO    | phase1                 | [50/108] Train\110002\1100021055
+23:12:57 | INFO    | phase1                 | Train/110002/1100021055: 50 sampled, 50 retained (100%), mean MRS 0.844 -> mrs_scores.parquet
+23:12:57 | INFO    | phase1                 | [51/108] Train\110002\1100022005
+23:12:58 | INFO    | phase1                 | Train/110002/1100022005: 50 sampled, 50 retained (100%), mean MRS 0.908 -> mrs_scores.parquet
+23:12:59 | INFO    | phase1                 | [52/108] Train\110002\1100022022
+23:13:00 | INFO    | phase1                 | Train/110002/1100022022: 50 sampled, 50 retained (100%), mean MRS 0.859 -> mrs_scores.parquet
+23:13:00 | INFO    | phase1                 | [53/108] Train\110002\1100022047
+23:13:01 | INFO    | phase1                 | Train/110002/1100022047: 50 sampled, 50 retained (100%), mean MRS 0.861 -> mrs_scores.parquet
+23:13:01 | INFO    | phase1                 | [54/108] Train\110013\1100131017
+23:13:02 | INFO    | phase1                 | Train/110013/1100131017: 50 sampled, 50 retained (100%), mean MRS 0.860 -> mrs_scores.parquet
+23:13:02 | INFO    | phase1                 | [55/108] Train\111003\1110031003
+23:13:04 | INFO    | phase1                 | Train/111003/1110031003: 50 sampled, 50 retained (100%), mean MRS 0.870 -> mrs_scores.parquet
+23:13:04 | INFO    | phase1                 | [56/108] Train\111003\1110031007
+23:13:05 | INFO    | phase1                 | Train/111003/1110031007: 50 sampled, 50 retained (100%), mean MRS 0.824 -> mrs_scores.parquet
+23:13:05 | INFO    | phase1                 | [57/108] Train\111003\1110031010
+23:13:06 | INFO    | phase1                 | Train/111003/1110031010: 50 sampled, 50 retained (100%), mean MRS 0.782 -> mrs_scores.parquet
+23:13:06 | INFO    | phase1                 | [58/108] Train\111003\1110031011
+23:13:08 | INFO    | phase1                 | Train/111003/1110031011: 50 sampled, 50 retained (100%), mean MRS 0.776 -> mrs_scores.parquet
+23:13:08 | INFO    | phase1                 | [59/108] Train\111003\1110031012
+23:13:09 | INFO    | phase1                 | Train/111003/1110031012: 50 sampled, 50 retained (100%), mean MRS 0.762 -> mrs_scores.parquet
+23:13:09 | INFO    | phase1                 | [60/108] Train\111003\1110031014
+23:13:10 | INFO    | phase1                 | Train/111003/1110031014: 50 sampled, 50 retained (100%), mean MRS 0.801 -> mrs_scores.parquet
+23:13:10 | INFO    | phase1                 | [61/108] Train\111003\1110031019
+23:13:12 | INFO    | phase1                 | Train/111003/1110031019: 50 sampled, 50 retained (100%), mean MRS 0.794 -> mrs_scores.parquet
+23:13:12 | INFO    | phase1                 | [62/108] Train\111003\1110031020
+23:13:13 | INFO    | phase1                 | Train/111003/1110031020: 50 sampled, 50 retained (100%), mean MRS 0.764 -> mrs_scores.parquet
+23:13:13 | INFO    | phase1                 | [63/108] Train\111003\1110031021
+23:13:14 | INFO    | phase1                 | Train/111003/1110031021: 50 sampled, 50 retained (100%), mean MRS 0.733 -> mrs_scores.parquet
+23:13:14 | INFO    | phase1                 | [64/108] Train\111003\1110031025
+23:13:16 | INFO    | phase1                 | Train/111003/1110031025: 50 sampled, 49 retained (98%), mean MRS 0.616 -> mrs_scores.parquet
+23:13:16 | INFO    | phase1                 | [65/108] Train\111003\1110031027
+23:13:17 | INFO    | phase1                 | Train/111003/1110031027: 50 sampled, 50 retained (100%), mean MRS 0.681 -> mrs_scores.parquet
+23:13:17 | INFO    | phase1                 | [66/108] Train\111003\1110031031
+23:13:18 | INFO    | phase1                 | Train/111003/1110031031: 50 sampled, 50 retained (100%), mean MRS 0.797 -> mrs_scores.parquet
+23:13:18 | INFO    | phase1                 | [67/108] Train\111003\1110031033
+23:13:20 | INFO    | phase1                 | Train/111003/1110031033: 50 sampled, 50 retained (100%), mean MRS 0.782 -> mrs_scores.parquet
+23:13:20 | INFO    | phase1                 | [68/108] Train\111003\1110031037
+23:13:21 | INFO    | phase1                 | Train/111003/1110031037: 50 sampled, 50 retained (100%), mean MRS 0.775 -> mrs_scores.parquet
+23:13:21 | INFO    | phase1                 | [69/108] Train\111003\1110031038
+23:13:22 | INFO    | phase1                 | Train/111003/1110031038: 50 sampled, 50 retained (100%), mean MRS 0.739 -> mrs_scores.parquet
+23:13:22 | INFO    | phase1                 | [70/108] Train\111003\1110031039
+23:13:23 | INFO    | phase1                 | Train/111003/1110031039: 50 sampled, 50 retained (100%), mean MRS 0.721 -> mrs_scores.parquet
+23:13:23 | INFO    | phase1                 | [71/108] Train\111003\1110031040
+23:13:25 | INFO    | phase1                 | Train/111003/1110031040: 50 sampled, 50 retained (100%), mean MRS 0.794 -> mrs_scores.parquet
+23:13:25 | INFO    | phase1                 | [72/108] Train\111003\1110031063
+23:13:26 | INFO    | phase1                 | Train/111003/1110031063: 50 sampled, 50 retained (100%), mean MRS 0.784 -> mrs_scores.parquet
+23:13:26 | INFO    | phase1                 | [73/108] Validation\400022\4000221001
+23:13:27 | INFO    | phase1                 | Validation/400022/4000221001: 50 sampled, 50 retained (100%), mean MRS 0.926 -> mrs_scores.parquet
+23:13:27 | INFO    | phase1                 | [74/108] Validation\400022\4000221002
+23:13:29 | INFO    | phase1                 | Validation/400022/4000221002: 50 sampled, 50 retained (100%), mean MRS 0.936 -> mrs_scores.parquet
+23:13:29 | INFO    | phase1                 | [75/108] Validation\400022\4000221006
+23:13:30 | INFO    | phase1                 | Validation/400022/4000221006: 50 sampled, 50 retained (100%), mean MRS 0.933 -> mrs_scores.parquet
+23:13:30 | INFO    | phase1                 | [76/108] Validation\400022\4000221008
+23:13:31 | INFO    | phase1                 | Validation/400022/4000221008: 50 sampled, 50 retained (100%), mean MRS 0.871 -> mrs_scores.parquet
+23:13:31 | INFO    | phase1                 | [77/108] Validation\400022\4000221009
+23:13:33 | INFO    | phase1                 | Validation/400022/4000221009: 50 sampled, 50 retained (100%), mean MRS 0.898 -> mrs_scores.parquet
+23:13:33 | INFO    | phase1                 | [78/108] Validation\400022\4000221010
+23:13:34 | INFO    | phase1                 | Validation/400022/4000221010: 50 sampled, 50 retained (100%), mean MRS 0.906 -> mrs_scores.parquet
+23:13:34 | INFO    | phase1                 | [79/108] Validation\400022\4000221011
+23:13:35 | INFO    | phase1                 | Validation/400022/4000221011: 50 sampled, 50 retained (100%), mean MRS 0.920 -> mrs_scores.parquet
+23:13:35 | INFO    | phase1                 | [80/108] Validation\400022\4000221013
+23:13:36 | INFO    | phase1                 | Validation/400022/4000221013: 50 sampled, 50 retained (100%), mean MRS 0.922 -> mrs_scores.parquet
+23:13:36 | INFO    | phase1                 | [81/108] Validation\400022\4000221014
+23:13:38 | INFO    | phase1                 | Validation/400022/4000221014: 50 sampled, 50 retained (100%), mean MRS 0.907 -> mrs_scores.parquet
+23:13:38 | INFO    | phase1                 | [82/108] Validation\400022\4000221015
+23:13:39 | INFO    | phase1                 | Validation/400022/4000221015: 50 sampled, 50 retained (100%), mean MRS 0.913 -> mrs_scores.parquet
+23:13:39 | INFO    | phase1                 | [83/108] Validation\400022\4000221016
+23:13:40 | INFO    | phase1                 | Validation/400022/4000221016: 50 sampled, 50 retained (100%), mean MRS 0.915 -> mrs_scores.parquet
+23:13:40 | INFO    | phase1                 | [84/108] Validation\400022\4000221040
+23:13:42 | INFO    | phase1                 | Validation/400022/4000221040: 50 sampled, 50 retained (100%), mean MRS 0.869 -> mrs_scores.parquet
+23:13:42 | INFO    | phase1                 | [85/108] Validation\400022\4000221042
+23:13:43 | INFO    | phase1                 | Validation/400022/4000221042: 50 sampled, 50 retained (100%), mean MRS 0.898 -> mrs_scores.parquet
+23:13:43 | INFO    | phase1                 | [86/108] Validation\400022\4000222031
+23:13:44 | INFO    | phase1                 | Validation/400022/4000222031: 50 sampled, 50 retained (100%), mean MRS 0.856 -> mrs_scores.parquet
+23:13:44 | INFO    | phase1                 | [87/108] Validation\400022\4000222032
+23:13:45 | INFO    | phase1                 | Validation/400022/4000222032: 50 sampled, 50 retained (100%), mean MRS 0.857 -> mrs_scores.parquet
+23:13:45 | INFO    | phase1                 | [88/108] Validation\400022\4000222068
+23:13:47 | INFO    | phase1                 | Validation/400022/4000222068: 50 sampled, 50 retained (100%), mean MRS 0.860 -> mrs_scores.parquet
+23:13:47 | INFO    | phase1                 | [89/108] Validation\410019\4100191012
+23:13:48 | INFO    | phase1                 | Validation/410019/4100191012: 50 sampled, 50 retained (100%), mean MRS 0.880 -> mrs_scores.parquet
+23:13:48 | INFO    | phase1                 | [90/108] Validation\410019\4100192029
+23:13:49 | INFO    | phase1                 | Validation/410019/4100192029: 50 sampled, 50 retained (100%), mean MRS 0.899 -> mrs_scores.parquet
+23:13:49 | INFO    | phase1                 | [91/108] Validation\556463\5564630110
+23:13:51 | INFO    | phase1                 | Validation/556463/5564630110: 50 sampled, 50 retained (100%), mean MRS 0.869 -> mrs_scores.parquet
+23:13:51 | INFO    | phase1                 | [92/108] Validation\556463\5564630112
+23:13:52 | INFO    | phase1                 | Validation/556463/5564630112: 50 sampled, 50 retained (100%), mean MRS 0.895 -> mrs_scores.parquet
+23:13:52 | INFO    | phase1                 | [93/108] Validation\556463\5564630115
+23:13:53 | INFO    | phase1                 | Validation/556463/5564630115: 50 sampled, 50 retained (100%), mean MRS 0.846 -> mrs_scores.parquet
+23:13:53 | INFO    | phase1                 | [94/108] Validation\556463\5564630117
+23:13:54 | INFO    | phase1                 | Validation/556463/5564630117: 50 sampled, 50 retained (100%), mean MRS 0.907 -> mrs_scores.parquet
+23:13:54 | INFO    | phase1                 | [95/108] Validation\556463\556463012
+23:13:56 | INFO    | phase1                 | Validation/556463/556463012: 50 sampled, 50 retained (100%), mean MRS 0.893 -> mrs_scores.parquet
+23:13:56 | INFO    | phase1                 | [96/108] Validation\556463\5564630121
+23:13:57 | INFO    | phase1                 | Validation/556463/5564630121: 50 sampled, 50 retained (100%), mean MRS 0.910 -> mrs_scores.parquet
+23:13:57 | INFO    | phase1                 | [97/108] Validation\556463\5564630122
+23:13:58 | INFO    | phase1                 | Validation/556463/5564630122: 50 sampled, 50 retained (100%), mean MRS 0.843 -> mrs_scores.parquet
+23:13:58 | INFO    | phase1                 | [98/108] Validation\556463\5564630123
+23:14:00 | INFO    | phase1                 | Validation/556463/5564630123: 50 sampled, 50 retained (100%), mean MRS 0.804 -> mrs_scores.parquet
+23:14:00 | INFO    | phase1                 | [99/108] Validation\556463\5564630126
+23:14:01 | INFO    | phase1                 | Validation/556463/5564630126: 50 sampled, 50 retained (100%), mean MRS 0.793 -> mrs_scores.parquet
+23:14:01 | INFO    | phase1                 | [100/108] Validation\556463\5564630127
+23:14:02 | INFO    | phase1                 | Validation/556463/5564630127: 50 sampled, 50 retained (100%), mean MRS 0.872 -> mrs_scores.parquet
+23:14:02 | INFO    | phase1                 | [101/108] Validation\556463\5564630128
+23:14:03 | INFO    | phase1                 | Validation/556463/5564630128: 50 sampled, 50 retained (100%), mean MRS 0.893 -> mrs_scores.parquet
+23:14:03 | INFO    | phase1                 | [102/108] Validation\556463\5564630130
+23:14:05 | INFO    | phase1                 | Validation/556463/5564630130: 50 sampled, 50 retained (100%), mean MRS 0.866 -> mrs_scores.parquet
+23:14:05 | INFO    | phase1                 | [103/108] Validation\556463\5564630132
+23:14:06 | INFO    | phase1                 | Validation/556463/5564630132: 50 sampled, 50 retained (100%), mean MRS 0.879 -> mrs_scores.parquet
+23:14:06 | INFO    | phase1                 | [104/108] Validation\556463\5564630163
+23:14:07 | INFO    | phase1                 | Validation/556463/5564630163: 50 sampled, 50 retained (100%), mean MRS 0.810 -> mrs_scores.parquet
+23:14:07 | INFO    | phase1                 | [105/108] Validation\556463\5564630211
+23:14:09 | INFO    | phase1                 | Validation/556463/5564630211: 50 sampled, 50 retained (100%), mean MRS 0.814 -> mrs_scores.parquet
+23:14:09 | INFO    | phase1                 | [106/108] Validation\556463\5564630233
+23:14:10 | INFO    | phase1                 | Validation/556463/5564630233: 50 sampled, 50 retained (100%), mean MRS 0.835 -> mrs_scores.parquet
+23:14:10 | INFO    | phase1                 | [107/108] Validation\567496\5674960225
+23:14:11 | INFO    | phase1                 | Validation/567496/5674960225: 50 sampled, 50 retained (100%), mean MRS 0.885 -> mrs_scores.parquet
+23:14:11 | INFO    | phase1                 | [108/108] Validation\567496\5674960234
+23:14:13 | INFO    | phase1                 | Validation/567496/5674960234: 50 sampled, 50 retained (100%), mean MRS 0.868 -> mrs_scores.parquet
+23:14:13 | INFO    | phase1                 | Manifest written: outputs\phase1_manifest.csv
+23:14:13 | INFO    | phase1                 | No clips flagged; warnings log written empty: outputs\logs\phase1_warnings.csv
+23:14:13 | INFO    | phase1                 | ==============================================================================
+23:14:13 | INFO    | phase1                 | PHASE 1 SUMMARY
+23:14:13 | INFO    | phase1                 |   clips processed        : 108
+23:14:13 | INFO    | phase1                 |   clips ok               : 108
+23:14:13 | INFO    | phase1                 |   frames sampled (total) : 5403
+23:14:13 | INFO    | phase1                 |   frames retained (total): 5402
+23:14:13 | INFO    | phase1                 |   overall retention      : 100.0%
+23:14:13 | INFO    | phase1                 |   mean per-clip MRS      : 0.855
+23:14:13 | INFO    | phase1                 |   Test       : 36 clips, 1803/1803 frames retained (100.0%), mean MRS 0.868
+23:14:13 | INFO    | phase1                 |   Train      : 36 clips, 1799/1800 frames retained (99.9%), mean MRS 0.819
+23:14:13 | INFO    | phase1                 |   Validation : 36 clips, 1800/1800 frames retained (100.0%), mean MRS 0.879
+23:14:13 | INFO    | phase1                 | ==============================================================================

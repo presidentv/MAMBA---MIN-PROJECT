@@ -1,0 +1,15 @@
+{
+  "min_face_detection_confidence": 0.3,
+  "min_face_presence_confidence": 0.3,
+  "min_tracking_confidence": 0.3,
+  "output_blendshapes": false,
+  "track_break_threshold": 0.08,
+  "workers": 1,
+  "splits": [
+    "Train",
+    "Validation",
+    "Test"
+  ],
+  "limit_clips": 0,
+  "overwrite": true
+}

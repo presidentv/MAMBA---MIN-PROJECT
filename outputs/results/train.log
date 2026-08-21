@@ -1,0 +1,120 @@
+23:37:22 | INFO    | train      | Device: cpu | loss: coral | affect features: probs
+23:37:25 | INFO    | datasets   | Loaded 108 clips (gaze dim 21, affect dim 8)
+23:37:25 | INFO    | datasets   | Split integrity OK: 16 subjects, none shared across splits
+23:37:25 | INFO    | train      | Feature dims -- gaze: 21, affect: 8
+23:37:25 | INFO    | train      | Clips per split: {'Train': 36, 'Validation': 36, 'Test': 36}
+23:37:25 | INFO    | train      | Class distribution (Engagement):
+            class_0  class_1  class_2  class_3  total
+split                                                
+Train             4        6       16       10     36
+Validation        4        4       17       11     36
+Test              3        5       19        9     36
+23:37:25 | WARNING | train      | SMALL-SAMPLE: Train: class 0 has only 4 clip(s) -- its per-class F1 is not statistically meaningful.
+23:37:25 | WARNING | train      | SMALL-SAMPLE: Validation: class 0 has only 4 clip(s) -- its per-class F1 is not statistically meaningful.
+23:37:25 | WARNING | train      | SMALL-SAMPLE: Validation: class 1 has only 4 clip(s) -- its per-class F1 is not statistically meaningful.
+23:37:25 | WARNING | train      | SMALL-SAMPLE: Test: class 0 has only 3 clip(s) -- its per-class F1 is not statistically meaningful.
+23:37:25 | WARNING | train      | 4 small-class warning(s). Treat every per-class number below as indicative only -- this is a smoke test on a sample, not a result.
+23:37:25 | INFO    | train      | ==============================================================================
+23:37:25 | INFO    | train      | MODEL: majority
+23:37:25 | INFO    | baselines  | Majority baseline predicts class 2 for everything
+23:37:25 | INFO    | train      |   Train       macro-F1 0.154 | acc 0.444 | QWK 0.000 | MAE 0.67
+23:37:25 | INFO    | train      |   Validation  macro-F1 0.160 | acc 0.472 | QWK 0.000 | MAE 0.64
+23:37:25 | INFO    | train      |   Test        macro-F1 0.173 | acc 0.528 | QWK 0.000 | MAE 0.56
+23:37:25 | INFO    | train      |   Test confusion matrix:
+        pred   0pred   1pred   2pred   3
+        --------------------------------
+true  0 |       0       0       3       0
+true  1 |       0       0       5       0
+true  2 |       0       0      19       0
+true  3 |       0       0       9       0
+23:37:25 | INFO    | train      | ==============================================================================
+23:37:25 | INFO    | train      | MODEL: logreg_meanpool
+23:37:25 | INFO    | baselines  | Logistic regression on mean-pooled features: X=(36, 29)
+23:37:25 | INFO    | train      |   Train       macro-F1 0.772 | acc 0.750 | QWK 0.761 | MAE 0.31
+23:37:25 | INFO    | train      |   Validation  macro-F1 0.222 | acc 0.306 | QWK -0.118 | MAE 1.06
+23:37:25 | INFO    | train      |   Test        macro-F1 0.349 | acc 0.306 | QWK 0.201 | MAE 0.94
+23:37:25 | INFO    | train      |   Test confusion matrix:
+        pred   0pred   1pred   2pred   3
+        --------------------------------
+true  0 |       2       0       1       0
+true  1 |       0       2       1       2
+true  2 |       1       6       3       9
+true  3 |       1       3       1       4
+23:37:25 | INFO    | train      | ==============================================================================
+23:37:25 | INFO    | train      | MODEL: gaze_only
+23:37:25 | INFO    | train      | [gaze_only] 268163 trainable parameters
+23:37:25 | INFO    | train      | [gaze_only] epoch  0  train loss 1.5918 f1 0.229 | val loss 1.3955 f1 0.156 acc 0.250
+23:37:26 | INFO    | train      | [gaze_only] epoch  5  train loss 1.1988 f1 0.329 | val loss 1.5231 f1 0.415 acc 0.500
+23:37:26 | INFO    | train      | [gaze_only] epoch 10  train loss 0.9621 f1 0.394 | val loss 1.9821 f1 0.231 acc 0.278
+23:37:27 | INFO    | train      | [gaze_only] epoch 15  train loss 0.8975 f1 0.446 | val loss 2.3022 f1 0.237 acc 0.306
+23:37:27 | INFO    | train      | [gaze_only] early stopping at epoch 15 (best 5)
+23:37:27 | INFO    | train      |   Train       macro-F1 0.377 | acc 0.389 | QWK 0.532 | MAE 0.75
+23:37:27 | INFO    | train      |   Validation  macro-F1 0.415 | acc 0.500 | QWK 0.202 | MAE 0.81
+23:37:27 | INFO    | train      |   Test        macro-F1 0.320 | acc 0.417 | QWK 0.152 | MAE 0.83
+23:37:27 | INFO    | train      |   Test confusion matrix:
+        pred   0pred   1pred   2pred   3
+        --------------------------------
+true  0 |       1       1       0       1
+true  1 |       0       0       2       3
+true  2 |       1       0       8      10
+true  3 |       1       1       1       6
+23:37:27 | INFO    | train      | ==============================================================================
+23:37:27 | INFO    | train      | MODEL: affect_only
+23:37:27 | INFO    | train      | [affect_only] 266499 trainable parameters
+23:37:27 | INFO    | train      | [affect_only] epoch  0  train loss 1.4325 f1 0.228 | val loss 1.4733 f1 0.087 acc 0.139
+23:37:27 | INFO    | train      | [affect_only] epoch  5  train loss 1.0383 f1 0.491 | val loss 2.0700 f1 0.119 acc 0.167
+23:37:28 | INFO    | train      | [affect_only] epoch 10  train loss 1.0225 f1 0.392 | val loss 2.5316 f1 0.117 acc 0.167
+23:37:28 | INFO    | train      | [affect_only] epoch 15  train loss 0.8602 f1 0.524 | val loss 2.9960 f1 0.139 acc 0.194
+23:37:29 | INFO    | train      | [affect_only] epoch 20  train loss 0.7095 f1 0.630 | val loss 3.2645 f1 0.149 acc 0.222
+23:37:29 | INFO    | train      | [affect_only] early stopping at epoch 23 (best 13)
+23:37:29 | INFO    | train      |   Train       macro-F1 0.437 | acc 0.417 | QWK 0.660 | MAE 0.67
+23:37:29 | INFO    | train      |   Validation  macro-F1 0.335 | acc 0.333 | QWK -0.046 | MAE 1.19
+23:37:29 | INFO    | train      |   Test        macro-F1 0.087 | acc 0.111 | QWK 0.011 | MAE 1.53
+23:37:29 | INFO    | train      |   Test confusion matrix:
+        pred   0pred   1pred   2pred   3
+        --------------------------------
+true  0 |       2       1       0       0
+true  1 |       3       0       0       2
+true  2 |       7       1       0      11
+true  3 |       7       0       0       2
+23:37:29 | INFO    | train      | ==============================================================================
+23:37:29 | INFO    | train      | MODEL: late_fusion
+23:37:29 | INFO    | train      |   Train       macro-F1 0.134 | acc 0.222 | QWK -0.019 | MAE 1.39
+23:37:29 | INFO    | train      |   Validation  macro-F1 0.157 | acc 0.278 | QWK 0.048 | MAE 1.22
+23:37:29 | INFO    | train      |   Test        macro-F1 0.126 | acc 0.167 | QWK 0.100 | MAE 1.42
+23:37:29 | INFO    | train      |   Test confusion matrix:
+        pred   0pred   1pred   2pred   3
+        --------------------------------
+true  0 |       3       0       0       0
+true  1 |       3       0       0       2
+true  2 |       7       0       0      12
+true  3 |       6       0       0       3
+23:37:29 | INFO    | train      | ==============================================================================
+23:37:29 | INFO    | train      | MODEL: cross_attention_fusion
+23:37:29 | INFO    | train      | [cross_attention_fusion] 667267 trainable parameters
+23:37:30 | INFO    | train      | [cross_attention_fusion] epoch  0  train loss 1.4098 f1 0.205 | val loss 1.4677 f1 0.176 acc 0.361
+23:37:31 | INFO    | train      | [cross_attention_fusion] epoch  5  train loss 1.0164 f1 0.527 | val loss 1.8661 f1 0.178 acc 0.222
+23:37:32 | INFO    | train      | [cross_attention_fusion] epoch 10  train loss 0.7563 f1 0.554 | val loss 2.4924 f1 0.214 acc 0.278
+23:37:33 | INFO    | train      | [cross_attention_fusion] epoch 15  train loss 0.6598 f1 0.638 | val loss 2.9645 f1 0.170 acc 0.250
+23:37:34 | INFO    | train      | [cross_attention_fusion] epoch 20  train loss 0.5826 f1 0.554 | val loss 3.0755 f1 0.169 acc 0.250
+23:37:34 | INFO    | train      | [cross_attention_fusion] early stopping at epoch 20 (best 10)
+23:37:35 | INFO    | train      |   Train       macro-F1 0.408 | acc 0.444 | QWK 0.717 | MAE 0.61
+23:37:35 | INFO    | train      |   Validation  macro-F1 0.214 | acc 0.278 | QWK 0.081 | MAE 1.22
+23:37:35 | INFO    | train      |   Test        macro-F1 0.181 | acc 0.167 | QWK 0.135 | MAE 1.31
+23:37:35 | INFO    | train      |   Test confusion matrix:
+        pred   0pred   1pred   2pred   3
+        --------------------------------
+true  0 |       3       0       0       0
+true  1 |       2       1       0       2
+true  2 |       6       2       0      11
+true  3 |       4       1       2       2
+23:37:35 | INFO    | train      | ==============================================================================
+23:37:35 | INFO    | train      | FINAL TEST-SPLIT COMPARISON (macro-F1 is the headline, not accuracy)
+23:37:35 | INFO    | train      |   model                       macro-F1  accuracy       QWK
+23:37:35 | INFO    | train      |   logreg_meanpool                0.349     0.306     0.201
+23:37:35 | INFO    | train      |   gaze_only                      0.320     0.417     0.152
+23:37:35 | INFO    | train      |   cross_attention_fusion         0.181     0.167     0.135
+23:37:35 | INFO    | train      |   majority                       0.173     0.528     0.000
+23:37:35 | INFO    | train      |   late_fusion                    0.126     0.167     0.100
+23:37:35 | INFO    | train      |   affect_only                    0.087     0.111     0.011
+23:37:35 | INFO    | train      | Results written to outputs\results\results.json and outputs\results\results.csv
