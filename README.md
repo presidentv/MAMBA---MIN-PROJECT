@@ -15,6 +15,10 @@ walking the directory tree.
 > across 4 ordinal classes, they demonstrate that the pipeline runs correctly on
 > real data. They do not demonstrate that the model works. See [Results](#results).
 
+📄 **Start here: [`MODEL_AND_LIMITATIONS.md`](MODEL_AND_LIMITATIONS.md)** — how the
+model works stage by stage, and a full account of its shortcomings. It is the
+single reference for understanding and for writing this up.
+
 ---
 
 ## The seven phases

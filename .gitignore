@@ -53,14 +53,12 @@ models/
 .hsemotion/
 
 # ---------------------------------------------------------------------------
-# Documents kept out of version control
+# Documents
 # ---------------------------------------------------------------------------
-# Third-party copyrighted papers
-*.pdf
-# Personal project notes and academic deliverables
-memory.md
-*.docx
-*.pptx
+# The project specification, academic deliverables and working notes ARE
+# tracked -- they are the author's own work and this is a private repository.
+# Nothing is excluded here; the block is kept as the place to add exclusions if
+# a third-party copyrighted document is ever dropped into the tree.
 
 # ---------------------------------------------------------------------------
 # OS / editor
