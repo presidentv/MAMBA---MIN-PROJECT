@@ -17,6 +17,9 @@ walking the directory tree.
 
 **Two places to start, depending on what you need:**
 
+- [`docs/architecture.html`](docs/architecture.html) — the architecture diagram, with
+  tensor shapes at every boundary and the Mamba block internals. For the report and
+  the review slides.
 - [`docs/how_it_works.html`](docs/how_it_works.html) — the whole pipeline in plain
   language, with diagrams. Open it in a browser. Best if you want to *understand*
   or explain the system out loud.

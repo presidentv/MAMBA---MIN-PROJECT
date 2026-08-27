@@ -69,3 +69,6 @@ desktop.ini
 .vscode/
 .idea/
 *.swp
+
+# Office lock files (created while a document is open)
+~$*

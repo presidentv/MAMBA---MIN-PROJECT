@@ -1,0 +1,314 @@
+<title>MRG-VM Architecture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Karla:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap">
+
+<style>
+  :root {
+    --paper:#F2F3F7; --surface:#FFFFFF; --ink:#191C26; --ink-soft:#3D4252;
+    --slate:#6E7488; --rule:#D3D7E2; --amber:#B9721A; --amber-bg:#FBEFDC;
+    --teal:#2F8A82; --teal-bg:#DDEEEC; --rose:#BF5347;
+    --display:"Fraunces",Georgia,serif;
+    --body:"Karla","Helvetica Neue",Arial,sans-serif;
+    --mono:"JetBrains Mono",Consolas,monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:#12141B; --surface:#1A1D27; --ink:#EDEEF3; --ink-soft:#C2C6D4;
+      --slate:#949AAE; --rule:#333848; --amber:#E8A94A; --amber-bg:#2E2415;
+      --teal:#5FBDB3; --teal-bg:#172A28; --rose:#E08279;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:#12141B; --surface:#1A1D27; --ink:#EDEEF3; --ink-soft:#C2C6D4;
+    --slate:#949AAE; --rule:#333848; --amber:#E8A94A; --amber-bg:#2E2415;
+    --teal:#5FBDB3; --teal-bg:#172A28; --rose:#E08279;
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);
+       font-size:1.02rem;line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{width:min(100% - 2.5rem,80rem);margin-inline:auto;padding:clamp(2rem,5vw,3.5rem) 0}
+  .eyebrow{font-family:var(--mono);font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;
+           color:var(--amber);margin:0 0 .9rem}
+  h1{font-family:var(--display);font-weight:600;font-size:clamp(2rem,5vw,3.1rem);line-height:1.05;
+     letter-spacing:-.02em;margin:0 0 .9rem;text-wrap:balance}
+  .sub{color:var(--ink-soft);max-width:62ch;margin:0 0 2.5rem;font-size:1.1rem}
+  h2{font-family:var(--display);font-weight:600;font-size:1.55rem;line-height:1.2;
+     margin:3rem 0 .5rem;letter-spacing:-.01em}
+  h2:first-of-type{margin-top:2rem}
+  p{margin:0 0 1rem;max-width:66ch}
+  figure{margin:1.25rem 0 0;padding:1.4rem;background:var(--surface);border:1px solid var(--rule);
+         border-radius:4px;overflow-x:auto}
+  figure svg{display:block;max-width:100%;height:auto;color:var(--ink)}
+  figcaption{margin-top:1rem;padding-top:.8rem;border-top:1px solid var(--rule);
+             font-size:.86rem;color:var(--slate);line-height:1.5}
+  .tbl{overflow-x:auto;margin:1.25rem 0}
+  table{border-collapse:collapse;width:100%;font-size:.88rem}
+  th,td{text-align:left;padding:.6rem .85rem;border-bottom:1px solid var(--rule);vertical-align:top}
+  th{font-family:var(--mono);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+     color:var(--slate);font-weight:600;border-bottom:1px solid var(--ink)}
+  td.n{font-variant-numeric:tabular-nums;text-align:right}
+  code{font-family:var(--mono);font-size:.9em}
+  .note{background:var(--amber-bg);border-left:3px solid var(--amber);border-radius:3px;
+        padding:.9rem 1.1rem;margin:1.25rem 0;font-size:.9rem;color:var(--ink-soft);max-width:66ch}
+  :focus-visible{outline:2px solid var(--amber);outline-offset:3px}
+</style>
+
+<div class="wrap">
+  <p class="eyebrow">Motion Reliability Guided Vision Mamba</p>
+  <h1>Architecture</h1>
+  <p class="sub">
+    Every stage from raw video to a four-level engagement score, with tensor shapes at each
+    boundary. <code>T</code> is the number of frames that survive reliability gating — up to 50.
+  </p>
+
+  <h2>Full pipeline</h2>
+  <figure>
+    <svg viewBox="0 0 1180 520" role="img" aria-label="Full MRG-VM architecture: video is sampled and gated by the Motion Reliability Score, producing aligned crops, a per-frame reliability vector, and 478 landmarks. Crops go through patch embedding and spatial then temporal Mamba encoders; landmarks become 32 geometric features pooled four ways. Both streams meet at a gated fusion and an MLP head that outputs four logits.">
+      <defs>
+        <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="currentColor"/>
+        </marker>
+        <marker id="a1r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="#BF5347"/>
+        </marker>
+        <marker id="a1a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="#B9721A"/>
+        </marker>
+      </defs>
+      <g font-family="Karla, sans-serif" font-size="12">
+
+        <!-- PHASE 1 -->
+        <text x="14" y="20" font-family="JetBrains Mono, monospace" font-size="10.5" letter-spacing="1.3" fill="#B9721A">PHASE 1 · PREPROCESSING + MRS</text>
+        <rect x="14" y="30" width="286" height="150" rx="4" fill="none" stroke="currentColor" opacity="0.28" stroke-dasharray="3 3"/>
+
+        <rect x="28" y="48" width="112" height="52" rx="3" fill="none" stroke="currentColor" stroke-width="1.4"/>
+        <text x="84" y="70" text-anchor="middle" font-weight="700">Video</text>
+        <text x="84" y="86" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="currentColor" opacity="0.62">640×480 @30</text>
+
+        <line x1="144" y1="74" x2="170" y2="74" stroke="currentColor" stroke-width="1.3" marker-end="url(#a1)"/>
+
+        <rect x="174" y="48" width="112" height="52" rx="3" fill="none" stroke="currentColor" stroke-width="1.4"/>
+        <text x="230" y="70" text-anchor="middle" font-weight="700">Sample 5 fps</text>
+        <text x="230" y="86" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="currentColor" opacity="0.62">≈50 frames</text>
+
+        <path d="M230 104 L230 118" stroke="currentColor" stroke-width="1.3" marker-end="url(#a1)"/>
+
+        <rect x="120" y="122" width="166" height="46" rx="3" fill="#FBEFDC" stroke="#B9721A" stroke-width="1.7"/>
+        <text x="203" y="141" text-anchor="middle" font-weight="700" fill="#7A4A10">detect · track · align</text>
+        <text x="203" y="157" text-anchor="middle" font-size="10.5" fill="#C98A2E">MRS gate</text>
+
+        <path d="M120 145 L86 145 L86 172" stroke="#BF5347" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#a1r)"/>
+        <text x="86" y="188" text-anchor="middle" font-size="10" fill="#D06B60">binned</text>
+
+        <!-- outputs of phase 1 -->
+        <path d="M286 145 L318 145 L318 96 L344 96" fill="none" stroke="currentColor" stroke-width="1.3" marker-end="url(#a1)"/>
+        <path d="M286 145 L318 145 L318 200 L344 200" fill="none" stroke="#B9721A" stroke-width="1.5" marker-end="url(#a1a)"/>
+        <path d="M286 145 L318 145 L318 304 L344 304" fill="none" stroke="currentColor" stroke-width="1.3" marker-end="url(#a1)"/>
+
+        <rect x="348" y="70" width="150" height="52" rx="3" fill="none" stroke="currentColor" stroke-width="1.4"/>
+        <text x="423" y="90" text-anchor="middle" font-weight="700">Aligned crops</text>
+        <text x="423" y="108" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="currentColor" opacity="0.62">(T,3,112,112)</text>
+
+        <rect x="348" y="176" width="150" height="48" rx="3" fill="#FBEFDC" stroke="#B9721A" stroke-width="1.7"/>
+        <text x="423" y="196" text-anchor="middle" font-weight="700" fill="#7A4A10">Reliability</text>
+        <text x="423" y="213" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#C98A2E">(T,)</text>
+
+        <!-- PHASE 2 -->
+        <text x="348" y="262" font-family="JetBrains Mono, monospace" font-size="10.5" letter-spacing="1.3" fill="#B9721A">PHASE 2</text>
+        <rect x="348" y="278" width="150" height="52" rx="3" fill="none" stroke="currentColor" stroke-width="1.4"/>
+        <text x="423" y="298" text-anchor="middle" font-weight="700">Face mesh</text>
+        <text x="423" y="316" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="currentColor" opacity="0.62">(T,478,3)</text>
+
+        <!-- PHASE 3 -->
+        <text x="546" y="20" font-family="JetBrains Mono, monospace" font-size="10.5" letter-spacing="1.3" fill="#B9721A">PHASE 3 · MRG-VM</text>
+        <rect x="546" y="30" width="286" height="176" rx="4" fill="none" stroke="currentColor" opacity="0.28" stroke-dasharray="3 3"/>
+
+        <line x1="502" y1="96" x2="558" y2="96" stroke="currentColor" stroke-width="1.3" marker-end="url(#a1)"/>
+
+        <rect x="562" y="44" width="254" height="42" rx="3" fill="none" stroke="currentColor" stroke-width="1.4"/>
+        <text x="689" y="61" text-anchor="middle" font-weight="700">PatchEmbed 16×16</text>
+        <text x="689" y="77" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="currentColor" opacity="0.62">(T,49,128) + pos</text>
+
+        <path d="M689 90 L689 102" stroke="currentColor" stroke-width="1.3" marker-end="url(#a1)"/>
+
+        <rect x="562" y="106" width="254" height="40" rx="3" fill="none" stroke="currentColor" stroke-width="1.4"/>
+        <text x="689" y="123" text-anchor="middle" font-weight="700">Bi-Mamba ×2 · spatial</text>
+        <text x="689" y="138" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="currentColor" opacity="0.62">pool → (T,128)</text>
+
+        <path d="M689 150 L689 162" stroke="currentColor" stroke-width="1.3" marker-end="url(#a1)"/>
+
+        <rect x="562" y="166" width="254" height="40" rx="3" fill="#FBEFDC" stroke="#B9721A" stroke-width="1.7"/>
+        <text x="689" y="183" text-anchor="middle" font-weight="700" fill="#7A4A10">Bi-Mamba ×2 · temporal</text>
+        <text x="689" y="198" text-anchor="middle" font-size="10" fill="#C98A2E">dt ← MRS · weighted pool</text>
+
+        <!-- MRS into temporal -->
+        <path d="M498 200 L530 200 L530 186 L556 186" fill="none" stroke="#B9721A" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#a1a)"/>
+
+        <!-- geometric branch -->
+        <line x1="502" y1="304" x2="558" y2="304" stroke="currentColor" stroke-width="1.3" marker-end="url(#a1)"/>
+        <rect x="562" y="252" width="254" height="42" rx="3" fill="none" stroke="currentColor" stroke-width="1.4"/>
+        <text x="689" y="269" text-anchor="middle" font-weight="700">32 geometric features</text>
+        <text x="689" y="285" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="currentColor" opacity="0.62">(T,32)</text>
+        <path d="M689 246 L689 252" stroke="currentColor" stroke-width="1.3"/>
+        <path d="M562 304 L562 273" fill="none" stroke="currentColor" stroke-width="1.3"/>
+
+        <rect x="562" y="312" width="254" height="42" rx="3" fill="none" stroke="currentColor" stroke-width="1.4"/>
+        <text x="689" y="329" text-anchor="middle" font-weight="700">pool mean·std·min·max</text>
+        <text x="689" y="345" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="currentColor" opacity="0.62">(128,)</text>
+        <path d="M689 298 L689 310" stroke="currentColor" stroke-width="1.3" marker-end="url(#a1)"/>
+
+        <!-- PHASE 4 -->
+        <text x="874" y="20" font-family="JetBrains Mono, monospace" font-size="10.5" letter-spacing="1.3" fill="#B9721A">PHASE 4 · 5</text>
+        <rect x="874" y="30" width="290" height="330" rx="4" fill="none" stroke="currentColor" opacity="0.28" stroke-dasharray="3 3"/>
+
+        <path d="M820 186 L846 186 L846 176 L888 176" fill="none" stroke="currentColor" stroke-width="1.3" marker-end="url(#a1)"/>
+        <path d="M820 333 L846 333 L846 216 L888 216" fill="none" stroke="currentColor" stroke-width="1.3" marker-end="url(#a1)"/>
+        <text x="866" y="168" font-size="10" fill="currentColor" opacity="0.62">(128,)</text>
+        <text x="866" y="234" font-size="10" fill="currentColor" opacity="0.62">(128,)</text>
+
+        <rect x="892" y="152" width="254" height="88" rx="3" fill="#FBEFDC" stroke="#B9721A" stroke-width="1.7"/>
+        <text x="1019" y="176" text-anchor="middle" font-weight="700" fill="#7A4A10">Adaptive gated fusion</text>
+        <text x="1019" y="196" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#7A4A10">g·m + (1−g)·q</text>
+        <text x="1019" y="214" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#7A4A10">‖ m⊙q</text>
+        <text x="1019" y="231" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#C98A2E">(256,)</text>
+
+        <path d="M1019 244 L1019 262" stroke="currentColor" stroke-width="1.3" marker-end="url(#a1)"/>
+
+        <rect x="892" y="266" width="254" height="46" rx="3" fill="none" stroke="currentColor" stroke-width="1.4"/>
+        <text x="1019" y="285" text-anchor="middle" font-weight="700">MLP 128 → 64</text>
+        <text x="1019" y="302" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="currentColor" opacity="0.62">LayerNorm · GELU · dropout</text>
+
+        <path d="M1019 316 L1019 330" stroke="currentColor" stroke-width="1.3" marker-end="url(#a1)"/>
+
+        <rect x="944" y="334" width="150" height="44" rx="3" fill="#DDEEEC" stroke="#2F8A82" stroke-width="1.7"/>
+        <text x="1019" y="353" text-anchor="middle" font-weight="700" fill="#1F6660">Engagement</text>
+        <text x="1019" y="369" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#3E9C93">(4,) logits</text>
+
+        <!-- phase 6/7 taps -->
+        <path d="M1019 380 L1019 404 L906 404" fill="none" stroke="currentColor" stroke-width="1.1" opacity="0.5" marker-end="url(#a1)"/>
+        <rect x="742" y="386" width="160" height="36" rx="3" fill="none" stroke="currentColor" stroke-width="1.1" opacity="0.65"/>
+        <text x="822" y="409" text-anchor="middle" font-size="11" opacity="0.75">Phase 7 · SHAP</text>
+
+        <path d="M892 196 L868 196 L868 452 L906 452" fill="none" stroke="currentColor" stroke-width="1.1" opacity="0.5" marker-end="url(#a1)"/>
+        <rect x="742" y="434" width="160" height="36" rx="3" fill="none" stroke="currentColor" stroke-width="1.1" opacity="0.65"/>
+        <text x="822" y="457" text-anchor="middle" font-size="11" opacity="0.75">Phase 6 · ablation</text>
+
+        <text x="14" y="452" font-size="11" fill="currentColor" opacity="0.62">Amber = the reliability score and everywhere it acts. It gates frames, scales the SSM timestep,</text>
+        <text x="14" y="470" font-size="11" fill="currentColor" opacity="0.62">and weights both pooling operations.</text>
+        <text x="14" y="496" font-size="11" fill="currentColor" opacity="0.62">Total trainable parameters: 1,170,884.</text>
+      </g>
+    </svg>
+    <figcaption>
+      Two streams meet at fusion: learned appearance from the Vision Mamba branch, and 32
+      hand-engineered landmark descriptors. The reliability score is the only signal that touches
+      all four of gating, <code>dt</code>, temporal pooling and geometric pooling.
+    </figcaption>
+  </figure>
+
+  <h2>Inside one bidirectional Mamba block</h2>
+  <figure>
+    <svg viewBox="0 0 1000 300" role="img" aria-label="Inside a Mamba block: input is projected to hidden and gate paths, the hidden path passes a depthwise convolution and SiLU, then a projection produces the input-dependent dt, B and C used by the selective scan, whose output is gated and projected back. The block runs forward and reversed, and the two are summed.">
+      <defs>
+        <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="currentColor"/>
+        </marker>
+        <marker id="a2a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="#B9721A"/>
+        </marker>
+      </defs>
+      <g font-family="Karla, sans-serif" font-size="11.5">
+        <rect x="14" y="106" width="86" height="42" rx="3" fill="none" stroke="currentColor" stroke-width="1.4"/>
+        <text x="57" y="123" text-anchor="middle" font-weight="700">RMSNorm</text>
+        <text x="57" y="139" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.5" fill="currentColor" opacity="0.62">(B,L,128)</text>
+
+        <line x1="104" y1="127" x2="128" y2="127" stroke="currentColor" stroke-width="1.3" marker-end="url(#a2)"/>
+
+        <rect x="132" y="106" width="80" height="42" rx="3" fill="none" stroke="currentColor" stroke-width="1.4"/>
+        <text x="172" y="123" text-anchor="middle" font-weight="700">in_proj</text>
+        <text x="172" y="139" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9.5" fill="currentColor" opacity="0.62">→ 2×256</text>
+
+        <path d="M216 118 L240 118 L240 62 L264 62" fill="none" stroke="currentColor" stroke-width="1.3" marker-end="url(#a2)"/>
+        <path d="M216 136 L240 136 L240 232 L560 232" fill="none" stroke="currentColor" stroke-width="1.3" marker-end="url(#a2)"/>
+        <text x="248" y="250" font-size="10.5" fill="currentColor" opacity="0.62">gate z</text>
+
+        <rect x="268" y="42" width="94" height="40" rx="3" fill="none" stroke="currentColor" stroke-width="1.4"/>
+        <text x="315" y="58" text-anchor="middle" font-weight="700">Conv1d k=4</text>
+        <text x="315" y="73" text-anchor="middle" font-size="9.5" fill="currentColor" opacity="0.62">depthwise · SiLU</text>
+
+        <line x1="366" y1="62" x2="390" y2="62" stroke="currentColor" stroke-width="1.3" marker-end="url(#a2)"/>
+
+        <rect x="394" y="42" width="94" height="40" rx="3" fill="none" stroke="currentColor" stroke-width="1.4"/>
+        <text x="441" y="58" text-anchor="middle" font-weight="700">x_proj</text>
+        <text x="441" y="73" text-anchor="middle" font-size="9.5" fill="currentColor" opacity="0.62">dt, B, C</text>
+
+        <path d="M441 86 L441 104" stroke="currentColor" stroke-width="1.3" marker-end="url(#a2)"/>
+        <text x="452" y="100" font-size="10" fill="currentColor" opacity="0.62">input-dependent</text>
+
+        <rect x="330" y="108" width="222" height="76" rx="3" fill="#FBEFDC" stroke="#B9721A" stroke-width="1.7"/>
+        <text x="441" y="130" text-anchor="middle" font-weight="700" fill="#7A4A10">Selective scan</text>
+        <text x="441" y="151" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#7A4A10">h←exp(dt·A)h + (dt·B)x</text>
+        <text x="441" y="169" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#7A4A10">y=⟨C,h⟩ + D·x</text>
+
+        <path d="M226 146 L226 190 L330 160" fill="none" stroke="#B9721A" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#a2a)"/>
+        <text x="150" y="196" font-size="10.5" fill="#C98A2E">MRS scales dt</text>
+
+        <line x1="556" y1="146" x2="580" y2="146" stroke="currentColor" stroke-width="1.3" marker-end="url(#a2)"/>
+
+        <circle cx="596" cy="146" r="15" fill="none" stroke="currentColor" stroke-width="1.4"/>
+        <text x="596" y="151" text-anchor="middle" font-size="14" font-weight="700">×</text>
+        <text x="596" y="180" text-anchor="middle" font-size="10" fill="currentColor" opacity="0.62">SiLU(z)</text>
+
+        <line x1="614" y1="146" x2="638" y2="146" stroke="currentColor" stroke-width="1.3" marker-end="url(#a2)"/>
+
+        <rect x="642" y="126" width="82" height="40" rx="3" fill="none" stroke="currentColor" stroke-width="1.4"/>
+        <text x="683" y="151" text-anchor="middle" font-weight="700">out_proj</text>
+
+        <line x1="728" y1="146" x2="752" y2="146" stroke="currentColor" stroke-width="1.3" marker-end="url(#a2)"/>
+
+        <rect x="756" y="106" width="112" height="80" rx="3" fill="none" stroke="currentColor" stroke-width="1.4"/>
+        <text x="812" y="132" text-anchor="middle" font-weight="700">forward</text>
+        <text x="812" y="152" text-anchor="middle" font-size="13">+</text>
+        <text x="812" y="172" text-anchor="middle" font-weight="700">reversed</text>
+
+        <line x1="872" y1="146" x2="896" y2="146" stroke="currentColor" stroke-width="1.3" marker-end="url(#a2)"/>
+        <rect x="900" y="126" width="86" height="40" rx="3" fill="#DDEEEC" stroke="#2F8A82" stroke-width="1.6"/>
+        <text x="943" y="151" text-anchor="middle" font-weight="700" fill="#1F6660">+ residual</text>
+
+        <text x="14" y="284" font-size="10.5" fill="currentColor" opacity="0.62">B = batch · L = sequence length (49 patches spatially, up to 50 frames temporally) · d_inner = 256 · d_state = 16</text>
+      </g>
+    </svg>
+    <figcaption>
+      The selective scan is a Python loop over <code>L</code>, not a fused CUDA kernel —
+      <code>mamba-ssm</code> needs <code>nvcc</code>, unavailable on CPU. Same recurrence,
+      roughly an order of magnitude slower. <code>exp(dt·A)</code> is recomputed per timestep
+      rather than materialised for the whole sequence.
+    </figcaption>
+  </figure>
+
+  <h2>Specification</h2>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Stage</th><th>Operation</th><th>Output shape</th><th>File</th></tr></thead>
+      <tbody>
+        <tr><td>Input</td><td>10 s clip @ 30 fps</td><td><code>640×480×300</code></td><td><code>engagement_pipeline/video.py</code></td></tr>
+        <tr><td>Phase 1</td><td>sample · detect · track · align · MRS gate</td><td><code>(T,3,224,224)</code> + <code>(T,)</code></td><td><code>phase1_preprocessing.py</code></td></tr>
+        <tr><td>Phase 2</td><td>478-point mesh + head pose</td><td><code>(T,478,3)</code></td><td><code>phase2_landmarks.py</code></td></tr>
+        <tr><td>Phase 3a</td><td>patch embed 16×16, +pos</td><td><code>(T,49,128)</code></td><td><code>mrgvm/vision_mamba.py</code></td></tr>
+        <tr><td>Phase 3b</td><td>bi-Mamba ×2 spatial → mean pool</td><td><code>(T,128)</code></td><td><code>mrgvm/mamba.py</code></td></tr>
+        <tr><td>Phase 3c</td><td>bi-Mamba ×2 temporal, dt←MRS → weighted pool</td><td><code>(128,)</code></td><td><code>mrgvm/vision_mamba.py</code></td></tr>
+        <tr><td>Phase 4a</td><td>32 geometric features → mean/std/min/max</td><td><code>(128,)</code></td><td><code>mrgvm/geometric.py</code></td></tr>
+        <tr><td>Phase 4b</td><td>gated fusion + interaction term</td><td><code>(256,)</code></td><td><code>mrgvm/fusion.py</code></td></tr>
+        <tr><td>Phase 5</td><td>MLP 128→64→4</td><td><code>(4,)</code></td><td><code>mrgvm/fusion.py</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    <strong>What the ablation found.</strong> Removing the Vision Mamba branch entirely raises test
+    macro-F1 from 0.286 to 0.407; removing the geometric branch collapses it to 0.052. The
+    <code>dt ← MRS</code> path flips zero predictions, because post-gating reliability is
+    0.93 ± 0.049 and a near-constant rescale is absorbed by the learned <code>dt_proj</code> bias.
+    Both results are noise-dominated at 36 training clips.
+  </div>
+</div>
