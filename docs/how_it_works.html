@@ -1,0 +1,909 @@
+<title>MRG-VM Explained</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Karla:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap">
+
+<style>
+  :root {
+    --paper:      #F2F3F7;
+    --surface:    #FFFFFF;
+    --surface-2:  #E8EAF1;
+    --ink:        #191C26;
+    --ink-soft:   #3D4252;
+    --slate:      #6E7488;
+    --rule:       #D3D7E2;
+    --amber:      #B9721A;
+    --amber-bg:   #FBEFDC;
+    --teal:       #2F8A82;
+    --teal-bg:    #DDEEEC;
+    --rose:       #BF5347;
+    --rose-bg:    #F8E4E1;
+
+    --measure: 66ch;
+    --step--1: 0.86rem;
+    --step-0:  1.06rem;
+    --step-1:  1.32rem;
+    --step-2:  1.72rem;
+    --step-3:  2.3rem;
+    --step-4:  3.2rem;
+    --step-5:  4.2rem;
+
+    --display: "Fraunces", Georgia, "Times New Roman", serif;
+    --body:    "Karla", "Helvetica Neue", Arial, sans-serif;
+    --mono:    "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:     #12141B;
+      --surface:   #1A1D27;
+      --surface-2: #232734;
+      --ink:       #EDEEF3;
+      --ink-soft:  #C2C6D4;
+      --slate:     #949AAE;
+      --rule:      #333848;
+      --amber:     #E8A94A;
+      --amber-bg:  #2E2415;
+      --teal:      #5FBDB3;
+      --teal-bg:   #172A28;
+      --rose:      #E08279;
+      --rose-bg:   #2E1B19;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper:     #12141B;
+    --surface:   #1A1D27;
+    --surface-2: #232734;
+    --ink:       #EDEEF3;
+    --ink-soft:  #C2C6D4;
+    --slate:     #949AAE;
+    --rule:      #333848;
+    --amber:     #E8A94A;
+    --amber-bg:  #2E2415;
+    --teal:      #5FBDB3;
+    --teal-bg:   #172A28;
+    --rose:      #E08279;
+    --rose-bg:   #2E1B19;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: var(--step-0);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { width: min(100% - 2.5rem, 78rem); margin-inline: auto; }
+  .col  { width: min(100%, var(--measure)); }
+
+  /* ---------- hero ---------- */
+  .hero {
+    padding: clamp(3rem, 9vw, 6.5rem) 0 clamp(2rem, 5vw, 3.5rem);
+    border-bottom: 1px solid var(--rule);
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: var(--step--1);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin: 0 0 1.4rem;
+  }
+  h1 {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: clamp(2.4rem, 7vw, var(--step-5));
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+    margin: 0 0 1.5rem;
+  }
+  h1 em { font-style: italic; color: var(--amber); }
+  .standfirst {
+    font-size: clamp(1.1rem, 2.4vw, var(--step-1));
+    line-height: 1.5;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  /* ---------- sections ---------- */
+  section { padding: clamp(2.75rem, 6vw, 4.5rem) 0; border-bottom: 1px solid var(--rule); }
+  section:last-of-type { border-bottom: 0; }
+
+  h2 {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: clamp(1.6rem, 4vw, var(--step-3));
+    line-height: 1.12;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+    margin: 0 0 1rem;
+  }
+  h3 {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: var(--step-1);
+    line-height: 1.25;
+    margin: 2.25rem 0 0.6rem;
+  }
+  p { margin: 0 0 1.05rem; }
+  p:last-child { margin-bottom: 0; }
+  strong { font-weight: 700; }
+
+  /* ---------- station header ---------- */
+  .station { display: flex; align-items: baseline; gap: 1.1rem; margin-bottom: 1.5rem; }
+  .station-num {
+    font-family: var(--mono);
+    font-size: var(--step--1);
+    font-weight: 600;
+    color: var(--paper);
+    background: var(--ink);
+    border-radius: 999px;
+    padding: 0.28rem 0.72rem;
+    flex-shrink: 0;
+    letter-spacing: 0.04em;
+  }
+  .station h2 { margin: 0; }
+
+  /* ---------- callouts ---------- */
+  .grownup {
+    display: block;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--amber);
+    border-radius: 3px;
+    padding: 0.95rem 1.15rem;
+    margin: 1.4rem 0;
+    font-size: var(--step--1);
+    line-height: 1.6;
+    color: var(--ink-soft);
+  }
+  .grownup .tag {
+    display: block;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 0.4rem;
+  }
+  .grownup code { font-family: var(--mono); font-size: 0.92em; color: var(--ink); }
+
+  .flag {
+    background: var(--rose-bg);
+    border: 1px solid var(--rose);
+    border-radius: 3px;
+    padding: 1.05rem 1.25rem;
+    margin: 1.5rem 0;
+  }
+  .flag .tag {
+    display: block;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--rose);
+    margin-bottom: 0.4rem;
+  }
+
+  /* ---------- figures ---------- */
+  figure {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    overflow-x: auto;
+  }
+  figure svg { display: block; max-width: 100%; height: auto; color: var(--ink); }
+  figcaption {
+    margin-top: 1.1rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--rule);
+    font-size: var(--step--1);
+    line-height: 1.55;
+    color: var(--slate);
+  }
+
+  /* ---------- glossary ---------- */
+  .tbl-scroll { overflow-x: auto; margin: 1.75rem 0; }
+  table { border-collapse: collapse; width: 100%; font-size: var(--step--1); }
+  caption { text-align: left; color: var(--slate); font-size: var(--step--1); padding-bottom: 0.7rem; }
+  th, td { text-align: left; padding: 0.7rem 0.9rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--slate);
+    font-weight: 600;
+    border-bottom: 1px solid var(--ink);
+  }
+  td.num { font-variant-numeric: tabular-nums; text-align: right; }
+  td code, th code { font-family: var(--mono); font-size: 0.92em; }
+  tr.hi td { background: var(--amber-bg); }
+
+  ul, ol { margin: 0 0 1.05rem; padding-left: 1.3rem; }
+  li { margin-bottom: 0.55rem; }
+  li::marker { color: var(--amber); }
+
+  .lede { font-size: var(--step-1); line-height: 1.5; color: var(--ink-soft); }
+
+  footer {
+    padding: 2.5rem 0 3.5rem;
+    font-size: var(--step--1);
+    color: var(--slate);
+    border-top: 1px solid var(--rule);
+  }
+  a { color: var(--amber); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:focus-visible, :focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .hero > * { animation: rise 0.6s cubic-bezier(0.2, 0.7, 0.3, 1) backwards; }
+    .hero .eyebrow { animation-delay: 0.05s; }
+    .hero h1 { animation-delay: 0.13s; }
+    .hero .standfirst { animation-delay: 0.22s; }
+    @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="hero">
+    <p class="eyebrow">Student engagement detection · plain language</p>
+    <h1>How the whole thing <em>actually</em> works</h1>
+    <p class="standfirst col">
+      A computer watches a ten-second video of someone in a lecture and guesses how much
+      attention they are paying, on a scale of 0 to 3. This page walks the whole machine,
+      one station at a time, in the simplest words that are still true.
+    </p>
+  </header>
+
+  <section>
+    <h2>The one-sentence version</h2>
+    <div class="col">
+      <p class="lede">
+        Chop the video into pictures, throw away the bad pictures, draw dots on the face in the
+        good ones, let two different helpers describe what they see, and have a small brain
+        turn that description into a number.
+      </p>
+      <p>
+        The clever part — the bit that is supposed to be new — is the <strong>throwing away</strong>.
+        Most systems treat every picture as equally trustworthy. This one gives each picture a
+        score first, bins the worst, and then keeps carrying that score forward so the rest of
+        the machine knows which pictures to lean on.
+      </p>
+    </div>
+
+    <figure>
+      <svg viewBox="0 0 1060 290" role="img" aria-label="The full pipeline: a video becomes 50 pictures, each is scored and bad ones are binned, the survivors get face dots, then a picture-reader and a ruler-measurer both describe the clip, a judge mixes them, and a small brain outputs a score from 0 to 3.">
+        <defs>
+          <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+          </marker>
+          <marker id="ar-rose" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#BF5347"/>
+          </marker>
+        </defs>
+
+        <g font-family="Karla, sans-serif" font-size="12.5" text-anchor="middle">
+
+          <rect x="10" y="96" width="104" height="60" rx="4" fill="none" stroke="currentColor" stroke-width="1.4"/>
+          <text x="62" y="120" font-weight="700">Video</text>
+          <text x="62" y="138" fill="currentColor" opacity="0.62">10 seconds</text>
+
+          <line x1="118" y1="126" x2="152" y2="126" stroke="currentColor" stroke-width="1.4" marker-end="url(#ar)"/>
+
+          <rect x="156" y="96" width="104" height="60" rx="4" fill="none" stroke="currentColor" stroke-width="1.4"/>
+          <text x="208" y="120" font-weight="700">Pictures</text>
+          <text x="208" y="138" fill="currentColor" opacity="0.62">50 of them</text>
+
+          <line x1="264" y1="126" x2="298" y2="126" stroke="currentColor" stroke-width="1.4" marker-end="url(#ar)"/>
+
+          <rect x="302" y="90" width="128" height="72" rx="4" fill="#FBEFDC" stroke="#B9721A" stroke-width="1.8"/>
+          <text x="366" y="114" font-weight="700" fill="#7A4A10">Score each</text>
+          <text x="366" y="132" font-weight="700" fill="#7A4A10">picture</text>
+          <text x="366" y="150" font-size="11" fill="#C98A2E">the new bit</text>
+
+          <line x1="366" y1="166" x2="366" y2="212" stroke="#BF5347" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#ar-rose)"/>
+          <text x="366" y="234" font-size="11.5" fill="#D06B60">bad ones binned</text>
+
+          <line x1="434" y1="126" x2="468" y2="126" stroke="currentColor" stroke-width="1.4" marker-end="url(#ar)"/>
+          <text x="451" y="114" font-size="11" fill="#3E9C93">keep</text>
+
+          <rect x="472" y="96" width="104" height="60" rx="4" fill="none" stroke="currentColor" stroke-width="1.4"/>
+          <text x="524" y="120" font-weight="700">Face dots</text>
+          <text x="524" y="138" fill="currentColor" opacity="0.62">478 per face</text>
+
+          <path d="M 580 126 L 600 126 L 600 60 L 620 60" fill="none" stroke="currentColor" stroke-width="1.4" marker-end="url(#ar)"/>
+          <path d="M 580 126 L 600 126 L 600 192 L 620 192" fill="none" stroke="currentColor" stroke-width="1.4" marker-end="url(#ar)"/>
+
+          <rect x="624" y="30" width="138" height="60" rx="4" fill="none" stroke="currentColor" stroke-width="1.4"/>
+          <text x="693" y="54" font-weight="700">Picture reader</text>
+          <text x="693" y="72" fill="currentColor" opacity="0.62">looks at faces</text>
+
+          <rect x="624" y="162" width="138" height="60" rx="4" fill="none" stroke="currentColor" stroke-width="1.4"/>
+          <text x="693" y="186" font-weight="700">Ruler</text>
+          <text x="693" y="204" fill="currentColor" opacity="0.62">measures dots</text>
+
+          <path d="M 766 60 L 786 60 L 786 126 L 806 126" fill="none" stroke="currentColor" stroke-width="1.4" marker-end="url(#ar)"/>
+          <path d="M 766 192 L 786 192 L 786 126 L 806 126" fill="none" stroke="currentColor" stroke-width="1.4" marker-end="url(#ar)"/>
+
+          <rect x="810" y="96" width="96" height="60" rx="4" fill="none" stroke="currentColor" stroke-width="1.4"/>
+          <text x="858" y="120" font-weight="700">Judge</text>
+          <text x="858" y="138" fill="currentColor" opacity="0.62">mixes both</text>
+
+          <line x1="910" y1="126" x2="944" y2="126" stroke="currentColor" stroke-width="1.4" marker-end="url(#ar)"/>
+
+          <rect x="948" y="96" width="100" height="60" rx="4" fill="none" stroke="#2F8A82" stroke-width="1.8"/>
+          <text x="998" y="120" font-weight="700" fill="#2F8A82">Answer</text>
+          <text x="998" y="138" fill="#2F8A82">0 · 1 · 2 · 3</text>
+        </g>
+      </svg>
+      <figcaption>
+        The whole machine. Everything downstream of the amber box only ever sees pictures that
+        survived scoring — and it keeps each survivor's score, so it can lean harder on the
+        good ones.
+      </figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <div class="station"><span class="station-num">01</span><h2>Take pictures, bin the bad ones</h2></div>
+    <div class="col">
+      <p>
+        A video is just a lot of pictures shown quickly. We take <strong>5 pictures every
+        second</strong>, so a ten-second clip gives about 50.
+      </p>
+      <p>
+        Some pictures are no good. The person moved and went blurry. They turned to look out of
+        the window. They blinked. Or the computer briefly lost the face entirely. If you feed
+        those to the rest of the machine, it learns from mush.
+      </p>
+      <p>So every picture gets a <strong>score out of 10</strong>, from five separate checks.</p>
+    </div>
+
+    <figure>
+      <svg viewBox="0 0 760 330" role="img" aria-label="Five checks — blurry, face found, head turned, eyes visible, and face jumped — each produce a small score. They are averaged into one reliability score, which decides whether the picture is kept or binned.">
+                <defs>
+          <marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+          </marker>
+          <marker id="ar2-rose" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#BF5347"/>
+          </marker>
+        </defs>
+        <g font-family="Karla, sans-serif" font-size="12.5">
+          <text x="10" y="20" font-family="JetBrains Mono, monospace" font-size="11" letter-spacing="1.4" fill="currentColor" opacity="0.62">FIVE CHECKS</text>
+
+          <g>
+            <rect x="10" y="36" width="228" height="40" rx="3" fill="none" stroke="currentColor" stroke-width="1.2"/>
+            <text x="24" y="55" font-weight="700">1 · Is it blurry?</text>
+            <text x="24" y="69" fill="currentColor" opacity="0.62" font-size="11.5">sharp edges, or mush</text>
+
+            <rect x="10" y="84" width="228" height="40" rx="3" fill="none" stroke="currentColor" stroke-width="1.2"/>
+            <text x="24" y="103" font-weight="700">2 · Did we find a face?</text>
+            <text x="24" y="117" fill="currentColor" opacity="0.62" font-size="11.5">and how sure are we</text>
+
+            <rect x="10" y="132" width="228" height="40" rx="3" fill="none" stroke="currentColor" stroke-width="1.2"/>
+            <text x="24" y="151" font-weight="700">3 · Is the head turned away?</text>
+            <text x="24" y="165" fill="currentColor" opacity="0.62" font-size="11.5">facing us is best</text>
+
+            <rect x="10" y="180" width="228" height="40" rx="3" fill="none" stroke="currentColor" stroke-width="1.2"/>
+            <text x="24" y="199" font-weight="700">4 · Can we see both eyes?</text>
+            <text x="24" y="213" fill="currentColor" opacity="0.62" font-size="11.5">open, not hidden</text>
+
+            <rect x="10" y="228" width="228" height="40" rx="3" fill="none" stroke="currentColor" stroke-width="1.2"/>
+            <text x="24" y="247" font-weight="700">5 · Did the face jump?</text>
+            <text x="24" y="261" fill="currentColor" opacity="0.62" font-size="11.5">that means we lost track</text>
+          </g>
+
+          <path d="M 242 56  C 280 56, 290 130, 322 148" fill="none" stroke="currentColor" stroke-width="1.1" opacity="0.55"/>
+          <path d="M 242 104 C 280 104, 292 138, 322 150" fill="none" stroke="currentColor" stroke-width="1.1" opacity="0.55"/>
+          <path d="M 242 152 C 285 152, 300 152, 322 152" fill="none" stroke="currentColor" stroke-width="1.1" opacity="0.55"/>
+          <path d="M 242 200 C 280 200, 292 166, 322 154" fill="none" stroke="currentColor" stroke-width="1.1" opacity="0.55"/>
+          <path d="M 242 248 C 280 248, 290 174, 322 156" fill="none" stroke="currentColor" stroke-width="1.1" opacity="0.55"/>
+
+          <circle cx="380" cy="152" r="56" fill="#FBEFDC" stroke="#B9721A" stroke-width="2"/>
+          <text x="380" y="142" text-anchor="middle" font-weight="700" font-size="13" fill="#7A4A10">Reliability</text>
+          <text x="380" y="160" text-anchor="middle" font-weight="700" font-size="13" fill="#7A4A10">score</text>
+          <text x="380" y="180" text-anchor="middle" font-size="11" fill="#B9721A">0 to 10</text>
+
+          <line x1="440" y1="152" x2="482" y2="152" stroke="currentColor" stroke-width="1.4" marker-end="url(#ar2)"/>
+
+          <path d="M 486 152 L 522 118 L 522 186 Z" fill="none" stroke="currentColor" stroke-width="1.4"/>
+          <text x="504" y="212" text-anchor="middle" font-size="11.5" fill="currentColor" opacity="0.62">is it ≥ 5?</text>
+
+          <path d="M 526 130 L 566 96" fill="none" stroke="#2F8A82" stroke-width="1.6" marker-end="url(#ar2)"/>
+          <path d="M 526 174 L 566 208" fill="none" stroke="#BF5347" stroke-width="1.6" stroke-dasharray="4 3" marker-end="url(#ar2-rose)"/>
+
+          <rect x="572" y="66" width="176" height="58" rx="3" fill="#DDEEEC" stroke="#2F8A82" stroke-width="1.6"/>
+          <text x="660" y="90" text-anchor="middle" font-weight="700" fill="#1F6660">Keep it</text>
+          <text x="660" y="108" text-anchor="middle" font-size="11.5" fill="#2F8A82">and remember its score</text>
+
+          <rect x="572" y="180" width="176" height="58" rx="3" fill="#F8E4E1" stroke="#BF5347" stroke-width="1.6"/>
+          <text x="660" y="204" text-anchor="middle" font-weight="700" fill="#8E3A31">Bin it</text>
+          <text x="660" y="222" text-anchor="middle" font-size="11.5" fill="#BF5347">never seen again</text>
+
+          <text x="10" y="300" font-size="11.5" fill="currentColor" opacity="0.62">The score does not stop at the gate — every kept picture carries its score into every later stage.</text>
+        </g>
+      </svg>
+      <figcaption>
+        The Motion Reliability Score. Five checks are averaged into one number; below the
+        threshold the picture is discarded, above it the picture <em>and its score</em> move on.
+      </figcaption>
+    </figure>
+
+    <div class="col">
+      <h3>Two extra jobs at this station</h3>
+      <p>
+        <strong>Following the right person.</strong> These videos were filmed in shared rooms, so
+        other people wander through the background. If we just grabbed "the clearest face" in
+        every picture, we would sometimes grab a stranger. So we lock onto whoever we picked
+        first and follow them.
+      </p>
+      <p>
+        <strong>Straightening every face.</strong> We rotate and zoom each face so the eyes always
+        land in exactly the same two spots — like lining up passport photos. Now every picture is
+        comparable to every other picture.
+      </p>
+
+      <div class="grownup">
+        <span class="tag">In grown-up words</span>
+        Sample at 5&nbsp;fps, detect faces with BlazeFace, track the primary subject across frames,
+        align on the eye line to a 224×224 crop, then compute the <strong>Motion Reliability
+        Score</strong> from blur (variance of Laplacian), detector confidence, head-pose
+        deviation, eye-aspect-ratio, and inter-frame optical flow. Discard below
+        <code>mrs_threshold</code>.
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="station"><span class="station-num">02</span><h2>Draw dots on the face</h2></div>
+    <div class="col">
+      <p>
+        On every picture we kept, we place <strong>478 tiny dots</strong> on the face — around the
+        eyes, the eyebrows, the mouth, the nose, along the jaw, and even a ring of dots on the
+        coloured part of each eye.
+      </p>
+      <p>Once you have the dots, you can measure things with them, the way you would with a ruler:</p>
+      <ul>
+        <li>How far apart are the top and bottom eyelids? <em>That tells you about blinking.</em></li>
+        <li>Which way is the nose pointing? <em>That tells you where the head is turned.</em></li>
+        <li>Where is the iris sitting inside the eye? <em>That tells you where they are looking.</em></li>
+        <li>How much is the mouth open? Are the eyebrows raised?</li>
+      </ul>
+      <p>
+        Every measurement is divided by the distance between the eyes first. That way it does not
+        matter whether someone sat close to the camera or far away — the numbers still mean the
+        same thing.
+      </p>
+      <div class="grownup">
+        <span class="tag">In grown-up words</span>
+        MediaPipe Face Mesh gives 468 landmarks plus 10 iris-refinement points. Head pose comes
+        from the facial transformation matrix, cross-checked with <code>solvePnP</code>. All
+        geometric descriptors are normalised by inter-ocular distance for scale invariance.
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="station"><span class="station-num">03</span><h2>The reader that flips through the pictures</h2></div>
+    <div class="col">
+      <p>
+        Now imagine the kept pictures stacked into a flipbook. We hand that flipbook to a reader
+        called <strong>Mamba</strong>.
+      </p>
+      <p>
+        Mamba flips through one page at a time and keeps a memory of what it has seen so far —
+        the way you hold the plot of a story in your head as you read. Each new page nudges that
+        memory a bit.
+      </p>
+      <p>
+        It does two things worth knowing about. First, it reads the flipbook <strong>both
+        ways</strong> — front to back, then back to front — because in a video what happens next
+        often explains what happened before. Second, and this is the idea the project is built
+        around: <strong>it reads the low-scoring pages more gently.</strong> A page we were unsure
+        about is allowed to change Mamba's memory less than a page we trust.
+      </p>
+    </div>
+
+    <figure>
+      <svg viewBox="0 0 780 290" role="img" aria-label="A row of eight picture-pages, two of which are low-scoring and drawn faded. Arrows run left-to-right and right-to-left beneath them. The low-scoring pages connect to the memory line with thin dashed nudges while trusted pages connect with thick solid ones.">
+                <defs>
+          <marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+          </marker>
+        </defs>
+        <g font-family="Karla, sans-serif" font-size="12.5">
+          <text x="10" y="20" font-family="JetBrains Mono, monospace" font-size="11" letter-spacing="1.4" fill="currentColor" opacity="0.62">THE FLIPBOOK</text>
+
+          <g>
+            <rect x="14"  y="36" width="72" height="76" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <rect x="102" y="36" width="72" height="76" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <rect x="190" y="36" width="72" height="76" rx="3" fill="none" stroke="#BF5347" stroke-width="1.3" stroke-dasharray="4 3" opacity="0.75"/>
+            <rect x="278" y="36" width="72" height="76" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <rect x="366" y="36" width="72" height="76" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <rect x="454" y="36" width="72" height="76" rx="3" fill="none" stroke="#BF5347" stroke-width="1.3" stroke-dasharray="4 3" opacity="0.75"/>
+            <rect x="542" y="36" width="72" height="76" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <rect x="630" y="36" width="72" height="76" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          </g>
+
+          <g text-anchor="middle" font-size="11" font-variant-numeric="tabular-nums">
+            <text x="50"  y="128" fill="#3E9C93">9.1</text>
+            <text x="138" y="128" fill="#3E9C93">9.4</text>
+            <text x="226" y="128" fill="#D06B60">5.2</text>
+            <text x="314" y="128" fill="#3E9C93">8.8</text>
+            <text x="402" y="128" fill="#3E9C93">9.3</text>
+            <text x="490" y="128" fill="#D06B60">5.6</text>
+            <text x="578" y="128" fill="#3E9C93">9.0</text>
+            <text x="666" y="128" fill="#3E9C93">9.2</text>
+          </g>
+
+          <g>
+            <line x1="50"  y1="140" x2="50"  y2="182" stroke="currentColor" stroke-width="2.2"/>
+            <line x1="138" y1="140" x2="138" y2="182" stroke="currentColor" stroke-width="2.2"/>
+            <line x1="226" y1="140" x2="226" y2="182" stroke="#BF5347" stroke-width="0.9" stroke-dasharray="3 3"/>
+            <line x1="314" y1="140" x2="314" y2="182" stroke="currentColor" stroke-width="2.2"/>
+            <line x1="402" y1="140" x2="402" y2="182" stroke="currentColor" stroke-width="2.2"/>
+            <line x1="490" y1="140" x2="490" y2="182" stroke="#BF5347" stroke-width="0.9" stroke-dasharray="3 3"/>
+            <line x1="578" y1="140" x2="578" y2="182" stroke="currentColor" stroke-width="2.2"/>
+            <line x1="666" y1="140" x2="666" y2="182" stroke="currentColor" stroke-width="2.2"/>
+          </g>
+
+          <rect x="14" y="184" width="688" height="34" rx="3" fill="#FBEFDC" stroke="#B9721A" stroke-width="1.6"/>
+          <text x="358" y="206" text-anchor="middle" font-weight="700" font-size="13" fill="#7A4A10">Mamba's running memory</text>
+
+          <line x1="14" y1="242" x2="694" y2="242" stroke="currentColor" stroke-width="1.4" marker-end="url(#ar3)"/>
+          <text x="354" y="236" text-anchor="middle" font-size="11.5" fill="currentColor" opacity="0.62">reads forwards</text>
+
+          <line x1="702" y1="266" x2="22" y2="266" stroke="currentColor" stroke-width="1.4" marker-end="url(#ar3)"/>
+          <text x="362" y="282" text-anchor="middle" font-size="11.5" fill="currentColor" opacity="0.62">and backwards</text>
+
+          <text x="718" y="80" font-size="11.5" fill="#D06B60">faded =</text>
+          <text x="718" y="96" font-size="11.5" fill="#D06B60">low score</text>
+        </g>
+      </svg>
+      <figcaption>
+        Thick lines are trusted pages nudging the memory hard; thin dashed lines are low-scoring
+        pages nudging it gently. <strong>This gentle-nudge mechanism is the one that turned out
+        not to work</strong> — see the last section.
+      </figcaption>
+    </figure>
+
+    <div class="grownup col">
+      <span class="tag">In grown-up words</span>
+      A bidirectional Vision Mamba (S6 selective state-space model). Each 112×112 crop becomes 49
+      patch tokens; two blocks scan the patch grid, two more scan across time. The reliability
+      score scales the SSM timestep <code>dt</code>, so a low-reliability frame moves the hidden
+      state less — plus the temporal pooling is reliability-weighted.
+    </div>
+  </section>
+
+  <section>
+    <div class="station"><span class="station-num">04</span><h2>Two helpers and a judge</h2></div>
+    <div class="col">
+      <p>Two different helpers now describe the same clip, in completely different ways.</p>
+      <ul>
+        <li><strong>Helper A — the picture reader.</strong> Mamba, from the last station. It looked at the actual faces and formed its own impression. Nobody told it what to look for.</li>
+        <li><strong>Helper B — the ruler.</strong> This one ignores the pictures and only reads the dots. It reports 32 measurements per picture: how much the head wobbled, how often they blinked, where the eyes pointed, how much the mouth moved.</li>
+      </ul>
+      <p>
+        Helper B is easier to trust, because you can read its answer out loud: "the head barely
+        moved, they blinked 12 times a minute, they looked slightly down." Helper A's answer is
+        just 128 numbers that mean nothing to a human.
+      </p>
+      <p>
+        Then a <strong>judge</strong> decides, for this particular clip, how much to listen to
+        each helper, and blends them.
+      </p>
+    </div>
+
+    <figure>
+      <svg viewBox="0 0 700 250" role="img" aria-label="The picture reader and the ruler each produce a description. A judge weighs how much to trust each one and blends them into a single combined description.">
+                <defs>
+          <marker id="ar4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+          </marker>
+        </defs>
+        <g font-family="Karla, sans-serif" font-size="12.5">
+          <rect x="10" y="24" width="188" height="62" rx="4" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <text x="104" y="48" text-anchor="middle" font-weight="700">Helper A · pictures</text>
+          <text x="104" y="66" text-anchor="middle" font-size="11.5" fill="currentColor" opacity="0.62">128 numbers, unreadable</text>
+
+          <rect x="10" y="162" width="188" height="62" rx="4" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <text x="104" y="186" text-anchor="middle" font-weight="700">Helper B · ruler</text>
+          <text x="104" y="204" text-anchor="middle" font-size="11.5" fill="currentColor" opacity="0.62">32 named measurements</text>
+
+          <path d="M 202 55 L 246 55 L 246 108 L 286 108" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#ar4)"/>
+          <path d="M 202 193 L 246 193 L 246 140 L 286 140" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#ar4)"/>
+
+          <rect x="290" y="88" width="132" height="72" rx="4" fill="#FBEFDC" stroke="#B9721A" stroke-width="1.8"/>
+          <text x="356" y="112" text-anchor="middle" font-weight="700" fill="#7A4A10">The judge</text>
+          <text x="356" y="130" text-anchor="middle" font-size="11.5" fill="#B9721A">how much do I</text>
+          <text x="356" y="145" text-anchor="middle" font-size="11.5" fill="#B9721A">trust each one?</text>
+
+          <line x1="426" y1="124" x2="466" y2="124" stroke="currentColor" stroke-width="1.5" marker-end="url(#ar4)"/>
+
+          <rect x="470" y="94" width="152" height="60" rx="4" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <text x="546" y="118" text-anchor="middle" font-weight="700">One description</text>
+          <text x="546" y="136" text-anchor="middle" font-size="11.5" fill="currentColor" opacity="0.62">of the whole clip</text>
+
+          <text x="356" y="196" text-anchor="middle" font-size="11.5" fill="currentColor" opacity="0.62">In practice the judge settled near 50/50 —</text>
+          <text x="356" y="212" text-anchor="middle" font-size="11.5" fill="currentColor" opacity="0.62">it never learned to prefer either helper.</text>
+        </g>
+      </svg>
+      <figcaption>
+        Adaptive fusion. The judge is meant to shift per clip — leaning on the ruler when the
+        landmarks are steady, on the pictures when they are not. It did not learn to do that here.
+      </figcaption>
+    </figure>
+
+    <div class="grownup col">
+      <span class="tag">In grown-up words</span>
+      Both streams project to a common width; a per-channel sigmoid gate interpolates
+      <code>g·mamba + (1−g)·geometric</code>, with the elementwise product concatenated so
+      information survives gate saturation. Measured gate mean: <strong>0.493</strong>, range
+      0.350–0.625.
+    </div>
+  </section>
+
+  <section>
+    <div class="station"><span class="station-num">05</span><h2>The small brain that answers</h2></div>
+    <div class="col">
+      <p>
+        The blended description goes into a small brain — just a few layers of arithmetic — which
+        turns it into <strong>one number: 0, 1, 2 or 3</strong>.
+      </p>
+      <p>
+        It is deliberately small. We only have 36 videos to learn from, and a big brain given 36
+        examples does not learn the pattern, it memorises the 36 answers and then fails on
+        anything new.
+      </p>
+      <div class="grownup">
+        <span class="tag">In grown-up words</span>
+        A two-layer MLP (128 → 64) with LayerNorm, GELU and dropout, trained with AdamW, cosine
+        schedule, class-weighted cross-entropy and early stopping on validation macro-F1.
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="station"><span class="station-num">06</span><h2>Take a piece out and see if it still works</h2></div>
+    <div class="col">
+      <p>
+        How do you know each part is pulling its weight? You take it out and see whether the
+        answers get worse. Like removing one ingredient from a recipe to find out what it was
+        doing.
+      </p>
+      <p>We built seven versions, each missing exactly one piece, and compared them. This is where the surprises came from.</p>
+      <div class="grownup">
+        <span class="tag">In grown-up words</span>
+        Ablation study. All seven variants share one seed, one data cache and one training
+        schedule, so any difference is attributable to the removed component.
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="station"><span class="station-num">07</span><h2>Ask it why</h2></div>
+    <div class="col">
+      <p>
+        Finally we ask the machine: <em>which measurements made you say that?</em> It answers in
+        percentages, and the answer was:
+      </p>
+      <ul>
+        <li><strong>41%</strong> — face movement (mouth, eyebrows, how much the face changed)</li>
+        <li><strong>23%</strong> — head movement</li>
+        <li><strong>19%</strong> — where the eyes were looking</li>
+        <li><strong>12%</strong> — blinking</li>
+        <li><strong>4.5%</strong> — everything the picture reader contributed</li>
+      </ul>
+      <p>
+        That last line is the uncomfortable one. The most sophisticated part of the whole system
+        is contributing almost nothing.
+      </p>
+      <div class="grownup">
+        <span class="tag">In grown-up words</span>
+        SHAP over named behavioural features rather than raw embedding dimensions, with the
+        appearance stream entered as PCA components so it stays comparable. Surrogate fidelity
+        <strong>1.000</strong>.
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>The trap you must not fall into</h2>
+    <div class="col">
+      <p>
+        Most clips in this dataset are labelled "quite engaged". So imagine a lazy guesser that
+        ignores the video completely and <em>always</em> says "quite engaged".
+      </p>
+      <p>
+        That guesser gets <strong>53% right</strong>. It is also completely useless — it has never
+        once looked at a student. If you report accuracy, this useless guesser beats our real
+        model, which gets 47%.
+      </p>
+      <p>
+        So we use a fairer score called <strong>macro-F1</strong>, which asks: how well did you do
+        on <em>each</em> of the four levels, counted equally? The lazy guesser scores 0.173 on
+        that. Our model scores 0.286.
+      </p>
+      <div class="flag">
+        <span class="tag">Remember this one</span>
+        Never report accuracy on its own for this project. A model that has learned nothing can
+        beat a model that has learned something, and only macro-F1 shows the difference.
+      </div>
+    </div>
+
+    <figure>
+      <svg viewBox="0 0 700 330" role="img" aria-label="Bar chart of macro-F1 on the test split. Ruler measurements alone score 0.407, logistic regression 0.349, gaze transformer 0.320, the full MRG-VM 0.286, always-guess-medium 0.173, and picture reader alone 0.052.">
+        <g font-family="Karla, sans-serif" font-size="12.5">
+          <text x="10" y="18" font-family="JetBrains Mono, monospace" font-size="11" letter-spacing="1.4" fill="currentColor" opacity="0.62">MACRO-F1 · TEST SPLIT · HIGHER IS BETTER</text>
+
+          <line x1="228" y1="34" x2="228" y2="272" stroke="currentColor" stroke-width="1" opacity="0.35"/>
+
+          <g font-size="12">
+            <text x="220" y="56" text-anchor="end">Ruler only</text>
+            <rect x="228" y="42" width="362" height="20" rx="2" fill="#2F8A82"/>
+            <text x="600" y="57" font-variant-numeric="tabular-nums" font-weight="700" fill="#3E9C93">0.407</text>
+
+            <text x="220" y="96" text-anchor="end">Simple maths model</text>
+            <rect x="228" y="82" width="310" height="20" rx="2" fill="currentColor" opacity="0.42"/>
+            <text x="548" y="97" font-variant-numeric="tabular-nums">0.349</text>
+
+            <text x="220" y="136" text-anchor="end">Gaze reader</text>
+            <rect x="228" y="122" width="284" height="20" rx="2" fill="currentColor" opacity="0.42"/>
+            <text x="522" y="137" font-variant-numeric="tabular-nums">0.320</text>
+
+            <text x="220" y="176" text-anchor="end" font-weight="700">Our full model</text>
+            <rect x="228" y="162" width="254" height="20" rx="2" fill="#B9721A"/>
+            <text x="492" y="177" font-variant-numeric="tabular-nums" font-weight="700" fill="#C98A2E">0.286</text>
+
+            <text x="220" y="216" text-anchor="end">Always guess "medium"</text>
+            <rect x="228" y="202" width="154" height="20" rx="2" fill="#BF5347" opacity="0.55"/>
+            <text x="392" y="217" font-variant-numeric="tabular-nums" fill="#D06B60">0.173</text>
+
+            <text x="220" y="256" text-anchor="end">Picture reader only</text>
+            <rect x="228" y="242" width="46" height="20" rx="2" fill="currentColor" opacity="0.42"/>
+            <text x="284" y="257" font-variant-numeric="tabular-nums">0.052</text>
+          </g>
+
+          <line x1="228" y1="278" x2="660" y2="278" stroke="currentColor" stroke-width="1" opacity="0.35"/>
+          <g font-size="10.5" fill="currentColor" opacity="0.62" text-anchor="middle" font-variant-numeric="tabular-nums">
+            <text x="228" y="294">0.0</text>
+            <text x="336" y="294">0.1</text>
+            <text x="444" y="294">0.2</text>
+            <text x="552" y="294">0.3</text>
+            <text x="660" y="294">0.4</text>
+          </g>
+          <text x="10" y="320" font-size="11.5" fill="currentColor" opacity="0.62">The ruler alone beats everything — including the full model that contains it.</text>
+        </g>
+      </svg>
+      <figcaption>
+        Every model on the test split, scored fairly. Note that the simplest thing on the chart
+        wins, and the most complex thing loses.
+      </figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2>What is honestly not working</h2>
+    <div class="col">
+      <p>Three problems, in the order you should care about them.</p>
+
+      <h3>1 · There is nowhere near enough data</h3>
+      <p>
+        We trained on <strong>36 videos</strong>. That is like learning what a dog looks like from
+        36 photos and then being tested on cats, wolves and foxes. Every number on this page could
+        move a lot with 36 different videos.
+      </p>
+      <p>
+        Here is the proof it is unstable: the version that scored <em>best</em> on the final test
+        scored <em>worst</em> on the practice test. If the rankings flip depending on which set
+        you look at, the rankings are not measuring anything real yet.
+      </p>
+
+      <h3>2 · Half of the clever idea does nothing</h3>
+      <p>
+        Remember the "read the fuzzy pages more gently" trick? We measured it. It changes the
+        answer for <strong>zero videos</strong>.
+      </p>
+      <p>
+        The reason is almost funny. After we bin the bad pictures at station 1, the ones left over
+        are <em>all quite good</em> — they score between about 8.8 and 9.8 out of 10. So "read
+        gently" versus "read normally" was a difference of about 4%, which the machine simply
+        absorbed and ignored. We aimed the knob at a difference that was not there.
+      </p>
+      <p>
+        There is a fix already written: instead of comparing each page to a fixed scale, compare
+        it to the <em>other pages in the same video</em> — then the differences are meaningful
+        again. It measures 8× stronger. It is switched off by default so the published results
+        stay reproducible.
+      </p>
+
+      <h3>3 · The fanciest part is dead weight</h3>
+      <p>
+        When we removed the picture reader entirely, the model got <strong>better</strong> — from
+        0.286 up to 0.407. When we removed the ruler instead, it collapsed to 0.052.
+      </p>
+      <p>
+        Three separate measurements agree: the ablation, the "ask it why" percentages (4.5%), and
+        the judge sitting at 50/50 and never committing. The honest way to say this is <em>not</em>
+        "the picture reader is bad" — it is <strong>"the picture reader has not been given enough
+        data to learn from yet."</strong> It has 1.1 million dials to set and 36 examples to set
+        them from.
+      </p>
+
+      <div class="flag">
+        <span class="tag">And one thing we never tested at all</span>
+        The whole point of station 1 is throwing away bad pictures. But in this dataset the
+        pictures were nearly all good — out of <strong>5,403 pictures, exactly one</strong> was
+        bad enough to bin. So the binning has never actually been put to the test. It needs
+        messier video before we can say whether it helps.
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>What to do next</h2>
+    <div class="col">
+      <ol>
+        <li><strong>Get the full dataset.</strong> 9,068 videos instead of 108. The code already handles it — only the folder path changes. This alone addresses problems 1 and 3.</li>
+        <li><strong>Run each experiment 3–5 times</strong> with different random starts, so we can tell a real difference from luck. One-line change.</li>
+        <li><strong>Switch on the fix</strong> for the gentle-reading idea and see whether it earns its place.</li>
+        <li><strong>Take more pictures per second.</strong> At 5 per second we cannot see eye flicks, which last a fraction of that. Some of our eye measurements are therefore not measuring what their names claim.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section>
+    <h2>Kid words to real words</h2>
+    <div class="col">
+      <p>Every simple phrase on this page maps onto a term you will need when writing this up.</p>
+    </div>
+    <div class="tbl-scroll">
+      <table>
+        <caption>Use the right column in the report, the left column when explaining it out loud.</caption>
+        <thead>
+          <tr><th>On this page</th><th>The real term</th><th>Where it lives</th></tr>
+        </thead>
+        <tbody>
+          <tr class="hi"><td>Score out of 10 for each picture</td><td>Motion Reliability Score (MRS)</td><td><code>pipeline/engagement_pipeline/mrs.py</code></td></tr>
+          <tr><td>Straightening the face</td><td>Eye-line affine alignment</td><td><code>engagement_pipeline/alignment.py</code></td></tr>
+          <tr><td>Following the right person</td><td>Primary-face tracking</td><td><code>engagement_pipeline/faces.py</code></td></tr>
+          <tr><td>Dots on the face</td><td>478-point face mesh + iris landmarks</td><td><code>pipeline/phase2_landmarks.py</code></td></tr>
+          <tr><td>The picture reader</td><td>Bidirectional Vision Mamba (S6 SSM)</td><td><code>mrgvm/mamba.py</code></td></tr>
+          <tr class="hi"><td>Reading fuzzy pages gently</td><td><code>dt</code> modulation by MRS</td><td><code>mrgvm/vision_mamba.py</code></td></tr>
+          <tr><td>The ruler</td><td>Landmark geometric features</td><td><code>mrgvm/geometric.py</code></td></tr>
+          <tr><td>The judge</td><td>Adaptive gated fusion</td><td><code>mrgvm/fusion.py</code></td></tr>
+          <tr><td>The small brain</td><td>Lightweight MLP classifier</td><td><code>mrgvm/fusion.py</code></td></tr>
+          <tr><td>Taking a piece out</td><td>Ablation study</td><td><code>mrgvm/ablation.py</code></td></tr>
+          <tr><td>Asking it why</td><td>SHAP attribution</td><td><code>mrgvm/shap_explain.py</code></td></tr>
+          <tr class="hi"><td>The fairer score</td><td>Macro-F1</td><td><code>src/metrics.py</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    <p>
+      Companion documents in the repository: <strong>MODEL_AND_LIMITATIONS.md</strong> for the
+      full technical account, <strong>training_log.md</strong> for the run-by-run record, and the
+      per-package READMEs for how to re-run each stage.
+    </p>
+    <p>
+      All figures on this page come from a 108-clip sample — 36 videos for training, 36 for
+      checking, 36 for the final test. They show that the machine runs correctly end to end.
+      They do not yet show that it works.
+    </p>
+  </footer>
+
+</div>

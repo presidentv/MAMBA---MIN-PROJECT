@@ -1,8 +1,5 @@
 """Phase 6 -- evaluations and ablation studies.
 
-The PDF asks for the contribution of four things to be measured. Each maps to
-one config switch, so every row below is the full model minus exactly one
-component -- which is what makes the deltas attributable:
 
     Motion Reliability Score   vision_mamba.guide_delta / guide_pooling = False,
                                plus a decomposition into each mechanism alone

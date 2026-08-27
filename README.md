@@ -15,9 +15,13 @@ walking the directory tree.
 > across 4 ordinal classes, they demonstrate that the pipeline runs correctly on
 > real data. They do not demonstrate that the model works. See [Results](#results).
 
-📄 **Start here: [`MODEL_AND_LIMITATIONS.md`](MODEL_AND_LIMITATIONS.md)** — how the
-model works stage by stage, and a full account of its shortcomings. It is the
-single reference for understanding and for writing this up.
+**Two places to start, depending on what you need:**
+
+- [`docs/how_it_works.html`](docs/how_it_works.html) — the whole pipeline in plain
+  language, with diagrams. Open it in a browser. Best if you want to *understand*
+  or explain the system out loud.
+- [`MODEL_AND_LIMITATIONS.md`](MODEL_AND_LIMITATIONS.md) — the same ground covered
+  technically, plus a full account of the shortcomings. Best for writing this up.
 
 ---
 
