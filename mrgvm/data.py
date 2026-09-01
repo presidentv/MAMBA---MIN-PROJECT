@@ -343,6 +343,29 @@ def build_dataloaders(
             for clip in split_clips:
                 scaler.transform(clip)
 
+    # ---- corruption augmentation, TRAIN ONLY -------------------------- #
+    # Deliberately after the scaler is fitted on clean training data, so the
+    # augmented clips are standardised with the same statistics and the only
+    # thing that differs is the pixels.
+    n_augmented = 0
+    if cfg.corruption_augment > 0 and "Train" in by_split:
+        from .robustness import build_corruption_bank
+
+        extra = build_corruption_bank(
+            by_split["Train"], geometric_columns, scaler,
+            n_variants=cfg.corruption_augment,
+            corruptions=list(cfg.corruption_types),
+            severities=list(cfg.corruption_severities),
+            seed=cfg.corruption_seed,
+            image_size=image_size,
+        )
+        by_split["Train"] = list(by_split["Train"]) + extra
+        n_augmented = len(extra)
+        logger.info(
+            "Corruption augmentation: +%d variants (train split now %d clips)",
+            n_augmented, len(by_split["Train"]),
+        )
+
     datasets: Dict[str, MRGVMDataset] = {}
     loaders: Dict[str, DataLoader] = {}
     for split, split_clips in by_split.items():
@@ -356,6 +379,7 @@ def build_dataloaders(
         )
 
     info = {
+        "n_augmented_train_clips": n_augmented,
         "geometric_columns": geometric_columns,
         "geometric_dim": len(geometric_columns),
         "subjects_per_split": subjects,

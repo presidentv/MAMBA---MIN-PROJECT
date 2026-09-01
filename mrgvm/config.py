@@ -108,6 +108,24 @@ class MRGVMDataConfig:
     # isolates the contribution of the score.
     include_gaze_features: bool = True
     # Fold src/features.py gaze descriptors into the geometric stream.
+
+    corruption_augment: int = 0
+    # Corrupted variants generated per TRAINING clip (0 = off). Each variant gets
+    # a random corruption at a random severity, with the MRS components AND the
+    # geometric stream recomputed from the corrupted pixels.
+    #
+    # Why this exists: on clean DAiSEE, reliability is 0.93 +/- 0.049 for every
+    # training frame. A conditioner cannot learn to use a signal that never
+    # varies, which is why the v2 weights stayed at ~0.20 and why guided and
+    # blind scored identically under corruption. Augmentation makes reliability
+    # vary during training, so the mechanism has something to fit.
+    #
+    # Applied to the training split ONLY -- never to validation or test.
+    corruption_severities: Tuple[int, ...] = (1, 2, 3, 4, 5)
+    corruption_types: Tuple[str, ...] = (
+        "gaussian_blur", "motion_blur", "occlusion", "darkness", "jpeg", "sensor_noise",
+    )
+    corruption_seed: int = 1234
     norm_mean: Tuple[float, float, float] = (0.485, 0.456, 0.406)
     norm_std: Tuple[float, float, float] = (0.229, 0.224, 0.225)
 
