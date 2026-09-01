@@ -24,7 +24,11 @@ walking the directory tree.
   language, with diagrams. Open it in a browser. Best if you want to *understand*
   or explain the system out loud.
 - [`MODEL_AND_LIMITATIONS.md`](MODEL_AND_LIMITATIONS.md) — the same ground covered
-  technically, plus a full account of the shortcomings. Best for writing this up.
+  technically, plus a full account of the shortcomings.
+- [`RESULTS_V2.md`](RESULTS_V2.md) — **the current results.** Leave-one-subject-out
+  gives 0.296 +/- 0.024 macro-F1; the single-split numbers elsewhere are shown there
+  to be untrustworthy. Also records five negative results. Read this before writing
+  anything up.
 
 ---
 

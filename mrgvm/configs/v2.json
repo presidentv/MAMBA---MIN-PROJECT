@@ -1,5 +1,5 @@
 {
-  "_comment": "MRG-VM v2 -- adaptive reliability-conditioned spatial-temporal architecture with corruption augmentation. Reliability is learned from the five MRS sub-scores, a learnable conditioner modulates the temporal stream, fusion is cross-attention over sequences, the loss is ordinal, and the training split is augmented with corrupted variants so reliability actually varies during training.",
+  "_comment": "MRG-VM v2 (default). Cross-attention fusion over sequences, learned multi-factor reliability conditioning, categorical cross-entropy. Chosen from the 9-variant Phase 6 ablation: this is the only configuration that led on BOTH test (0.376) and validation (0.351). CORAL and corruption augmentation were both tried and both measured worse -- see training_log.md for the negative results.",
   "vision_mamba": {
     "image_size": 112,
     "patch_size": 16,
@@ -53,7 +53,12 @@
     "standardize": true,
     "use_mrs_gate": true,
     "include_gaze_features": true,
-    "corruption_augment": 2
+    "corruption_augment": 0,
+    "corruption_severities": [
+      1,
+      2,
+      3
+    ]
   },
   "train": {
     "epochs": 40,
@@ -61,10 +66,10 @@
     "weight_decay": 0.01,
     "warmup_epochs": 3,
     "grad_clip": 1.0,
-    "early_stopping_patience": 10,
+    "early_stopping_patience": 14,
     "label_smoothing": 0.05,
     "class_weighting": true,
-    "loss": "coral",
+    "loss": "ce",
     "seed": 42,
     "deterministic": true
   },

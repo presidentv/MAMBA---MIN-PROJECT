@@ -64,6 +64,38 @@ def class_weights_from(labels: np.ndarray, num_classes: int, device: torch.devic
     return torch.tensor(weights, dtype=torch.float32, device=device)
 
 
+# Parameters whose zero point is a meaningful prior rather than "no signal".
+# Decaying these drags the model toward that prior instead of merely regularising
+# it -- for the reliability logits, zero IS the uniform equal-weight average, so
+# weight decay was quietly undoing the thing the model was supposed to learn.
+NO_DECAY_SUBSTRINGS = (
+    "learnable_reliability.logits",
+    "null_token",
+    "position",
+    ".bias",
+    "norm.weight",
+    "_norm.weight",
+    "A_log",
+    "conv1d.weight",
+)
+
+
+def build_parameter_groups(model: nn.Module, weight_decay: float) -> List[Dict[str, object]]:
+    """Split parameters into decayed and undecayed groups."""
+    decayed, undecayed = [], []
+    for name, parameter in model.named_parameters():
+        if not parameter.requires_grad:
+            continue
+        if parameter.ndim <= 1 or any(s in name for s in NO_DECAY_SUBSTRINGS):
+            undecayed.append(parameter)
+        else:
+            decayed.append(parameter)
+    return [
+        {"params": decayed, "weight_decay": weight_decay},
+        {"params": undecayed, "weight_decay": 0.0},
+    ]
+
+
 def summarise_class_distribution(datasets, num_classes: int) -> Tuple[pd.DataFrame, List[str]]:
     rows, warnings = [], []
     for split, dataset in datasets.items():
@@ -192,7 +224,8 @@ def train(
         if cfg.train.class_weighting else None
     )
     optimizer = torch.optim.AdamW(
-        model.parameters(), lr=cfg.train.learning_rate, weight_decay=cfg.train.weight_decay
+        build_parameter_groups(model, cfg.train.weight_decay),
+        lr=cfg.train.learning_rate,
     )
 
     total_epochs = max(cfg.train.epochs, 1)
@@ -262,8 +295,14 @@ def train(
                 checkpoint_dir / f"{run_name}.pt",
             )
 
+    final_weights = model.reliability_report()
+    if final_weights and not quiet:
+        logger.info("[%s] learned reliability weights: %s", run_name,
+                    {k: round(v, 4) for k, v in final_weights.items()})
+
     result: Dict[str, object] = {
         "run_name": run_name,
+        "learned_reliability_weights": final_weights,
         "n_parameters": n_parameters,
         "geometric_dim": info["geometric_dim"],
         "best_epoch": best_epoch,

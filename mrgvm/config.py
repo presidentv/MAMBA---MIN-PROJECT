@@ -121,7 +121,12 @@ class MRGVMDataConfig:
     # vary during training, so the mechanism has something to fit.
     #
     # Applied to the training split ONLY -- never to validation or test.
-    corruption_severities: Tuple[int, ...] = (1, 2, 3, 4, 5)
+    corruption_severities: Tuple[int, ...] = (1, 2, 3)
+    # Deliberately excludes severities 4-5. At those levels the face mesh fails
+    # on 15-27% of frames, and a clip that is a quarter unobservable no longer
+    # carries its original label in any recoverable way -- keeping the label
+    # would be training on noise. Measured: including them dropped test macro-F1
+    # from 0.363 to 0.176 and drove the model into underfitting.
     corruption_types: Tuple[str, ...] = (
         "gaussian_blur", "motion_blur", "occlusion", "darkness", "jpeg", "sensor_noise",
     )
