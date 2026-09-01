@@ -91,7 +91,52 @@ ABLATIONS: Dict[str, Dict[str, object]] = {
         "description": "Adaptive gated fusion replaced by plain concatenation",
         "override": {"fusion": {"kind": "concat"}},
     },
+
+    # ---------------------------------------------------------------- #
+    # v2 variants. Run these with --config mrgvm/configs/v2.json, where the
+    # base already has learned weights, adaptive conditioning, cross-attention
+    # fusion and the ordinal loss switched on. Each row then removes one.
+    # ---------------------------------------------------------------- #
+    "v2_no_learned_weights": {
+        "description": "v2 minus learned MRS weights (back to fixed equal averaging)",
+        "override": {"reliability": {"learn_weights": False}},
+    },
+    "v2_no_conditioning": {
+        "description": "v2 minus the adaptive multi-factor conditioner",
+        "override": {"reliability": {"adaptive_conditioning": False}},
+    },
+    "v2_no_film": {
+        "description": "Conditioner without FiLM modulation (gate + dt only)",
+        "override": {"reliability": {"use_film": False}},
+    },
+    "v2_no_gate": {
+        "description": "Conditioner without the null-token gate (FiLM + dt only)",
+        "override": {"reliability": {"use_gate": False}},
+    },
+    "v2_no_dt": {
+        "description": "Conditioner without dt scaling (FiLM + gate only)",
+        "override": {"reliability": {"use_dt": False}},
+    },
+    "v2_no_loss_weighting": {
+        "description": "v2 minus the reliability-weighted loss",
+        "override": {"reliability": {"loss_weighting": False}},
+    },
+    "v2_gated_fusion": {
+        "description": "Cross-attention fusion replaced by v1 clip-level gating",
+        "override": {"fusion": {"kind": "adaptive"}},
+    },
+    "v2_ce_loss": {
+        "description": "Ordinal CORAL loss replaced by categorical cross-entropy",
+        "override": {"train": {"loss": "ce"}},
+    },
 }
+
+# Convenience groups for --variants.
+V1_VARIANTS = ("full", "no_mrs_guidance", "guide_delta_only", "guide_pooling_only",
+               "no_vision_mamba", "no_landmarks", "concat_fusion")
+V2_VARIANTS = ("full", "v2_no_learned_weights", "v2_no_conditioning", "v2_no_film",
+               "v2_no_gate", "v2_no_dt", "v2_no_loss_weighting", "v2_gated_fusion",
+               "v2_ce_loss")
 
 
 def _merge(base: Dict, override: Dict) -> Dict:

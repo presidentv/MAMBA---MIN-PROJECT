@@ -36,6 +36,12 @@ logger = logging.getLogger("mrgvm.data")
 
 LABEL_COLUMNS = ("Boredom", "Engagement", "Confusion", "Frustration")
 
+# The five MRS components, carried per frame from Phase 1. Order must match
+# reliability.SUBSCORE_NAMES -- the conditioner indexes this vector positionally.
+MRS_SUBSCORE_COLUMNS: Tuple[str, ...] = (
+    "blur", "face_visibility", "head_rotation", "eye_visibility", "motion_consistency",
+)
+
 # Gaze descriptors produced by src/features.py, folded into the geometric stream.
 GAZE_FEATURE_SUBSET: Tuple[str, ...] = (
     "gaze_yaw", "gaze_pitch", "gaze_velocity", "is_fixation", "gaze_dispersion",
@@ -51,7 +57,8 @@ class MRGVMClip:
     subject_id: str
     split: str
     frames: np.ndarray        # (T, H, W, 3) uint8, RGB
-    mrs: np.ndarray           # (T,) float32
+    mrs: np.ndarray           # (T,) float32  combined scalar (v1)
+    sub_scores: np.ndarray    # (T, 5) float32  the components (v2 conditioner)
     geometric: np.ndarray     # (T, D_g) float32
     labels: Dict[str, int]
 
@@ -109,6 +116,12 @@ def load_clips(
         # Carry the per-frame MRS through: it drives both reliability-guidance
         # mechanisms, so it must survive the gaze merge below.
         geometry["mrs"] = landmarks["mrs"].to_numpy(dtype=np.float32)
+        for column in MRS_SUBSCORE_COLUMNS:
+            if column in landmarks.columns:
+                geometry[column] = landmarks[column].to_numpy(dtype=np.float32)
+            else:
+                logger.warning("Sub-score %s missing for %s; filling 1.0", column, clip_id)
+                geometry[column] = np.float32(1.0)
 
         if cfg.include_gaze_features and gaze_file.is_file():
             gaze = pd.read_parquet(gaze_file)
@@ -152,9 +165,13 @@ def load_clips(
 
         geometry = geometry.iloc[keep_index].reset_index(drop=True)
         mrs = geometry["mrs"].to_numpy(dtype=np.float32)
+        sub_scores = geometry[list(MRS_SUBSCORE_COLUMNS)].to_numpy(dtype=np.float32)
         if not cfg.use_mrs_gate:
-            # Phase 6 ablation: pretend every retained frame is perfect.
+            # Phase 6 ablation: pretend every retained frame is perfect. Both the
+            # scalar and the component vector must be neutralised, or the
+            # conditioner would still see the real signal.
             mrs = np.ones_like(mrs)
+            sub_scores = np.ones_like(sub_scores)
 
         labels = {}
         for column in LABEL_COLUMNS:
@@ -171,6 +188,7 @@ def load_clips(
                 split=split,
                 frames=np.stack(images).astype(np.uint8),
                 mrs=mrs,
+                sub_scores=sub_scores,
                 geometric=geometry[geometric_columns].to_numpy(dtype=np.float32),
                 labels=labels,
             )
@@ -272,6 +290,9 @@ class MRGVMDataset(Dataset):
         mrs = np.zeros(self.max_frames, dtype=np.float32)
         mrs[:length] = clip.mrs[:length]
 
+        sub_scores = np.zeros((self.max_frames, clip.sub_scores.shape[1]), dtype=np.float32)
+        sub_scores[:length] = clip.sub_scores[:length]
+
         mask = np.zeros(self.max_frames, dtype=bool)
         mask[:length] = True
 
@@ -279,6 +300,7 @@ class MRGVMDataset(Dataset):
             "frames": torch.from_numpy(frames),
             "geometric": torch.from_numpy(geometric),
             "mrs": torch.from_numpy(mrs),
+            "sub_scores": torch.from_numpy(sub_scores),
             "mask": torch.from_numpy(mask),
             "label": torch.tensor(clip.labels[self.target], dtype=torch.long),
             "clip_id": clip.clip_id,
@@ -292,6 +314,7 @@ def collate(batch: List[Dict[str, object]]) -> Dict[str, object]:
         "frames": torch.stack([b["frames"] for b in batch]),
         "geometric": torch.stack([b["geometric"] for b in batch]),
         "mrs": torch.stack([b["mrs"] for b in batch]),
+        "sub_scores": torch.stack([b["sub_scores"] for b in batch]),
         "mask": torch.stack([b["mask"] for b in batch]),
         "label": torch.stack([b["label"] for b in batch]),
         "clip_id": [b["clip_id"] for b in batch],

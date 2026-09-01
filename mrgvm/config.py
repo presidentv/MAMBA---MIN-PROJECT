@@ -47,10 +47,35 @@ class VisionMambaConfig:
 
 
 @dataclass
-class FusionConfig:
-    """Phase 4 -- adaptive feature fusion."""
+class ReliabilityConfig:
+    """The v2 novelty: learned, multi-factor reliability conditioning."""
 
-    kind: str = "adaptive"          # 'adaptive' | 'concat'
+    learn_weights: bool = False
+    # Replace the fixed equal-weight mean over the five MRS sub-scores with
+    # learned softmax weights. Initialised uniform, so it starts identical to v1.
+    adaptive_conditioning: bool = False
+    # Feed the five-vector (not the scalar) into a learnable conditioner that
+    # modulates the temporal stream. Supersedes vision_mamba.guide_delta.
+    hidden_dim: int = 32
+    min_dt_scale: float = 0.1
+    dropout: float = 0.0
+    # The three conditioning mechanisms, individually ablatable:
+    use_film: bool = True      # feature-wise affine, conditioned on failure mode
+    use_gate: bool = True      # blend toward a learned null token
+    use_dt: bool = True        # scale the SSM timestep
+
+    loss_weighting: bool = False
+    # Weight each clip's loss by its mean reliability.
+    loss_weight_strength: float = 1.0
+    loss_weight_floor: float = 0.25
+
+
+@dataclass
+class FusionConfig:
+    """Phase 4 -- feature fusion."""
+
+    kind: str = "adaptive"          # 'adaptive' | 'concat' | 'cross_attention'
+    num_heads: int = 4              # cross_attention only
     hidden_dim: int = 128
     dropout: float = 0.2
     use_mamba: bool = True          # Phase 6 ablation: drop the Vision Mamba stream
@@ -73,6 +98,7 @@ class ClassifierConfig:
 class MRGVMDataConfig:
     max_frames: int = 50
     target: str = "Engagement"
+    num_classes: int = 4
     batch_size: int = 4
     num_workers: int = 0
     standardize: bool = True
@@ -96,6 +122,12 @@ class MRGVMTrainConfig:
     early_stopping_patience: int = 10
     label_smoothing: float = 0.05
     class_weighting: bool = True
+    loss: str = "ce"
+    # 'ce'    = categorical cross-entropy (v1 default).
+    # 'coral' = CORAL ordinal loss. Engagement is ordered 0-3, so treating the
+    #           classes as unordered discards structure; CORAL's K-1 cumulative
+    #           heads share one weight vector and differ only in bias, which
+    #           makes the cumulative probabilities monotone by construction.
     seed: int = 42
     deterministic: bool = True
 
@@ -105,6 +137,7 @@ class MRGVMConfig:
     vision_mamba: VisionMambaConfig = field(default_factory=VisionMambaConfig)
     fusion: FusionConfig = field(default_factory=FusionConfig)
     classifier: ClassifierConfig = field(default_factory=ClassifierConfig)
+    reliability: ReliabilityConfig = field(default_factory=ReliabilityConfig)
     data: MRGVMDataConfig = field(default_factory=MRGVMDataConfig)
     train: MRGVMTrainConfig = field(default_factory=MRGVMTrainConfig)
     splits: Tuple[str, ...] = ("Train", "Validation", "Test")

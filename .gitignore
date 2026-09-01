@@ -72,3 +72,12 @@ desktop.ini
 
 # Office lock files (created while a document is open)
 ~$*
+
+# v2 output root (ungated Phase 1) — same exclusions as outputs/
+outputs_ungated/phase1_reliable_frames/
+outputs_ungated/phase2_landmarks/
+outputs_ungated/features/
+outputs_ungated/embeddings/
+outputs_ungated/checkpoints/
+outputs_ungated/*_manifest.csv
+outputs_ungated/logs/phase2_warnings.csv

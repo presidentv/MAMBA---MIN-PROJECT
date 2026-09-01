@@ -181,7 +181,12 @@ class ReliabilityGuidedTemporalMamba(nn.Module):
         return floor + (1.0 - floor) * mrs
 
     def forward(
-        self, frame_embeddings: torch.Tensor, mrs: torch.Tensor, mask: torch.Tensor
+        self,
+        frame_embeddings: torch.Tensor,
+        mrs: torch.Tensor,
+        mask: torch.Tensor,
+        conditioner=None,
+        sub_scores: Optional[torch.Tensor] = None,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Args:
@@ -197,7 +202,16 @@ class ReliabilityGuidedTemporalMamba(nn.Module):
         x = self.dropout(x)
 
         delta_scale = None
-        if self.guide_delta:
+        if conditioner is not None and sub_scores is not None:
+            # v2 path: the learnable multi-factor conditioner replaces the fixed
+            # scalar map entirely. FiLM and the null-token gate act on the frame
+            # embedding; dt_scale still steers the scan.
+            controls = conditioner(sub_scores, mask)
+            x = conditioner.apply_to(x, controls)
+            delta_scale = controls.get("dt_scale")
+        elif self.guide_delta:
+            # v1 path: fixed map from the scalar MRS. Kept so the published
+            # ablation stays reproducible.
             delta_scale = self.reliability_to_delta_scale(mrs, mask)
             # Padding contributes nothing: floor its dt so the state barely moves.
             delta_scale = torch.where(mask, delta_scale, torch.full_like(delta_scale, 1e-3))
@@ -245,7 +259,12 @@ class MRGVisionMamba(nn.Module):
         return self.d_model
 
     def forward(
-        self, frames: torch.Tensor, mrs: torch.Tensor, mask: torch.Tensor
+        self,
+        frames: torch.Tensor,
+        mrs: torch.Tensor,
+        mask: torch.Tensor,
+        conditioner=None,
+        sub_scores: Optional[torch.Tensor] = None,
     ) -> Dict[str, torch.Tensor]:
         """
         Args:
@@ -259,7 +278,9 @@ class MRGVisionMamba(nn.Module):
         batch, length = frames.shape[:2]
         flattened = frames.reshape(batch * length, *frames.shape[2:])
         per_frame = self.spatial(flattened).reshape(batch, length, self.d_model)
-        clip_embedding, encoded = self.temporal(per_frame, mrs, mask)
+        clip_embedding, encoded = self.temporal(
+            per_frame, mrs, mask, conditioner=conditioner, sub_scores=sub_scores
+        )
         return {
             "clip_embedding": clip_embedding,
             "frame_embeddings": encoded,

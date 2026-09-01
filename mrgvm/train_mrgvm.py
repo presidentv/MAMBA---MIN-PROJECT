@@ -34,10 +34,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from metrics import evaluate, format_confusion_matrix  # noqa: E402
+from models import coral_loss, coral_predict, coral_probabilities, coral_targets  # noqa: E402
 
 from .config import MRGVMConfig, dump_config, load_mrgvm_config  # noqa: E402
 from .data import build_dataloaders  # noqa: E402
 from .model import MRGVMModel, count_parameters  # noqa: E402
+from .reliability import reliability_loss_weights  # noqa: E402
 
 logger = logging.getLogger("mrgvm.train")
 
@@ -96,12 +98,39 @@ def run_epoch(
         mask = batch["mask"].to(device)
         labels = batch["label"].to(device)
 
+        sub_scores = batch["sub_scores"].to(device) if "sub_scores" in batch else None
+
         with torch.set_grad_enabled(training):
-            output = model(frames, geometric, mrs, mask)
-            loss = F.cross_entropy(
-                output["logits"], labels, weight=class_weights,
-                label_smoothing=cfg.train.label_smoothing,
-            )
+            output = model(frames, geometric, mrs, mask, sub_scores)
+            logits = output["logits"]
+
+            if cfg.train.loss == "coral":
+                # Per-sample so the reliability weights below can be applied
+                # before reduction.
+                targets = coral_targets(labels, cfg.data.num_classes)
+                per_task = F.binary_cross_entropy_with_logits(
+                    logits, targets, reduction="none"
+                )
+                if class_weights is not None:
+                    per_task = per_task * class_weights[labels].unsqueeze(1)
+                per_sample = per_task.sum(dim=1)
+            else:
+                per_sample = F.cross_entropy(
+                    logits, labels, weight=class_weights,
+                    label_smoothing=cfg.train.label_smoothing, reduction="none",
+                )
+
+            if cfg.reliability.loss_weighting:
+                # Third place the reliability score acts: down-weight clips whose
+                # frames were mostly unreliable, since those are noisy targets.
+                sample_weights = reliability_loss_weights(
+                    output["reliability"], mask,
+                    strength=cfg.reliability.loss_weight_strength,
+                    floor=cfg.reliability.loss_weight_floor,
+                )
+                per_sample = per_sample * sample_weights
+
+            loss = per_sample.mean()
 
         if training:
             optimizer.zero_grad(set_to_none=True)
@@ -114,8 +143,12 @@ def run_epoch(
         total_loss += float(loss.item()) * size
         total_items += size
         trues.append(labels.detach().cpu().numpy())
-        preds.append(output["logits"].argmax(dim=1).detach().cpu().numpy())
-        probabilities.append(F.softmax(output["logits"], dim=1).detach().cpu().numpy())
+        if cfg.train.loss == "coral":
+            preds.append(coral_predict(logits).detach().cpu().numpy())
+            probabilities.append(coral_probabilities(logits).detach().cpu().numpy())
+        else:
+            preds.append(logits.argmax(dim=1).detach().cpu().numpy())
+            probabilities.append(F.softmax(logits, dim=1).detach().cpu().numpy())
         clip_ids.extend(batch["clip_id"])
 
     return (
@@ -145,13 +178,17 @@ def train(
 
     model = MRGVMModel(cfg, info["geometric_dim"]).to(device)
     n_parameters = count_parameters(model)
+    learned = model.reliability_report()
+    if learned:
+        logger.info("[%s] initial reliability weights: %s", run_name,
+                    {k: round(v, 3) for k, v in learned.items()})
     if not quiet:
         logger.info("[%s] %d trainable parameters | geometric dim %d",
                     run_name, n_parameters, info["geometric_dim"])
 
     train_labels = datasets["Train"].labels()
     weights = (
-        class_weights_from(train_labels, cfg.classifier.num_classes, device)
+        class_weights_from(train_labels, cfg.data.num_classes, device)
         if cfg.train.class_weighting else None
     )
     optimizer = torch.optim.AdamW(
@@ -178,11 +215,11 @@ def train(
         train_loss, y_true, y_pred, _, _ = run_epoch(
             model, loaders["Train"], device, cfg, optimizer, weights
         )
-        train_metrics = evaluate(y_true, y_pred, cfg.classifier.num_classes)
+        train_metrics = evaluate(y_true, y_pred, cfg.data.num_classes)
         val_loss, v_true, v_pred, _, _ = run_epoch(
             model, loaders[validation_split], device, cfg, None, weights
         )
-        val_metrics = evaluate(v_true, v_pred, cfg.classifier.num_classes)
+        val_metrics = evaluate(v_true, v_pred, cfg.data.num_classes)
         scheduler.step()
 
         history.append({
@@ -236,7 +273,7 @@ def train(
     }
     for split, loader in loaders.items():
         _, y_true, y_pred, y_prob, clip_ids = run_epoch(model, loader, device, cfg, None, weights)
-        result["splits"][split] = evaluate(y_true, y_pred, cfg.classifier.num_classes, y_prob)
+        result["splits"][split] = evaluate(y_true, y_pred, cfg.data.num_classes, y_prob)
     result["_model"] = model
     result["_datasets"] = datasets
     result["_info"] = info
@@ -298,7 +335,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     result.pop("_model")
     result.pop("_info")
 
-    table, warnings = summarise_class_distribution(datasets, cfg.classifier.num_classes)
+    table, warnings = summarise_class_distribution(datasets, cfg.data.num_classes)
     logger.info("Class distribution (%s):\n%s", cfg.data.target, table.to_string())
     for warning in warnings:
         logger.warning("SMALL-SAMPLE: %s", warning)
@@ -309,7 +346,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                     metrics["quadratic_weighted_kappa"], metrics["mean_absolute_error"])
     if "Test" in result["splits"]:
         logger.info("Test confusion matrix:\n%s", format_confusion_matrix(
-            result["splits"]["Test"]["confusion_matrix"], cfg.classifier.num_classes))
+            result["splits"]["Test"]["confusion_matrix"], cfg.data.num_classes))
 
     result["class_distribution"] = table.to_dict(orient="index")
     result["small_sample_warnings"] = warnings
