@@ -1004,8 +1004,11 @@ Measured on the development machine (RTX 3060 Laptop, 6 GB) unless marked *estim
 GPU memory, from `scripts/probe_finetune_memory.py`: a training step over 128 crops
 (4 clips × 32 frames) peaks at **2.7 GB** with gradient checkpointing; 256 crops peaks
 at 4.2 GB, and **17.5 GB without checkpointing**. Checkpointing is on in the config,
-which is why 6 GB is enough. On a larger card, raise `training.batch_size` and lower
-`grad_accum_steps` so their product stays 8.
+which is why 6 GB is enough. The config trains at an **effective batch of 32**
+(`batch_size: 4` × `grad_accum_steps: 8`): a real batch of 32 clips is 1,024 crops, about
+13 GB even with checkpointing. On a 16 GB+ card, raise `training.batch_size` and lower
+`grad_accum_steps` so their product stays 32. Learning rates are 2× the development
+values (√(32/8) scaling for the 4× larger effective batch).
 
 Disk, per component:
 
@@ -1013,8 +1016,9 @@ Disk, per component:
 |---|---|
 | DAiSEE release (video) | ~13.5 GB (*estimate*: 1.49 MB/clip × 9,068, from the 216-clip subset) |
 | Stage 1 cache at T = 32 | ~4.3 GB (0.49 MB/clip measured × 9,068) |
-| One fine-tuned checkpoint | 333 MB; all 64 epochs = ~21 GB (`save_every_epoch: false` keeps only `best.pt` + `last.pt`) |
+| One fine-tuned checkpoint (`best.pt`) | 333 MB (`save_every_epoch: true` stores all 64 = ~21 GB) |
 | `last.pt` (resume state incl. optimiser) | ~1 GB, overwritten each epoch |
+| `after_epoch_010.pt`, `_020`, … (every `save_every_n_epochs: 10`) | ~1 GB each (weights + full resume state, like `last.pt`): ~3 GB if the run stops at 30, ~6 GB at 64 |
 
 Time, *estimates* scaled from the development machine:
 
@@ -1023,9 +1027,21 @@ Time, *estimates* scaled from the development machine:
 | Stage 1, one process | 0.62 s/clip | ~95 min; roughly ÷ number of shards |
 | Fine-tuning epoch | 62 s for 120 train + 80 val clips | ~35–40 min per epoch on the same GPU; several times faster on a data-centre GPU |
 
-With `early_stopping_patience: 10` the run stops once validation macro-F1 has not
-improved for 10 epochs. On the development subset the best epoch was 2, so expect far
-fewer than 64 epochs.
+*Estimate* for an **RTX 4060 (8 GB) desktop with 16 GB RAM**, assuming it is ~1.2–1.4×
+the development GPU: ~30–33 min training + ~2 min validation per epoch, so **~33–37 h
+for all 64 epochs** (~17 h if the run stops at the epoch-30 decision point), plus ~20–30 min of sharded Stage 1 and a few minutes of final
+evaluation.
+
+**Epoch budget: 30, extended to 64 only if still improving.** The first 30 epochs are
+one complete cosine cycle, so a run that stops there has a fully annealed model (~17 h
+on an RTX 4060). After epoch 30 the run continues to 64 (~35 h total) only if the best
+validation macro-F1 in epochs 26–30 beats the best of epochs 1–25 by at least 0.005;
+the continuation is a second cosine cycle restarting at half the peak learning rate.
+The decision is logged, stored in `last.pt` (so `--resume` respects it) and written to
+`finetune_report_<run>.json` as `extend_decision`. `best.pt` is always the epoch with
+the highest validation macro-F1. Settings: `training.extend_decision_epoch`,
+`extend_window`, `extend_min_delta`, `restart_lr_factor`; set `extend_decision_epoch:
+null` for a single cosine over all epochs.
 
 ### What changed for full scale, and why
 
@@ -1067,7 +1083,15 @@ figures. It is safe to re-run after an interruption; delete `checkpoints/full_ft
 fresh start. Outputs: `artifacts/finetune_report_full_ft32.json`,
 `artifacts/report_full_ft32/`, `logs/training_history_full_ft32.csv`.
 
-On Windows, run the same steps individually:
+On Windows, `scripts/run_full_daisee.ps1` runs the same steps, including Stage 1
+sharded across cores, and is equally safe to re-run after an interruption:
+
+```powershell
+$env:DAISEE_ROOT = "D:\DAiSEE"
+powershell -ExecutionPolicy Bypass -File scripts\run_full_daisee.ps1
+```
+
+Or run the steps individually:
 
 ```powershell
 $env:DAISEE_ROOT = "D:\DAiSEE"
@@ -1076,8 +1100,31 @@ python scripts/audit_dataset.py --config configs/config_full.yaml
 python scripts/run_preprocessing.py --config configs/config_full.yaml --stage 1
 python scripts/fit_mrs_stats.py --config configs/config_full.yaml
 python scripts/run_finetune.py --config configs/config_full.yaml --run-name full_ft32 --workers 4 --resume
-python scripts/make_finetune_figures.py --run full_ft32 --baseline ""
+python scripts/make_finetune_figures.py --run full_ft32 --baseline=
 ```
+
+(`--baseline=` rather than `--baseline ""`: Windows PowerShell 5.1 drops an empty-string
+argument, leaving `--baseline` with no value.)
+
+**If training stops** (crash, power cut, reboot, Ctrl+C), run the same command again.
+`--resume` continues from `checkpoints/full_ft32/last.pt`, which is rewritten after
+**every** epoch, so at most the epoch in progress is lost. The optimiser, learning-rate
+schedule, AMP scaler, random-number state, early-stopping counters and the epoch-30
+decision all carry over, and the learning-rate curve is identical to an uninterrupted
+run.
+
+Every 10 epochs a snapshot is also kept: `after_epoch_010.pt`, `after_epoch_020.pt`, …
+Each holds the same full resume state as `last.pt`, plus everything needed to load it
+for evaluation. To go back to one, for example if `last.pt` is lost or you want to
+retrain from an earlier point:
+
+```powershell
+python scripts/run_finetune.py --config configs/config_full.yaml --run-name full_ft32 --workers 4 --resume-from checkpoints/full_ft32/after_epoch_020.pt
+```
+
+Training continues from epoch 21 and the history CSV is rolled back to match. A
+`best.pt` written after the snapshot belongs to the abandoned continuation, so it is
+renamed `best_abandoned_epoch_NNN.pt` and best-model selection restarts from the snapshot.
 
 ### Reading the results
 

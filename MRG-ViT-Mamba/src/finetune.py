@@ -238,9 +238,63 @@ _RESUME_MUST_MATCH = (
 )
 
 
+def periodic_checkpoint_name(epoch: int, every: int) -> str | None:
+    """File name for the periodic checkpoint after 0-based `epoch`, or None.
+
+    Named by the number of epochs completed, so after_epoch_010.pt is the
+    model after 10 epochs -- row epoch=9 of the 0-based history CSV.
+    """
+    if every <= 0 or (epoch + 1) % every != 0:
+        return None
+    return f"after_epoch_{epoch + 1:03d}.pt"
+
+
+def should_extend(val_macro_f1s: list[float], window: int, min_delta: float) -> bool:
+    """Is validation macro-F1 still rising at the end of the first cycle?
+
+    True when the best score in the last `window` epochs beats the best score
+    before them by at least `min_delta`. A peak earlier in the cycle, or a
+    plateau, returns False. The margin is there because the final epochs of a
+    cosine cycle run at a near-zero learning rate and routinely add a sliver of
+    macro-F1 that says nothing about whether more training would help.
+    """
+    if window <= 0 or len(val_macro_f1s) <= window:
+        return False
+    recent = max(val_macro_f1s[-window:])
+    earlier = max(val_macro_f1s[:-window])
+    return recent >= earlier + min_delta
+
+
+def make_lr_lambda(epochs: int, warmup: int, scheduler: str,
+                   decision_epoch: int | None, restart_factor: float):
+    """Per-epoch LR multiplier.
+
+    Without a decision epoch: linear warmup, then one cosine over all epochs.
+    With one: the first cosine ends at the decision epoch, so a run that stops
+    there has a fully annealed model. If training continues, a second cosine
+    runs from the decision epoch to the end, restarting at `restart_factor` of
+    the peak LR (a warm restart, as in SGDR).
+    """
+    cycle1 = decision_epoch if decision_epoch else epochs
+
+    def lr_lambda(epoch: int) -> float:
+        if warmup and epoch < warmup:
+            return (epoch + 1) / warmup
+        if scheduler != "cosine":
+            return 1.0
+        if epoch < cycle1:
+            progress = (epoch - warmup) / max(1, cycle1 - warmup)
+            return 0.5 * (1.0 + np.cos(np.pi * min(progress, 1.0)))
+        progress = (epoch - cycle1) / max(1, epochs - cycle1)
+        return restart_factor * 0.5 * (1.0 + np.cos(np.pi * min(progress, 1.0)))
+
+    return lr_lambda
+
+
 def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
                    overrides: dict | None = None, resume: bool = False,
-                   num_workers: int | None = None) -> FineTuneResult:
+                   num_workers: int | None = None,
+                   resume_from: str | None = None) -> FineTuneResult:
     device_str = "cuda" if torch.cuda.is_available() else "cpu"
     device = torch.device(device_str)
     tcfg = dict(cfg["training"])
@@ -324,14 +378,20 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
     epochs = int(tcfg["epochs"])
     warmup = int(tcfg.get("warmup_epochs", 0))
 
-    def lr_lambda(epoch: int) -> float:
-        if warmup and epoch < warmup:
-            return (epoch + 1) / warmup
-        if str(tcfg.get("scheduler", "cosine")) != "cosine":
-            return 1.0
-        progress = (epoch - warmup) / max(1, epochs - warmup)
-        return 0.5 * (1.0 + np.cos(np.pi * min(progress, 1.0)))
+    # Optional decision point: train `extend_decision_epoch` epochs as a
+    # complete cycle, then continue to `epochs` only if validation macro-F1 is
+    # still rising. Ignored when --epochs makes the run no longer than that.
+    decision_epoch = tcfg.get("extend_decision_epoch")
+    decision_epoch = int(decision_epoch) if decision_epoch else None
+    if decision_epoch is not None and not (warmup < decision_epoch < epochs):
+        decision_epoch = None
+    extend_window = int(tcfg.get("extend_window", 5))
+    extend_min_delta = float(tcfg.get("extend_min_delta", 0.005))
+    restart_factor = float(tcfg.get("restart_lr_factor", 0.5))
+    extend_decision: dict | None = None
 
+    lr_lambda = make_lr_lambda(epochs, warmup, str(tcfg.get("scheduler", "cosine")),
+                               decision_epoch, restart_factor)
     scheduler = torch.optim.lr_scheduler.LambdaLR(optimiser, lr_lambda)
 
     use_amp = bool(tcfg.get("mixed_precision", False)) and device_str == "cuda"
@@ -366,19 +426,33 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
     history: list[dict] = []
     num_classes = int(cfg["dataset"]["num_classes"])
     save_every_epoch = bool(tcfg.get("save_every_epoch", True))
+    # A full model checkpoint every N epochs, alongside best.pt and last.pt.
+    # save_every_epoch keeps its original meaning and takes precedence.
+    save_every_n = 1 if save_every_epoch else int(tcfg.get("save_every_n_epochs", 0) or 0)
     start_epoch = 0
     resumed_from = None
     last_path = ckpt_dir / "last.pt"
 
-    if resume and last_path.is_file():
-        state = torch.load(last_path, map_location=device, weights_only=False)
+    # --resume continues from last.pt (the latest epoch). --resume-from continues
+    # from a chosen snapshot, e.g. checkpoints/<run>/after_epoch_020.pt.
+    resume_path = Path(resume_from) if resume_from else last_path
+    if resume_from and not resume_path.is_file():
+        raise FileNotFoundError(f"--resume-from {resume_path}: no such checkpoint")
+
+    if (resume or resume_from) and resume_path.is_file():
+        state = torch.load(resume_path, map_location=device, weights_only=False)
+        if "optimiser_state" not in state:
+            raise RuntimeError(
+                f"{resume_path} holds model weights only (no optimiser/scheduler state), "
+                f"so training cannot continue from it. Use last.pt or an "
+                f"after_epoch_*.pt snapshot.")
         saved = state["config"]
         for section, key in _RESUME_MUST_MATCH:
             a = saved.get(section, {}).get(key)
             b = cfg[section].get(key) if section in cfg else None
             if a != b:
                 raise RuntimeError(
-                    f"cannot resume {last_path}: {section}.{key} was {a!r} in the "
+                    f"cannot resume {resume_path}: {section}.{key} was {a!r} in the "
                     f"interrupted run but is {b!r} now")
         model.load_state_dict(state["model_state"])
         optimiser.load_state_dict(state["optimiser_state"])
@@ -386,14 +460,34 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
         if amp_scaler is not None and state.get("amp_scaler_state"):
             amp_scaler.load_state_dict(state["amp_scaler_state"])
         best = state["best"]
+        extend_decision = state.get("extend_decision")
         since_improved = int(state["since_improved"])
         history = list(state["history"])
         _restore_rng(state["rng"])
         start_epoch = int(state["epoch"]) + 1
         resumed_from = int(state["epoch"])
+        del state
+        # Rolling back to an earlier snapshot: a best.pt written after that
+        # snapshot belongs to the abandoned continuation, and keeping it would
+        # let the report quote a model the resumed run never produced. Move it
+        # aside and restart selection from the snapshot onward.
+        best_path = ckpt_dir / "best.pt"
+        if resume_from and best_path.is_file():
+            best_on_disk = int(torch.load(best_path, map_location="cpu",
+                                          weights_only=False)["epoch"])
+            if best_on_disk > resumed_from:
+                aside = ckpt_dir / f"best_abandoned_epoch_{best_on_disk:03d}.pt"
+                os.replace(best_path, aside)
+                best = {"macro_f1": -1.0, "epoch": -1}
+                since_improved = 0
+                if logger:
+                    logger.warning(
+                        "best.pt (epoch %d) is later than the snapshot (epoch %d); moved "
+                        "to %s and restarted best-model selection from the snapshot",
+                        best_on_disk, resumed_from, aside.name)
         if logger:
             logger.info("resumed from %s: epoch %d done, best so far epoch %d "
-                        "(val macro-F1 %.4f)", last_path, resumed_from,
+                        "(val macro-F1 %.4f)", resume_path, resumed_from,
                         best["epoch"], best["macro_f1"])
     elif resume and logger:
         logger.info("--resume given but %s does not exist; starting from epoch 0", last_path)
@@ -409,6 +503,8 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
 
     if start_epoch > 0 and since_improved >= patience:
         start_epoch = epochs          # the interrupted run had already early-stopped
+    if extend_decision is not None and not extend_decision["extend"]:
+        start_epoch = epochs          # the run had already stopped at the decision point
 
     for epoch in range(start_epoch, epochs):
         t0 = time.perf_counter()
@@ -467,8 +563,28 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
         else:
             since_improved += 1
 
+        if decision_epoch is not None and epoch == decision_epoch - 1:
+            f1s = [float(r["val_macro_f1"]) for r in history]
+            extend = should_extend(f1s, extend_window, extend_min_delta)
+            extend_decision = {
+                "after_epochs": decision_epoch,
+                "extend": extend,
+                "best_last_window": round(max(f1s[-extend_window:]), 6),
+                "best_before_window": round(max(f1s[:-extend_window]), 6),
+                "window": extend_window,
+                "min_delta": extend_min_delta,
+            }
+            if logger:
+                logger.info(
+                    "decision after %d epochs: best val macro-F1 in last %d epochs %.4f "
+                    "vs %.4f before -> %s", decision_epoch, extend_window,
+                    extend_decision["best_last_window"],
+                    extend_decision["best_before_window"],
+                    f"still rising, continuing to {epochs} epochs" if extend
+                    else "peaked earlier, stopping here")
+
         # Everything needed to continue from the next epoch as if uninterrupted.
-        _atomic_torch_save({
+        resume_state = {
             "epoch": epoch,
             "model_state": model.state_dict(),
             "optimiser_state": optimiser.state_dict(),
@@ -476,15 +592,28 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
             "amp_scaler_state": amp_scaler.state_dict() if amp_scaler is not None else None,
             "best": best,
             "since_improved": since_improved,
-            "history": history,
+            "extend_decision": extend_decision,
+            "history": list(history),
             "rng": _rng_state(),
             "config": dict(cfg),
-        }, last_path)
+        }
+        _atomic_torch_save(resume_state, last_path)
+
+        # Periodic snapshot: resumable with --resume-from (it carries the same
+        # state as last.pt) and loadable for evaluation like best.pt.
+        periodic = periodic_checkpoint_name(epoch, 0 if save_every_epoch else save_every_n)
+        if periodic is not None:
+            _atomic_torch_save({**checkpoint_payload(epoch, m_va), **resume_state},
+                               ckpt_dir / periodic)
+            if logger:
+                logger.info("saved snapshot %s", ckpt_dir / periodic)
 
         if since_improved >= patience:
             if logger:
                 logger.info("early stopping at epoch %d (no val macro-F1 improvement for "
                             "%d epochs)", epoch, patience)
+            break
+        if extend_decision is not None and not extend_decision["extend"]:
             break
 
     info = {
@@ -495,9 +624,12 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
         "epochs_run": len(history),
         "epochs_configured": epochs,
         "early_stopping_patience": patience,
+        "extend_decision_epoch": decision_epoch,
+        "extend_decision": extend_decision,
         "resumed_from_epoch": resumed_from,
         "num_workers": workers,
         "save_every_epoch": save_every_epoch,
+        "save_every_n_epochs": save_every_n,
         "num_frames": train_ds.num_frames,
         "batch_size": batch_size,
         "grad_accum_steps": accum_steps,

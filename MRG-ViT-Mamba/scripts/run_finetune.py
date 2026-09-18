@@ -109,6 +109,9 @@ def main() -> int:
                     help="score the existing best.pt instead of training again")
     ap.add_argument("--resume", action="store_true",
                     help="continue an interrupted run from checkpoints/<run>/last.pt")
+    ap.add_argument("--resume-from", default=None, metavar="CKPT",
+                    help="continue from a chosen snapshot instead of last.pt, e.g. "
+                         "checkpoints/<run>/after_epoch_020.pt")
     ap.add_argument("--workers", type=int, default=None,
                     help="DataLoader worker processes (overrides training.num_workers)")
     ap.add_argument("--allow-uncalibrated", action="store_true",
@@ -157,7 +160,7 @@ def main() -> int:
     else:
         result = finetune_model(cfg, index, run_name=args.run_name, logger=logger,
                                 overrides=overrides, resume=args.resume,
-                                num_workers=args.workers)
+                                num_workers=args.workers, resume_from=args.resume_from)
     logger.info("best epoch %d  val macro-F1 %.4f",
                 result.best_epoch, result.best_val_macro_f1)
 
@@ -260,6 +263,8 @@ def main() -> int:
         ("epochs_run", "batch_size", "grad_accum_steps", "effective_batch",
          "head_lr", "backbone_lr", "backbone", "clips", "label_counts", "subjects")
     }
+    # .get: training JSONs written before the decision point existed lack it.
+    report["extend_decision"] = result.info.get("extend_decision")
     report["history_csv"] = result.info["history_csv"]
     report["checkpoint_dir"] = result.info["checkpoint_dir"]
     report["environment"] = result.info["environment"]

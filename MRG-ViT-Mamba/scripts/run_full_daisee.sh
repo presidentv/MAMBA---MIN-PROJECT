@@ -11,16 +11,18 @@
 # Optional environment:
 #   RUN=full_ft32          run name (checkpoints/, logs/, artifacts/ file names)
 #   STAGE1_SHARDS=<nproc>  parallel Stage 1 processes (CPU-bound MediaPipe)
-#   WORKERS=8              DataLoader workers during training/evaluation
+#   WORKERS=4              DataLoader workers during training/evaluation
 #   MRG_CACHE_DIR=...      put the ~4.3 GB Stage 1 cache on a fast local disk
-#   MRG_CHECKPOINT_DIR=... put checkpoints (333 MB each) somewhere with space
+#   MRG_CHECKPOINT_DIR=... put checkpoints (best.pt + last.pt, ~1.4 GB) somewhere with space
+#
+# On Windows use scripts/run_full_daisee.ps1, which runs the same steps.
 
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
 CONFIG="configs/config_full.yaml"
 RUN="${RUN:-full_ft32}"
-WORKERS="${WORKERS:-8}"
+WORKERS="${WORKERS:-4}"
 NPROC="$(nproc 2>/dev/null || getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)"
 STAGE1_SHARDS="${STAGE1_SHARDS:-$NPROC}"
 PY="${PYTHON:-python}"
