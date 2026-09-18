@@ -1,0 +1,2 @@
+# Shell scripts run on Linux; a CRLF checkout breaks them with "\r: command not found".
+*.sh text eol=lf

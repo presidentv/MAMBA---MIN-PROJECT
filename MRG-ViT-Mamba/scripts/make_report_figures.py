@@ -53,7 +53,16 @@ def load_history(run: str) -> list[dict]:
         return list(csv.DictReader(fh))
 
 
-def fig_training_curves(rows, best_epoch, out):
+def fig_training_curves(rows, best_epoch, out, title=None, baselines=None):
+    """Loss / accuracy / macro-F1 curves.
+
+    ``baselines`` maps a panel name ("accuracy", "macro-F1") to (value, label).
+    The default is uniform chance on both, which is only meaningful on a
+    balanced split; on an imbalanced one pass the majority-class baseline.
+    """
+    if baselines is None:
+        baselines = {"accuracy": (0.25, "chance (0.25)"),
+                     "macro-F1": (0.25, "chance (0.25)")}
     ep = [int(r["epoch"]) for r in rows]
     fig, axes = plt.subplots(1, 3, figsize=(12.5, 3.6))
     panels = [
@@ -68,14 +77,16 @@ def fig_training_curves(rows, best_epoch, out):
         ax.annotate(f"selected\nepoch {best_epoch}", (best_epoch, ax.get_ylim()[1]),
                     xytext=(4, -4), textcoords="offset points", fontsize=7.5,
                     va="top", color=GREY)
-        if title != "loss":
-            ax.axhline(0.25, color=LIGHT, lw=1.4, ls=":")
-            ax.annotate("chance (0.25)", (ep[-1], 0.25), xytext=(-4, 4),
+        if title in baselines:
+            value, label = baselines[title]
+            ax.axhline(value, color=LIGHT, lw=1.4, ls=":")
+            ax.annotate(label, (ep[-1], value), xytext=(-4, 4),
                         textcoords="offset points", ha="right", fontsize=7.5, color=GREY)
         ax.set_title(title, fontsize=10, fontweight="bold")
         ax.set_xlabel("epoch"); ax.set_ylabel(ylab)
         ax.legend(frameon=False, fontsize=8)
-    fig.suptitle("Training and validation over 64 epochs (DAiSEE_mini, 120 train / 80 val clips)",
+    fig.suptitle(title or "Training and validation over 64 epochs "
+                          "(DAiSEE_mini, 120 train / 80 val clips)",
                  fontsize=11, y=1.04)
     fig.tight_layout(); fig.savefig(out); plt.close(fig)
     return out
@@ -114,7 +125,7 @@ def fig_weight_evolution(rows, best_epoch, out):
     return out
 
 
-def fig_per_class(metrics, out, title):
+def fig_per_class(metrics, out, title, chance=0.25):
     names = list(DEFAULT_CLASS_NAMES)
     P = [metrics["per_class"][n]["precision"] for n in names]
     R = [metrics["per_class"][n]["recall"] for n in names]
@@ -126,9 +137,12 @@ def fig_per_class(metrics, out, title):
                                 (w, F, "F1", LAND)):
         b = ax.bar(x + off, vals, w, label=lab, color=col)
         ax.bar_label(b, fmt="%.2f", fontsize=7, padding=1.5)
-    ax.axhline(0.25, color=LIGHT, ls=":", lw=1.4)
-    ax.annotate("chance", (len(names) - .5, .25), xytext=(0, 4),
-                textcoords="offset points", ha="right", fontsize=7.5, color=GREY)
+    # A per-class "chance" line is only meaningful when the classes are
+    # balanced; pass chance=None to omit it.
+    if chance is not None:
+        ax.axhline(chance, color=LIGHT, ls=":", lw=1.4)
+        ax.annotate("chance", (len(names) - .5, chance), xytext=(0, 4),
+                    textcoords="offset points", ha="right", fontsize=7.5, color=GREY)
     ax.set_xticks(x, [f"{n}\n(n={s})" for n, s in zip(names, S)])
     ax.set_ylabel("score"); ax.set_ylim(0, 1.12)
     ax.set_title(title, fontsize=10, fontweight="bold")

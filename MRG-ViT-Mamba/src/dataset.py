@@ -16,7 +16,42 @@ from torch.utils.data import Dataset
 
 from .mrs import COMPONENTS, MRSCalibration, component_matrix_from_arrays, mrs_from_arrays
 from .preprocess import stage1_path, stage2_path
-from .utils import resolve_path
+from .utils import missing_clip_policy, resolve_path
+
+
+def _enforce_missing_policy(cfg, split: str, n_total: int, missing: list[str],
+                            require_all: bool | None, what: str) -> None:
+    """Raise if clips lack a cache entry, unless the config tolerates it.
+
+    ``require_all`` given explicitly by a caller wins; left as None, the
+    decision comes from ``dataset.missing_clip_policy`` so that one setting
+    governs preprocessing, auditing and training alike.
+    """
+    if not missing:
+        return
+    allow, max_frac = missing_clip_policy(cfg)
+    if require_all is True:
+        allow = False
+    elif require_all is False:
+        allow, max_frac = True, 1.0
+    frac = len(missing) / n_total if n_total else 1.0
+    preview = f"{missing[:5]}{' ...' if len(missing) > 5 else ''}"
+    if not allow:
+        raise FileNotFoundError(
+            f"{len(missing)} clips in split '{split}' have no {what} entry: {preview}. "
+            f"Run scripts/run_preprocessing.py first, or set "
+            f"dataset.missing_clip_policy: skip to leave unprocessable clips out.")
+    if frac > max_frac:
+        raise FileNotFoundError(
+            f"{len(missing)}/{n_total} clips ({100 * frac:.2f}%) in split '{split}' have no "
+            f"{what} entry, above dataset.max_missing_fraction={100 * max_frac:.2f}%. "
+            f"That is too many to be a few corrupt videos - preprocessing is probably "
+            f"incomplete. First missing: {preview}")
+    import warnings
+    warnings.warn(
+        f"split '{split}': skipping {len(missing)}/{n_total} clips ({100 * frac:.2f}%) with no "
+        f"{what} entry (within the {100 * max_frac:.2f}% tolerance): {preview}",
+        stacklevel=3)
 
 
 class CachedClipDataset(Dataset):
@@ -32,7 +67,7 @@ class CachedClipDataset(Dataset):
     def __init__(self, cfg, index, split: str, s1_key: str, s2_key: str,
                  calibration: MRSCalibration,
                  mrs_mode: str | None = None,
-                 require_all: bool = True):
+                 require_all: bool | None = None):
         self.cfg = cfg
         self.split = split
         self.s1_key = s1_key
@@ -60,12 +95,8 @@ class CachedClipDataset(Dataset):
                 self.records.append((rec, p1, p2))
             else:
                 missing.append(rec.clip_id)
-        if missing and require_all:
-            raise FileNotFoundError(
-                f"{len(missing)} clips in split '{split}' are missing a cache entry "
-                f"({s1_key} / {s2_key}): {missing[:5]}{' ...' if len(missing) > 5 else ''}. "
-                f"Run scripts/run_preprocessing.py first."
-            )
+        _enforce_missing_policy(cfg, split, len(index.clips.get(split, [])), missing,
+                                require_all, f"cache ({s1_key} / {s2_key})")
         self.missing = missing
         if not self.records:
             raise RuntimeError(f"split '{split}' has no fully cached clips")
@@ -152,7 +183,7 @@ class FineTuneClipDataset(Dataset):
 
     def __init__(self, cfg, index, split: str, s1_key: str, spec,
                  calibration: MRSCalibration, mrs_mode: str | None = None,
-                 require_all: bool = True):
+                 require_all: bool | None = None):
         self.cfg = cfg
         self.split = split
         self.s1_key = s1_key
@@ -171,12 +202,8 @@ class FineTuneClipDataset(Dataset):
                 self.records.append((rec, p1))
             else:
                 missing.append(rec.clip_id)
-        if missing and require_all:
-            raise FileNotFoundError(
-                f"{len(missing)} clips in split '{split}' have no Stage 1 cache entry "
-                f"({s1_key}): {missing[:5]}{' ...' if len(missing) > 5 else ''}. "
-                f"Run scripts/run_preprocessing.py --stage 1 first."
-            )
+        _enforce_missing_policy(cfg, split, len(index.clips.get(split, [])), missing,
+                                require_all, f"Stage 1 cache ({s1_key})")
         self.missing = missing
         if not self.records:
             raise RuntimeError(f"split '{split}' has no cached clips")

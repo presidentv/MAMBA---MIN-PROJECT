@@ -6,6 +6,8 @@ longer exists. Crops are re-encoded through the ViT on every step.
 
 Run:
     python scripts/run_finetune.py --config configs/config_ft32.yaml --run-name ft32
+    python scripts/run_finetune.py --config configs/config_full.yaml --run-name full_ft32 \
+        --workers 8 --resume
 
 Selection is on validation macro-F1. The test split is read exactly once, after
 the best checkpoint has been chosen, and never influences that choice.
@@ -24,7 +26,7 @@ from torch.utils.data import DataLoader
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from src.dataset import collate_finetune  # noqa: E402
+from src.dataset import collate_finetune, load_calibration  # noqa: E402
 from src.dataset_index import build_index  # noqa: E402
 from src.finetune import (  # noqa: E402
     FineTuneResult, _run_epoch, build_finetune_datasets, finetune_model,
@@ -42,10 +44,11 @@ from src.vit_encoder import ViTFrameEncoder  # noqa: E402
 CLASS_NAMES = ("Very Low", "Low", "High", "Very High")
 
 
-def evaluate_split(model, dataset, loss_fn, device, batch_size, num_classes):
+def evaluate_split(model, dataset, loss_fn, device, batch_size, num_classes, workers=0):
     """Full metrics plus per-clip probabilities for one split."""
     loader = DataLoader(dataset, batch_size=batch_size, shuffle=False,
-                        collate_fn=collate_finetune, num_workers=0)
+                        collate_fn=collate_finetune, num_workers=workers,
+                        pin_memory=device.type == "cuda")
     loss, y_true, y_pred, probs, clip_ids, subject_ids = _run_epoch(
         model, loader, loss_fn, None, device, collect_probs=True)
     metrics = compute_metrics(y_true, y_pred, num_classes, CLASS_NAMES)
@@ -83,9 +86,17 @@ def baseline_metrics(train_counts, y_true, num_classes, seed=42):
 
 
 def binomial_p(correct: int, n: int, p0: float) -> float:
-    """One-sided P(X >= correct) under Binomial(n, p0)."""
-    from math import comb
-    return float(sum(comb(n, k) * p0**k * (1 - p0)**(n - k) for k in range(correct, n + 1)))
+    """One-sided P(X >= correct) under Binomial(n, p0).
+
+    Uses the survival function rather than summing comb(n, k) * p0**k terms:
+    that sum raises OverflowError converting comb(n, k) to float once n passes
+    roughly a thousand, i.e. on the full DAiSEE test split - after training has
+    already finished.
+    """
+    from scipy.stats import binom
+    if n <= 0:
+        return 1.0
+    return float(binom.sf(correct - 1, n, p0))
 
 
 def main() -> int:
@@ -96,6 +107,12 @@ def main() -> int:
     ap.add_argument("--seed", type=int, default=None)
     ap.add_argument("--eval-only", action="store_true",
                     help="score the existing best.pt instead of training again")
+    ap.add_argument("--resume", action="store_true",
+                    help="continue an interrupted run from checkpoints/<run>/last.pt")
+    ap.add_argument("--workers", type=int, default=None,
+                    help="DataLoader worker processes (overrides training.num_workers)")
+    ap.add_argument("--allow-uncalibrated", action="store_true",
+                    help="train even though the MRS calibration file has not been fitted")
     args = ap.parse_args()
 
     cfg = load_config(resolve_path(args.config))
@@ -108,12 +125,30 @@ def main() -> int:
     logger.info("T = %d frames/clip | ViT freeze = %s",
                 cfg["video"]["num_frames"], cfg["vit"]["freeze"])
 
+    logger.info("dataset_root: %s%s", cfg["paths"]["dataset_root"],
+                f"  (from {cfg['_path_overrides']['dataset_root']})"
+                if cfg.get("_path_overrides", {}).get("dataset_root") else "")
     index = build_index(cfg)
+    if not index.is_usable():
+        logger.error("dataset index has fatal problems: %s",
+                     [p.detail for p in index.problems][:5])
+        return 1
+
+    # Without a fitted calibration the blur and face-size terms fall back to
+    # generic bounds, which silently changes what MRS means. On a long run that
+    # is worth stopping for rather than discovering afterwards.
+    calibration = load_calibration(cfg)
+    if not calibration.calibrated and not args.allow_uncalibrated:
+        logger.error("MRS calibration %s has not been fitted. Run "
+                     "scripts/fit_mrs_stats.py --config %s after Stage 1, or pass "
+                     "--allow-uncalibrated.", cfg["mrs"]["calibration_file"], args.config)
+        return 1
 
     # ------------------------------------------------------------------ train
     if args.eval_only:
-        prev = json.loads(
-            Path(f"artifacts/training_{args.run_name}.json").read_text(encoding="utf-8"))
+        prev = json.loads(resolve_path(
+            Path(cfg["paths"]["artifacts_dir"]) / f"training_{args.run_name}.json"
+        ).read_text(encoding="utf-8"))
         result = FineTuneResult(
             best_epoch=int(prev["best"]["epoch"]),
             best_val_macro_f1=float(prev["best"]["macro_f1"]),
@@ -121,7 +156,8 @@ def main() -> int:
         logger.info("eval-only: reusing %s", result.best_checkpoint)
     else:
         result = finetune_model(cfg, index, run_name=args.run_name, logger=logger,
-                                overrides=overrides)
+                                overrides=overrides, resume=args.resume,
+                                num_workers=args.workers)
     logger.info("best epoch %d  val macro-F1 %.4f",
                 result.best_epoch, result.best_val_macro_f1)
 
@@ -145,6 +181,8 @@ def main() -> int:
                             num_classes)
     loss_fn = loss_fn.to(device)
     batch_size = int(ccfg["training"]["batch_size"])
+    eval_workers = int(args.workers if args.workers is not None
+                       else ccfg["training"].get("num_workers", 0))
 
     art_dir = ensure_dir(ccfg["paths"]["artifacts_dir"])
     train_counts = datasets["train"].label_counts()
@@ -160,15 +198,25 @@ def main() -> int:
     for split in ("train", "val", "test"):
         ds = datasets[split]
         metrics, per_clip, y_true, y_pred = evaluate_split(
-            model, ds, loss_fn, device, batch_size, num_classes)
+            model, ds, loss_fn, device, batch_size, num_classes, eval_workers)
         base = baseline_metrics(train_counts, y_true, num_classes)
         correct = int((np.asarray(y_true) == np.asarray(y_pred)).sum())
         metrics["baselines"] = base
+        majority_acc = float(base["majority_class"]["accuracy"])
         metrics["significance"] = {
             "correct": correct,
             "n": len(y_true),
+            # On a balanced split the two tests coincide. On an imbalanced one
+            # (the full DAiSEE release is ~95% High/Very High) always predicting
+            # the most common class already beats 25%, so only the test against
+            # the majority-class accuracy says anything.
+            "p_vs_majority_baseline": binomial_p(correct, len(y_true), majority_acc),
+            "majority_baseline_accuracy": majority_acc,
             "p_vs_uniform_chance": binomial_p(correct, len(y_true), 1.0 / num_classes),
-            "note": "one-sided binomial against uniform chance; the splits are balanced",
+            "note": ("one-sided binomial; the primary test is against the accuracy of "
+                     "always predicting the training-majority class. On an imbalanced "
+                     "split, compare macro-F1 against the baselines as well - accuracy "
+                     "alone rewards predicting the majority class."),
         }
         metrics["num_unique_subjects"] = len(set(ds.subjects()))
         report["splits"][split] = metrics
@@ -225,9 +273,11 @@ def main() -> int:
     print("=" * 74)
     for split in ("train", "val", "test"):
         m = report["splits"][split]
-        print(f"{split:<6} n={m['num_samples']:<4} acc={m['accuracy']:.4f}  "
+        sig = m["significance"]
+        print(f"{split:<6} n={m['num_samples']:<5} acc={m['accuracy']:.4f}  "
               f"macroF1={m['macro_f1']:.4f}  weightedF1={m['weighted_f1']:.4f}  "
-              f"p={m['significance']['p_vs_uniform_chance']:.4g}")
+              f"| majority acc={sig['majority_baseline_accuracy']:.4f} "
+              f"p={sig['p_vs_majority_baseline']:.4g}")
     print(f"\nMRS weights in the SELECTED checkpoint (epoch {report['best_epoch']}), "
           f"from 0.2 each  <- these are the weights that produced the scores above:")
     for c, v in (report["learned_mrs_weights"] or {}).items():

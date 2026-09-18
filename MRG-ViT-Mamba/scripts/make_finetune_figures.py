@@ -34,6 +34,11 @@ from src.mrs import COMPONENTS  # noqa: E402
 from src.utils import ensure_dir  # noqa: E402
 
 
+def _is_balanced(metrics) -> bool:
+    support = [c["support"] for c in metrics["per_class"].values()]
+    return bool(support) and max(support) - min(support) <= 1
+
+
 def fig_split_comparison(ft_report, base_metrics, out):
     """Grouped bars: fine-tuned T=32 against the frozen T=16 run."""
     splits = ["train", "val", "test"]
@@ -105,25 +110,45 @@ def main() -> int:
     ap.add_argument("--run", default="ft32")
     ap.add_argument("--baseline", default="mini64",
                     help="frozen-backbone run to compare against; '' to skip")
-    ap.add_argument("--out-dir", default="artifacts/report_ft32")
+    ap.add_argument("--out-dir", default=None,
+                    help="default: artifacts/report_<run>")
     args = ap.parse_args()
 
-    out_dir = ensure_dir(args.out_dir)
+    out_dir = ensure_dir(args.out_dir or f"artifacts/report_{args.run}")
     report = json.loads(
         Path(f"artifacts/finetune_report_{args.run}.json").read_text(encoding="utf-8"))
     rows = load_history(args.run)
     best_epoch = int(report["best_epoch"])
 
+    # Titles and reference lines come from the run itself, not from the
+    # 216-clip development subset the defaults were written for.
+    tr = report["training"]["clips"]
+    val = report["splits"]["val"]
+    balanced = _is_balanced(val)
+    if balanced:
+        baselines = None
+    else:
+        maj = val["baselines"]["majority_class"]
+        baselines = {
+            "accuracy": (maj["accuracy"], f"majority class ({maj['accuracy']:.2f})"),
+            "macro-F1": (maj["macro_f1"], f"majority class ({maj['macro_f1']:.2f})"),
+        }
+    title = (f"Training and validation over {len(rows)} epochs "
+             f"(T={report['num_frames']}, {tr['train']} train / {tr['val']} val clips)")
+
     written = []
     written.append(fig_training_curves(rows, best_epoch,
-                                       Path(out_dir) / "ft1_training_curves.png"))
+                                       Path(out_dir) / "ft1_training_curves.png",
+                                       title=title, baselines=baselines))
     written.append(fig_weight_evolution(rows, best_epoch,
                                         Path(out_dir) / "ft2_mrs_weight_evolution.png"))
     for split in ("val", "test"):
+        m = report["splits"][split]
         written.append(fig_per_class(
-            report["splits"][split], Path(out_dir) / f"ft3_per_class_{split}.png",
-            f"Per-class {split} metrics, fine-tuned T=32 "
-            f"({report['splits'][split]['num_samples']} clips)"))
+            m, Path(out_dir) / f"ft3_per_class_{split}.png",
+            f"Per-class {split} metrics, fine-tuned T={report['num_frames']} "
+            f"({m['num_samples']} clips)",
+            chance=0.25 if _is_balanced(m) else None))
 
     if args.baseline:
         base_metrics, base_weights = {}, {}

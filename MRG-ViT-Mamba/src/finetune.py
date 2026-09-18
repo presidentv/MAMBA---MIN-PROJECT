@@ -24,6 +24,8 @@ which shows up as training accuracy that never leaves chance.
 from __future__ import annotations
 
 import csv
+import os
+import random
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -194,8 +196,51 @@ def _run_epoch(model, loader, loss_fn, optimiser, device, scaler=None,
     return out
 
 
+def _atomic_torch_save(obj, path: Path) -> None:
+    """torch.save to a temporary name, then rename into place.
+
+    A checkpoint is overwritten every epoch; dying half-way through writing it
+    would otherwise destroy the only copy - for last.pt, the only way back in.
+    """
+    path = Path(path)
+    tmp = path.with_name(path.name + ".partial")
+    torch.save(obj, tmp)
+    os.replace(tmp, path)
+
+
+def _rng_state() -> dict:
+    state = {"python": random.getstate(), "numpy": np.random.get_state(),
+             "torch": torch.get_rng_state()}
+    if torch.cuda.is_available():
+        state["cuda"] = torch.cuda.get_rng_state_all()
+    return state
+
+
+def _restore_rng(state: dict) -> None:
+    random.setstate(state["python"])
+    np.random.set_state(state["numpy"])
+    torch.set_rng_state(state["torch"].cpu() if hasattr(state["torch"], "cpu") else state["torch"])
+    if "cuda" in state and torch.cuda.is_available():
+        try:
+            torch.cuda.set_rng_state_all([t.cpu() for t in state["cuda"]])
+        except RuntimeError:
+            # Resumed on a machine with a different GPU count; the run still
+            # continues correctly, only bit-exact reproducibility is lost.
+            pass
+
+
+# Settings that must not change between a run and its resumption: resuming a
+# T=32 checkpoint with a T=16 dataset, or onto a different backbone, would
+# silently train a different model.
+_RESUME_MUST_MATCH = (
+    ("video", "num_frames"), ("vit", "model_name"), ("vit", "unfreeze_blocks"),
+    ("dataset", "num_classes"), ("mamba", "d_model"), ("mamba", "n_layers"),
+)
+
+
 def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
-                   overrides: dict | None = None) -> FineTuneResult:
+                   overrides: dict | None = None, resume: bool = False,
+                   num_workers: int | None = None) -> FineTuneResult:
     device_str = "cuda" if torch.cuda.is_available() else "cpu"
     device = torch.device(device_str)
     tcfg = dict(cfg["training"])
@@ -228,11 +273,17 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
 
     batch_size = int(tcfg["batch_size"])
     accum_steps = max(1, int(tcfg.get("grad_accum_steps", 1)))
-    workers = int(tcfg.get("num_workers", 0))
-    train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True,
-                              collate_fn=collate_finetune, num_workers=workers)
-    val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False,
-                            collate_fn=collate_finetune, num_workers=workers)
+    workers = int(num_workers if num_workers is not None else tcfg.get("num_workers", 0))
+    # Each step decodes batch_size x T JPEG crops; on the full release that is
+    # ~170k decodes per epoch, which starves a fast GPU if done in the main
+    # process. Workers keep it fed.
+    loader_kw = {"collate_fn": collate_finetune, "num_workers": workers,
+                 "pin_memory": device_str == "cuda"}
+    if workers > 0:
+        loader_kw["persistent_workers"] = True
+        loader_kw["prefetch_factor"] = 2
+    train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, **loader_kw)
+    val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, **loader_kw)
 
     model = MRGViTMamba(vit_dim=spec.embed_dim, landmark_dim=train_ds.landmark_dim,
                         cfg=cfg, vit_encoder=encoder).to(device)
@@ -289,8 +340,6 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
     ckpt_dir = ensure_dir(Path(cfg["paths"]["checkpoints_dir"]) / run_name)
     log_dir = ensure_dir(cfg["paths"]["logs_dir"])
     history_path = log_dir / f"training_history_{run_name}.csv"
-    with open(history_path, "w", newline="", encoding="utf-8") as fh:
-        csv.DictWriter(fh, fieldnames=HISTORY_FIELDS).writeheader()
 
     def checkpoint_payload(epoch, val_metrics):
         return {
@@ -316,8 +365,52 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
     since_improved = 0
     history: list[dict] = []
     num_classes = int(cfg["dataset"]["num_classes"])
+    save_every_epoch = bool(tcfg.get("save_every_epoch", True))
+    start_epoch = 0
+    resumed_from = None
+    last_path = ckpt_dir / "last.pt"
 
-    for epoch in range(epochs):
+    if resume and last_path.is_file():
+        state = torch.load(last_path, map_location=device, weights_only=False)
+        saved = state["config"]
+        for section, key in _RESUME_MUST_MATCH:
+            a = saved.get(section, {}).get(key)
+            b = cfg[section].get(key) if section in cfg else None
+            if a != b:
+                raise RuntimeError(
+                    f"cannot resume {last_path}: {section}.{key} was {a!r} in the "
+                    f"interrupted run but is {b!r} now")
+        model.load_state_dict(state["model_state"])
+        optimiser.load_state_dict(state["optimiser_state"])
+        scheduler.load_state_dict(state["scheduler_state"])
+        if amp_scaler is not None and state.get("amp_scaler_state"):
+            amp_scaler.load_state_dict(state["amp_scaler_state"])
+        best = state["best"]
+        since_improved = int(state["since_improved"])
+        history = list(state["history"])
+        _restore_rng(state["rng"])
+        start_epoch = int(state["epoch"]) + 1
+        resumed_from = int(state["epoch"])
+        if logger:
+            logger.info("resumed from %s: epoch %d done, best so far epoch %d "
+                        "(val macro-F1 %.4f)", last_path, resumed_from,
+                        best["epoch"], best["macro_f1"])
+    elif resume and logger:
+        logger.info("--resume given but %s does not exist; starting from epoch 0", last_path)
+
+    # The CSV is rebuilt from the restored history, so an epoch that was
+    # logged but not yet captured in last.pt when the process died is not
+    # duplicated.
+    with open(history_path, "w", newline="", encoding="utf-8") as fh:
+        writer = csv.DictWriter(fh, fieldnames=HISTORY_FIELDS)
+        writer.writeheader()
+        for row in history:
+            writer.writerow(row)
+
+    if start_epoch > 0 and since_improved >= patience:
+        start_epoch = epochs          # the interrupted run had already early-stopped
+
+    for epoch in range(start_epoch, epochs):
         t0 = time.perf_counter()
         if device_str == "cuda":
             torch.cuda.reset_peak_memory_stats()
@@ -361,21 +454,38 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
                 m_va["accuracy"], m_va["macro_f1"], row["head_lr"] or 0.0,
                 row["backbone_lr"] or 0.0, row["seconds"], row["gpu_memory_mb"])
 
-        # Every epoch is stored, as with the earlier run, plus a separate best.
-        torch.save(checkpoint_payload(epoch, m_va), ckpt_dir / f"epoch_{epoch:03d}.pt")
+        if save_every_epoch:
+            _atomic_torch_save(checkpoint_payload(epoch, m_va),
+                               ckpt_dir / f"epoch_{epoch:03d}.pt")
 
         if m_va["macro_f1"] > best["macro_f1"]:
             best = {"macro_f1": m_va["macro_f1"], "epoch": epoch,
                     "accuracy": m_va["accuracy"], "weighted_f1": m_va["weighted_f1"],
                     "loss": va_loss}
-            torch.save(checkpoint_payload(epoch, m_va), ckpt_dir / "best.pt")
+            _atomic_torch_save(checkpoint_payload(epoch, m_va), ckpt_dir / "best.pt")
             since_improved = 0
         else:
             since_improved += 1
-            if since_improved >= patience:
-                if logger:
-                    logger.info("early stopping at epoch %d", epoch)
-                break
+
+        # Everything needed to continue from the next epoch as if uninterrupted.
+        _atomic_torch_save({
+            "epoch": epoch,
+            "model_state": model.state_dict(),
+            "optimiser_state": optimiser.state_dict(),
+            "scheduler_state": scheduler.state_dict(),
+            "amp_scaler_state": amp_scaler.state_dict() if amp_scaler is not None else None,
+            "best": best,
+            "since_improved": since_improved,
+            "history": history,
+            "rng": _rng_state(),
+            "config": dict(cfg),
+        }, last_path)
+
+        if since_improved >= patience:
+            if logger:
+                logger.info("early stopping at epoch %d (no val macro-F1 improvement for "
+                            "%d epochs)", epoch, patience)
+            break
 
     info = {
         "run_name": run_name,
@@ -384,6 +494,10 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
         "mixed_precision": use_amp,
         "epochs_run": len(history),
         "epochs_configured": epochs,
+        "early_stopping_patience": patience,
+        "resumed_from_epoch": resumed_from,
+        "num_workers": workers,
+        "save_every_epoch": save_every_epoch,
         "num_frames": train_ds.num_frames,
         "batch_size": batch_size,
         "grad_accum_steps": accum_steps,
@@ -397,6 +511,12 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
         "landmark_scaler": scaler_info,
         "s1_key": s1_key,
         "clips": {"train": len(train_ds), "val": len(val_ds), "test": len(test_ds)},
+        # Clips left out because Stage 1 could not process them (see
+        # dataset.missing_clip_policy). Clip ids only - no labels.
+        "missing_clips": {"train": train_ds.missing, "val": val_ds.missing,
+                          "test": test_ds.missing},
+        "dataset_root": str(cfg["paths"]["dataset_root"]),
+        "path_overrides": dict(cfg.get("_path_overrides", {})),
         "label_counts": {
             "train": {str(k): v for k, v in train_ds.label_counts().items()},
             "val": {str(k): v for k, v in val_ds.label_counts().items()},

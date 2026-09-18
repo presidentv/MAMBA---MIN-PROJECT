@@ -48,11 +48,53 @@ class Config(dict):
         return node
 
 
+# Environment variables that override config paths, so the same committed
+# config runs on a machine whose dataset, cache or checkpoint locations differ
+# from this one's without anyone editing a tracked file.
+PATH_ENV_OVERRIDES = {
+    "DAISEE_ROOT": "dataset_root",
+    "MRG_CACHE_DIR": "cache_dir",
+    "MRG_CHECKPOINT_DIR": "checkpoints_dir",
+}
+
+
 def load_config(path: str | Path | None = None) -> Config:
     path = Path(path) if path else REPO_ROOT / "configs" / "config.yaml"
+    if not path.is_absolute() and not path.exists():
+        path = REPO_ROOT / path
     with open(path, "r", encoding="utf-8") as fh:
         raw = yaml.safe_load(fh)
+    applied = {}
+    for env, key in PATH_ENV_OVERRIDES.items():
+        value = os.environ.get(env)
+        if value:
+            raw.setdefault("paths", {})[key] = value
+            applied[key] = f"{env}={value}"
+    # Recorded in the config itself so every artifact written from it shows
+    # where the data actually came from.
+    raw["_path_overrides"] = applied
     return Config(raw)
+
+
+def missing_clip_policy(cfg) -> tuple[bool, float]:
+    """(allow_missing, max_fraction) for clips that could not be processed.
+
+    The balanced development subsets are small enough that one failed clip means
+    something is wrong, so the default is to stop. The full DAiSEE release has a
+    handful of videos that do not decode; stopping a many-hour run for them
+    would be worse than skipping them. ``dataset.missing_clip_policy: skip``
+    allows that, but only up to ``dataset.max_missing_fraction`` of a split --
+    beyond it the cause is almost certainly an incomplete preprocessing run,
+    not bad videos, and training on what is left would be silently wrong.
+    """
+    ds = cfg["dataset"] if "dataset" in cfg else {}
+    policy = str(ds.get("missing_clip_policy", "error")).lower()
+    if policy not in ("error", "skip"):
+        raise ValueError(f"dataset.missing_clip_policy must be 'error' or 'skip', got {policy!r}")
+    frac = float(ds.get("max_missing_fraction", 0.0)) if policy == "skip" else 0.0
+    if not 0.0 <= frac < 1.0:
+        raise ValueError(f"dataset.max_missing_fraction must be in [0, 1), got {frac}")
+    return policy == "skip", frac
 
 
 def resolve_path(value: str | Path) -> Path:

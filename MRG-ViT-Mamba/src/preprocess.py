@@ -32,6 +32,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
+import time
 import traceback
 from dataclasses import dataclass
 from pathlib import Path
@@ -301,20 +303,63 @@ class FacePreprocessor:
         self.landmarker.close()
 
 
+def _atomic_savez(out_path: Path, data: dict) -> None:
+    """Write an .npz so that it either exists complete or does not exist at all.
+
+    The sweep treats "file exists" as "clip done". A process killed half-way
+    through np.savez_compressed would otherwise leave a truncated archive that
+    every later run skips as cached and that only fails, hours later, when the
+    training loader opens it. Writing to a temporary name and renaming makes the
+    final path appear in one step.
+    """
+    # The process id keeps two writers from ever sharing a temporary file, e.g.
+    # overlapping shard runs, or a new run starting while an old one is alive.
+    tmp = out_path.with_name(f"{out_path.name}.{os.getpid()}.partial")
+    with open(tmp, "wb") as fh:
+        np.savez_compressed(fh, **data)
+    os.replace(tmp, out_path)
+
+
+def _remove_stale_partials(out_path: Path) -> None:
+    """Delete leftover temporaries of *this clip* from interrupted runs.
+
+    Scoped to one clip on purpose. A sweep over the whole split directory would
+    reach into other shards' in-progress writes: measured here, it deletes them
+    on Linux and raises PermissionError on Windows. A file still held open by a
+    live process is left alone.
+    """
+    for stale in out_path.parent.glob(f"{out_path.name}.*.partial"):
+        try:
+            stale.unlink()
+        except OSError:
+            pass
+
+
 def run_stage1(cfg, index, splits=("train", "val", "test"), limit: int | None = None,
                force: bool = False, logger=None, frame_transform=None,
-               corruption_name: str | None = None) -> dict:
+               corruption_name: str | None = None,
+               shard: tuple[int, int] | None = None) -> dict:
     """Sweep the requested splits, writing one .npz per clip plus a manifest.
 
     Failures never stop the sweep and are never hidden: each is logged with
     video_id, stage, error and exception, and the summary reports total /
     successful / failed / failure percentage (spec Rule 5).
+
+    ``shard=(i, n)`` processes only every n-th clip starting at i, so n
+    independent processes can split the corpus between them. Each clip is
+    written to its own file, so shards never contend, and a clip picked up by
+    two runs is simply found cached by the second.
     """
+    if shard is not None:
+        i_shard, n_shard = shard
+        if not (0 <= i_shard < n_shard):
+            raise ValueError(f"shard index {i_shard} out of range for {n_shard} shards")
     pre = FacePreprocessor(cfg, frame_transform=frame_transform, corruption_name=corruption_name)
     root = ensure_dir(stage1_dir(cfg, pre.key))
     failures: list[ClipFailure] = []
     counts = {"total": 0, "cached": 0, "processed": 0, "failed": 0}
     per_clip: list[dict] = []
+    t_start = time.perf_counter()
 
     try:
         for split in splits:
@@ -322,17 +367,22 @@ def run_stage1(cfg, index, splits=("train", "val", "test"), limit: int | None = 
             records = index.clips.get(split, [])
             if limit:
                 records = records[:limit]
+            if shard is not None:
+                records = records[i_shard::n_shard]
             for i, record in enumerate(records, 1):
                 counts["total"] += 1
                 out_path = stage1_path(cfg, pre.key, split, record.stem)
                 if out_path.exists() and not force:
                     counts["cached"] += 1
                     continue
+                # A .partial for this clip is the remains of an interrupted
+                # write; the clip has no complete entry and is redone now.
+                _remove_stale_partials(out_path)
                 stage = "read_frames"
                 try:
                     data = pre.process_clip(record)
                     stage = "write_cache"
-                    np.savez_compressed(out_path, **data)
+                    _atomic_savez(out_path, data)
                     counts["processed"] += 1
                     per_clip.append({
                         "clip_id": record.clip_id, "split": split,
@@ -348,8 +398,14 @@ def run_stage1(cfg, index, splits=("train", "val", "test"), limit: int | None = 
                                                 traceback.format_exc(limit=6)))
                     if logger:
                         logger.error("FAILED %s/%s at %s: %s", split, record.clip_id, stage, exc)
-                if logger and i % 10 == 0:
-                    logger.info("stage1 %s: %d/%d", split, i, len(records))
+                if logger and (i % 10 == 0 or i == len(records)):
+                    done = counts["processed"] + counts["failed"]
+                    elapsed = time.perf_counter() - t_start
+                    rate = done / elapsed if elapsed > 0 and done else 0.0
+                    remaining = len(records) - i
+                    eta = f"{remaining / rate / 60:.1f} min" if rate else "n/a"
+                    logger.info("stage1 %s: %d/%d  (%.2f clips/s, %s left in this split)",
+                                split, i, len(records), rate, eta)
     finally:
         pre.close()
 
@@ -362,8 +418,12 @@ def run_stage1(cfg, index, splits=("train", "val", "test"), limit: int | None = 
         "failures": [f.as_dict() for f in failures],
         "settings": pre.describe(),
         "per_clip": per_clip,
+        "shard": list(shard) if shard is not None else None,
     }
-    save_json(summary, root / "manifest.json")
+    # Parallel shards would overwrite a single manifest; each gets its own.
+    name = (f"manifest_shard{shard[0]}of{shard[1]}.json" if shard is not None
+            else "manifest.json")
+    save_json(summary, root / name)
     return summary
 
 

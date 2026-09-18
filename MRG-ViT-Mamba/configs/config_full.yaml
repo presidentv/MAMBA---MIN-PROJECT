@@ -1,0 +1,183 @@
+# MRG-ViT--Mamba on the FULL DAiSEE release -- fine-tuned ViT, T=32.
+#
+# Derived from config_ft32.yaml (the 216-clip development run). Every change
+# from it is marked "FULL:" below. The reasons, in short: the full release is
+# ~9,000 clips instead of 216, it is severely class-imbalanced instead of
+# balanced, it contains a few videos that do not decode, and it runs unattended
+# on another machine where an interrupted run must be resumable.
+#
+# Paths can be overridden without editing this file:
+#   DAISEE_ROOT=/data/DAiSEE          -> paths.dataset_root
+#   MRG_CACHE_DIR=/scratch/mrg_cache  -> paths.cache_dir      (~4.3 GB at T=32)
+#   MRG_CHECKPOINT_DIR=/scratch/ckpt  -> paths.checkpoints_dir (333 MB per epoch kept)
+#
+# Every value here is a *starting point* recorded so runs are reproducible.
+# None of these numbers are claimed to be optimal. Anything the code discovers
+# at runtime (ViT embedding dim, landmark feature dim, actual FPS) is NOT set
+# here -- it is written to artifacts/ after being measured.
+
+seed: 42
+
+paths:
+  # Relative to the repository root (the directory containing this configs/ dir).
+  # FULL: the complete release. Expected layout (as shipped):
+  #   <root>/DataSet/{Train,Validation,Test}/<SubjectID>/<ClipID>/<ClipID>.avi
+  #   <root>/Labels/{Train,Validation,Test}Labels.csv
+  dataset_root: "../Datasets/DAiSEE"
+  cache_dir: "cache"
+  artifacts_dir: "artifacts"
+  checkpoints_dir: "checkpoints"
+  logs_dir: "logs"
+  models_dir: "models"
+
+dataset:
+  name: "DAiSEE"
+  num_classes: 4
+  target_label: "Engagement"      # spec section 2.2: engagement only
+  video_extensions: [".avi", ".mp4"]
+  # DAiSEE ships its own Train/Validation/Test directory split. We use it as-is
+  # and verify subject disjointness rather than re-splitting (spec section 6).
+  split_dirs:
+    train: "DataSet/Train"
+    val: "DataSet/Validation"
+    test: "DataSet/Test"
+  label_files:
+    train: "Labels/TrainLabels.csv"
+    val: "Labels/ValidationLabels.csv"
+    test: "Labels/TestLabels.csv"
+  # FULL: a handful of videos in the full release do not decode. They are
+  # recorded by Stage 1 and left out of training rather than aborting a
+  # many-hour run. Above 2% of a split missing, the cause is almost certainly
+  # an incomplete preprocessing run, and everything stops instead.
+  missing_clip_policy: "skip"     # error | skip
+  max_missing_fraction: 0.02
+
+video:
+  num_frames: 32                  # T=32 for the fine-tuning run
+  sampling: "uniform"             # uniform only for the reproducible pipeline
+
+face:
+  detector: "mediapipe_face_detector"
+  image_size: 224                 # overridden per-backbone by the ViT's own cfg
+  min_detection_confidence: 0.3
+  crop_padding: 0.25              # fraction of box size added on each side
+  align: true                     # roll-align using the two eye landmarks
+  # Policy when no face is found in a frame (spec section 9). We never drop the
+  # temporal position; we fall back and mark the frame as unreliable.
+  missing_face_policy: "center_crop"
+
+mrs:
+  weights:
+    blur: 0.2
+    face_visibility: 0.2
+    head_pose: 0.2
+    eye_visibility: 0.2
+    motion_consistency: 0.2
+  weighting_mode: "multiply"      # multiply | none | residual  (none = ablation baseline)
+  residual_floor: 0.2             # only used when weighting_mode == "residual"
+  # Blur sharpness and face size have no dataset-independent scale, so both are
+  # mapped through percentiles fitted on the TRAINING split only (spec Rule 8),
+  # by scripts/fit_mrs_stats.py. Head pose is in physical degrees, so it is not
+  # fitted.
+  # FULL: a separate file, so the calibration fitted on the 120 development
+  # clips can never be picked up by the full run by accident.
+  calibration_file: "artifacts/mrs_calibration_full_T32.json"
+  calibration_percentiles: [5.0, 95.0]
+  # Learn the five component weights end to end, starting from 0.2 each.
+  # See LearnableMRSWeights in src/model.py for the semantic caveat.
+  learnable_weights: true
+  head_pose_full_reliability_deg: 15.0   # |angle| below this -> reliability 1.0
+  head_pose_zero_reliability_deg: 60.0   # |angle| above this -> reliability 0.0
+  motion_ref_displacement: 0.08          # normalised landmark displacement/s -> M=0
+
+landmarks:
+  model_bundle: "models/face_landmarker.task"
+  num_faces: 1
+  output_blendshapes: true
+  output_transformation_matrix: true
+  min_face_detection_confidence: 0.3
+  min_face_presence_confidence: 0.3
+  min_tracking_confidence: 0.3
+
+vit:
+  # timm model name. Verified-available choices are listed in
+  # artifacts/backbone_benchmark.json after scripts/compare_backbones.py runs.
+  model_name: "vit_base_patch16_224.augreg2_in21k_ft_in1k"
+  pretrained: true
+  freeze: false                   # FINE-TUNING RUN: the backbone is trained
+  batch_size: 32                  # frames per ViT forward chunk
+  # Recompute block activations in backward instead of storing them. Measured in
+  # artifacts/finetune_memory_probe.json: 256 crops/step costs 17,461 MiB without
+  # this and 4,219 MiB with it, against a 6,144 MiB card.
+  grad_checkpointing: true
+  unfreeze_blocks: null           # null = every block; an int = last N only
+  # A pretrained backbone must not be driven at the head's learning rate.
+  finetune_lr: 0.00001
+
+mamba:
+  # Vendored pure-PyTorch reference implementation of the official
+  # state-spaces/mamba selective SSM. See src/mamba_ref.py and README.
+  d_model: 256
+  n_layers: 2
+  d_state: 16
+  d_conv: 4
+  expand: 2
+  bidirectional: false            # true = Vim-style bi-directional scan (ablation)
+  dropout: 0.1
+  # mean | last | attention | mrs_weighted.
+  # "mrs_weighted" pools as sum_t r_t h_t / sum_t r_t. See the note in
+  # src/temporal_mamba.py: a scale-invariant norm cancels pure feature
+  # multiplication, so this is where reliability actually takes effect.
+  pooling: "mrs_weighted"
+
+fusion:
+  projected_dim: 256
+  mode: "concat"                  # concat | gated
+  dropout: 0.1
+  use_landmark_branch: true
+  landmark_norm: "standard"       # standardise with train-split statistics
+  deep_norm: "layernorm"
+
+classifier:
+  hidden_dims: [256, 128]
+  activation: "gelu"
+  dropout: 0.3
+
+training:
+  batch_size: 4                   # 4 clips x 32 frames = 128 crops per forward
+  grad_accum_steps: 2             # effective batch 8, matching the frozen run
+  epochs: 64
+  learning_rate: 0.0003
+  mrs_weight_lr: 0.02        # separate LR for the 5 MRS weights
+  weight_decay: 0.01
+  optimizer: "adamw"
+  scheduler: "cosine"
+  warmup_epochs: 3
+  grad_clip: 1.0
+  mixed_precision: true           # only enabled when CUDA is actually present
+  # FULL: engagement in the full release is roughly 1% Very Low, 4% Low and
+  # 95% High/Very High. Pure inverse frequency weights Very Low ~77x above High,
+  # which makes ~30 clips dominate the loss. The effective-number scheme (Cui et
+  # al., CVPR 2019) still up-weights the rare classes, by ~28x rather than ~77x.
+  class_weighting: "effective_number"   # none | inverse_frequency | effective_number
+  label_smoothing: 0.05
+  # FULL: on the development subset the best epoch was 2 of 64 and the rest
+  # were memorisation. An epoch here is ~45x longer, so stop after 10 epochs
+  # without a validation macro-F1 improvement. Set to 64 to force every epoch.
+  early_stopping_patience: 10
+  # FULL: every epoch's weights are still stored, as for the earlier runs, at
+  # 333 MB each. Set false to keep only best.pt and last.pt.
+  save_every_epoch: true
+  model_selection_metric: "val_macro_f1"  # never test performance (spec section 29)
+  # FULL: each step decodes batch_size x 32 JPEG crops, ~170k per epoch. Worker
+  # processes keep the GPU fed. Override per machine with --workers N.
+  num_workers: 8
+
+evaluation:
+  metrics: [accuracy, weighted_f1, macro_f1, per_class_precision, per_class_recall, per_class_f1]
+  timing_repeats: 20
+  timing_warmup: 5
+
+explain:
+  shap_background_size: 64
+  shap_eval_size: 64

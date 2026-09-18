@@ -21,7 +21,7 @@ from src.dataset_index import (  # noqa: E402
     SPLITS, build_index, label_distribution, subject_overlaps,
 )
 from src.utils import (  # noqa: E402
-    environment_record, get_logger, load_config, save_json,
+    environment_record, get_logger, load_config, missing_clip_policy, save_json,
 )
 from src.video_sampling import probe_video  # noqa: E402
 
@@ -158,7 +158,16 @@ def main() -> int:
             if dur:
                 print(f"  duration_s : min={min(dur):.2f} mean={sum(dur)/len(dur):.2f} max={max(dur):.2f}")
         if bad:
-            blocking.append(f"{len(bad)} probed videos failed to decode")
+            # Same tolerance as preprocessing and training: the full release has
+            # a few undecodable videos, which Stage 1 records and training
+            # skips. Only a failure rate beyond the configured fraction blocks.
+            allow_missing, max_frac = missing_clip_policy(cfg)
+            frac = len(bad) / len(probes)
+            if allow_missing and frac <= max_frac:
+                print(f"  {len(bad)}/{len(probes)} probed videos failed ({100 * frac:.2f}%), "
+                      f"within the {100 * max_frac:.2f}% tolerance of missing_clip_policy=skip")
+            else:
+                blocking.append(f"{len(bad)} probed videos failed to decode")
         # Show the first few resolved paths so the layout assumption is visible.
         print("\n  first resolved video paths:")
         for rec, _ in probes[:10]:

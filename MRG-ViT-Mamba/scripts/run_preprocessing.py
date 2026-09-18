@@ -18,7 +18,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.dataset_index import build_index  # noqa: E402
 from src.preprocess import run_stage1, run_stage2, stage1_key  # noqa: E402
-from src.utils import Timer, get_device, get_logger, load_config, save_json, set_seed  # noqa: E402
+from src.utils import (  # noqa: E402
+    Timer, get_device, get_logger, load_config, missing_clip_policy, save_json, set_seed,
+)
 
 
 def main() -> int:
@@ -28,10 +30,27 @@ def main() -> int:
     ap.add_argument("--splits", nargs="+", default=["train", "val", "test"])
     ap.add_argument("--limit", type=int, default=None, help="clips per split (smoke tests)")
     ap.add_argument("--force", action="store_true", help="recompute even if cached")
+    ap.add_argument("--shard", default=None, metavar="I/N",
+                    help="Stage 1 only: process every N-th clip starting at I, so N "
+                         "processes can split the corpus, e.g. --shard 0/8 ... --shard 7/8")
     ap.add_argument("--config", default=None)
     args = ap.parse_args()
 
-    log = get_logger("preprocess", "logs/run_preprocessing.log")
+    shard = None
+    if args.shard:
+        try:
+            i_s, n_s = (int(x) for x in args.shard.split("/"))
+        except ValueError:
+            ap.error(f"--shard must look like I/N, got {args.shard!r}")
+        if not (n_s >= 1 and 0 <= i_s < n_s):
+            ap.error(f"--shard {args.shard}: need 0 <= I < N")
+        if args.stage != "1":
+            ap.error("--shard applies to Stage 1 only; run Stage 2 once, unsharded")
+        shard = (i_s, n_s)
+
+    log_name = (f"logs/run_preprocessing_shard{shard[0]}of{shard[1]}.log" if shard
+                else "logs/run_preprocessing.log")
+    log = get_logger("preprocess", log_name)
     cfg = load_config(args.config)
     set_seed(int(cfg["seed"]))
     index = build_index(cfg)
@@ -49,7 +68,7 @@ def main() -> int:
         log.info("Stage 1 -> cache key %s", s1_key)
         with Timer() as t:
             s1 = run_stage1(cfg, index, splits=args.splits, limit=args.limit,
-                            force=args.force, logger=log)
+                            force=args.force, logger=log, shard=shard)
         s1["elapsed_seconds"] = round(t.elapsed, 2)
         results["stage1"] = s1
         c = s1["counts"]
@@ -82,14 +101,27 @@ def main() -> int:
         for f in s2["failures"][:10]:
             log.error("  %s", f)
 
-    save_json({"device": device.as_dict(), **results}, "artifacts/preprocessing_summary.json")
-    log.info("wrote artifacts/preprocessing_summary.json")
+    summary_path = (f"artifacts/preprocessing_summary_shard{shard[0]}of{shard[1]}.json"
+                    if shard else "artifacts/preprocessing_summary.json")
+    save_json({"device": device.as_dict(), **results}, summary_path)
+    log.info("wrote %s", summary_path)
 
-    failed = sum(r["counts"]["failed"] for r in results.values())
-    if failed:
-        log.error("%d clips failed; see the manifest for video_id/stage/error", failed)
-        return 1
-    return 0
+    allow_missing, max_frac = missing_clip_policy(cfg)
+    exit_code = 0
+    for stage, r in results.items():
+        failed, total = r["counts"]["failed"], r["counts"]["total"]
+        if not failed:
+            continue
+        frac = failed / total if total else 1.0
+        if allow_missing and frac <= max_frac:
+            log.warning("%s: %d/%d clips failed (%.2f%%) - within the %.2f%% tolerance of "
+                        "missing_clip_policy=skip; they will be left out of training",
+                        stage, failed, total, 100 * frac, 100 * max_frac)
+        else:
+            log.error("%s: %d/%d clips failed (%.2f%%); see the manifest for "
+                      "video_id/stage/error", stage, failed, total, 100 * frac)
+            exit_code = 1
+    return exit_code
 
 
 if __name__ == "__main__":

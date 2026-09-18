@@ -50,6 +50,7 @@ delivers is a **verified, checkpointed pipeline**, not an engagement result.
 11. [Limitations](#11-limitations)
 12. [Exact configuration for the reported results](#12-exact-configuration-for-the-reported-results)
 13. [Acceptance checklist](#13-acceptance-checklist)
+14. [Training on the full DAiSEE release](#14-training-on-the-full-daisee-release)
 
 ---
 
@@ -980,6 +981,113 @@ No metric in this document was estimated, extrapolated or invented. Every number
 reproducible from a committed artifact in `artifacts/` or a log in `logs/`. Where an
 experiment was not run, it is marked **NOT RUN** rather than filled in. Where a result is
 negative — and the headline result here is negative — it is reported as negative.
+
+## 14. Training on the full DAiSEE release
+
+Everything above was measured on 108- and 216-clip subsets. `configs/config_full.yaml`
+runs the same fine-tuned model — ViT-B/16 trained end to end, T = 32 frames, Mamba
+temporal head, learnable MRS weights — on the complete release. It is written to run
+unattended on a machine other than the one it was developed on.
+
+### Hardware
+
+Measured on the development machine (RTX 3060 Laptop, 6 GB) unless marked *estimate*.
+
+| | Minimum (verified) | Recommended |
+|---|---|---|
+| GPU | NVIDIA, 6 GB VRAM, CUDA | 16–24 GB+ (e.g. RTX 4090, A5000, A100) |
+| CPU | 4 cores | 8–16+ cores — Stage 1 (MediaPipe) is CPU-bound and shards across cores |
+| RAM | 16 GB | 32 GB (8 DataLoader workers) |
+| Disk | ~45 GB free | 60 GB+ on SSD |
+| OS | Windows 11 or Linux | Linux — `run_full_daisee.sh` is bash, and the fused `mamba-ssm` kernel needs `nvcc` |
+
+GPU memory, from `scripts/probe_finetune_memory.py`: a training step over 128 crops
+(4 clips × 32 frames) peaks at **2.7 GB** with gradient checkpointing; 256 crops peaks
+at 4.2 GB, and **17.5 GB without checkpointing**. Checkpointing is on in the config,
+which is why 6 GB is enough. On a larger card, raise `training.batch_size` and lower
+`grad_accum_steps` so their product stays 8.
+
+Disk, per component:
+
+| Item | Size |
+|---|---|
+| DAiSEE release (video) | ~13.5 GB (*estimate*: 1.49 MB/clip × 9,068, from the 216-clip subset) |
+| Stage 1 cache at T = 32 | ~4.3 GB (0.49 MB/clip measured × 9,068) |
+| One fine-tuned checkpoint | 333 MB; all 64 epochs = ~21 GB (`save_every_epoch: false` keeps only `best.pt` + `last.pt`) |
+| `last.pt` (resume state incl. optimiser) | ~1 GB, overwritten each epoch |
+
+Time, *estimates* scaled from the development machine:
+
+| Step | 6 GB laptop GPU, measured rate | Scaled to ~9,000 clips |
+|---|---|---|
+| Stage 1, one process | 0.62 s/clip | ~95 min; roughly ÷ number of shards |
+| Fine-tuning epoch | 62 s for 120 train + 80 val clips | ~35–40 min per epoch on the same GPU; several times faster on a data-centre GPU |
+
+With `early_stopping_patience: 10` the run stops once validation macro-F1 has not
+improved for 10 epochs. On the development subset the best epoch was 2, so expect far
+fewer than 64 epochs.
+
+### What changed for full scale, and why
+
+| Change | Failure it prevents |
+|---|---|
+| `DAISEE_ROOT`, `MRG_CACHE_DIR`, `MRG_CHECKPOINT_DIR` environment overrides | editing a tracked config on every machine |
+| Stage 1 writes are atomic (temp file + rename) | a process killed mid-write leaves a truncated `.npz` that later runs treat as done, crashing training hours later |
+| `run_preprocessing.py --shard I/N` | one CPU core doing ~95 minutes of MediaPipe while the rest sit idle |
+| `dataset.missing_clip_policy: skip`, capped by `max_missing_fraction: 0.02` | one undecodable video aborting the whole run — while still stopping if preprocessing is merely incomplete |
+| `run_finetune.py --resume` from `last.pt` (optimiser, scheduler, AMP scaler, RNG, early-stopping state) | an interruption at epoch 40 costing 40 epochs |
+| Significance tested against the **majority-class** accuracy, via `scipy.stats.binom` | the old exact sum raised `OverflowError` at n ≈ 1,784 — after training had finished; and "beats 25 %" is meaningless when one class is ~50 % |
+| `class_weighting: effective_number` | pure inverse frequency weighting the ~30 Very Low clips ~77× above High |
+| Calibration must be fitted, to its own file | silently training with generic blur/face-size bounds, or with the 120-clip development calibration |
+| Figure titles and reference lines taken from the run | full-release plots labelled "DAiSEE_mini, 120 train / 80 val" with a 25 % chance line |
+
+Each is covered by `tests/test_full_scale.py`, and the preprocessing, calibration guard,
+incomplete-cache guard, training, resume and evaluation paths were run end to end on the
+216-clip subset with `config_full.yaml` before release.
+
+### Running it
+
+```bash
+git clone https://github.com/presidentv/MAMBA---MIN-PROJECT.git
+cd MAMBA---MIN-PROJECT/MRG-ViT-Mamba
+python -m venv .venv && source .venv/bin/activate
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128   # match your CUDA
+pip install -r requirements.txt
+# optional, Linux + nvcc: the fused Mamba kernel, picked up automatically
+# pip install mamba-ssm --no-build-isolation
+
+export DAISEE_ROOT=/path/to/DAiSEE           # contains DataSet/ and Labels/
+bash scripts/run_full_daisee.sh
+```
+
+The script runs, in order: environment check → fetch MediaPipe models → dataset audit
+(stops on subject leakage) → Stage 1 across all cores → MRS calibration on the train
+split → GPU memory probe → fine-tuning with validation-based selection → evaluation →
+figures. It is safe to re-run after an interruption; delete `checkpoints/full_ft32/` for a
+fresh start. Outputs: `artifacts/finetune_report_full_ft32.json`,
+`artifacts/report_full_ft32/`, `logs/training_history_full_ft32.csv`.
+
+On Windows, run the same steps individually:
+
+```powershell
+$env:DAISEE_ROOT = "D:\DAiSEE"
+python scripts/fetch_models.py
+python scripts/audit_dataset.py --config configs/config_full.yaml
+python scripts/run_preprocessing.py --config configs/config_full.yaml --stage 1
+python scripts/fit_mrs_stats.py --config configs/config_full.yaml
+python scripts/run_finetune.py --config configs/config_full.yaml --run-name full_ft32 --workers 4 --resume
+python scripts/make_finetune_figures.py --run full_ft32 --baseline ""
+```
+
+### Reading the results
+
+The full release is severely imbalanced — roughly 1 % Very Low, 4 % Low, and the rest
+split between High and Very High. Always predicting the most common class already scores
+around 50 % accuracy. So:
+
+* compare accuracy to `baselines.majority_class.accuracy`, not to 25 %;
+* lead with **macro-F1**, which that trivial predictor cannot inflate;
+* treat Very Low per-class numbers with caution — the test split holds only a handful.
 
 ## References
 
