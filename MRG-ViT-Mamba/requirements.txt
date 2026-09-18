@@ -1,0 +1,35 @@
+# MRG-ViT--Mamba on DAiSEE
+#
+# Install PyTorch FIRST, matched to your hardware, then this file.
+#
+#   GPU (CUDA 12.8, what this project was verified on):
+#     pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+#   CPU only:
+#     pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+#
+# requirements-lock.txt holds the exact versions of the verified environment.
+
+timm>=1.0
+transformers>=4.40          # only needed for "hf:" backbones
+opencv-python>=4.8
+mediapipe>=0.10             # Tasks API; see the note below
+numpy>=1.24
+scikit-learn>=1.3
+shap>=0.44
+pandas>=2.0
+matplotlib>=3.7
+PyYAML>=6.0
+einops>=0.7
+tqdm>=4.65
+pytest>=7.4
+
+# NOTE on Mamba.
+# The official CUDA package is NOT listed here on purpose. `pip install mamba-ssm`
+# is a source-only distribution whose build requires the CUDA Toolkit (nvcc) and
+# is not officially supported on Windows; on this machine it failed with
+# "nvcc was not found". src/mamba_ref.py therefore vendors the official
+# *reference* (non-fused) implementation from state-spaces/mamba, which computes
+# the same function without compilation. If you are on Linux with nvcc available,
+#     pip install mamba-ssm --no-build-isolation
+# is picked up automatically by src/mamba_ref.build_mamba_block and the backend
+# reported in every artifact changes to "mamba_ssm_cuda".

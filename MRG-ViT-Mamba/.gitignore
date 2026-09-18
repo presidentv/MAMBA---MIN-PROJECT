@@ -1,0 +1,65 @@
+# NOTE: .gitignore does NOT support trailing comments on a pattern line.
+# "cache/    # some note" is parsed as the literal pattern
+# "cache/    # some note" and matches nothing. Every comment below is therefore
+# on its own line. Verify any change with:
+#     git check-ignore -v <path>
+
+# --- Data and derived biometric artefacts: never committed ---
+# DAiSEE is licence-restricted (per-user registration) and is video of
+# identifiable people. Neither it nor anything derived from the faces belongs
+# in this repository.
+Datasets/
+data/DAiSEE*/
+
+# Face crops (JPEG), landmark coordinates, head pose, and ViT embeddings.
+cache/
+
+# Third-party MediaPipe binaries; scripts/fetch_models.py refetches them.
+models/*.tflite
+models/*.task
+
+# --- Large binaries ---
+checkpoints/
+*.pt
+*.pth
+*.onnx
+
+# --- Environment ---
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+
+# --- Logs ---
+# Run logs are regenerable and noisy; the training histories that back the
+# reported numbers are kept (see the negations below).
+logs/*
+!logs/.gitkeep
+!logs/sampling_stdout.txt
+# Every per-epoch training history is kept: these back the reported curves and
+# the learned-weight trajectories. Their columns are aggregate only -- epoch,
+# losses, accuracies, F1s, learning rates, the five MRS weights -- with no clip
+# id, subject id or label value, so they redistribute nothing from DAiSEE.
+!logs/training_history_*.csv
+
+# --- Artifacts ---
+# Results, reports and plots ARE committed. Face imagery is not.
+artifacts/face_crop_preview.png
+artifacts/mrs_extremes.png
+
+# Per-clip prediction dumps pair a DAiSEE clip id with its ground-truth
+# engagement label, which redistributes dataset labels. Aggregate metrics and
+# confusion matrices are committed; these row-level files are not.
+artifacts/per_clip_predictions_*.json
+
+# Per-run sweep reports; the aggregated JSON in ablation_results.json /
+# sampling_experiment.json already contains every number they hold.
+artifacts/classification_report_T*_test.txt
+artifacts/test_metrics_T*_test.json
+
+# --- OS ---
+Thumbs.db
+.DS_Store
+desktop.ini
