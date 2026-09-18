@@ -54,6 +54,11 @@ artifacts/mrs_extremes.png
 # confusion matrices are committed; these row-level files are not.
 artifacts/per_clip_predictions_*.json
 
+# Worked examples from scripts/explain_finetuned.py: frames showing identifiable
+# DAiSEE participants, plus clip ids paired with their labels. They stay on the
+# machine that ran the model.
+artifacts/examples_*/
+
 # Per-run sweep reports; the aggregated JSON in ablation_results.json /
 # sampling_experiment.json already contains every number they hold.
 artifacts/classification_report_T*_test.txt

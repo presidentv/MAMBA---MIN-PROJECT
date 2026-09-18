@@ -77,9 +77,17 @@ step "6/6  fine-tune and evaluate (run: $RUN)"
     --workers "$WORKERS" --resume
 
 step "figures"
-"$PY" scripts/make_finetune_figures.py --run "$RUN" --baseline ''
+"$PY" scripts/make_finetune_figures.py --run "$RUN" --baseline '' || \
+    echo "figures failed - results above are unaffected; re-run: python scripts/make_finetune_figures.py --run $RUN --baseline=''"
+
+step "worked examples (three test clips, three people)"
+# Training and evaluation are finished and saved by now, so a failure here is
+# reported but does not fail the run.
+"$PY" scripts/explain_finetuned.py --config "$CONFIG" --run "$RUN" || \
+    echo "worked examples failed - results above are unaffected; re-run: python scripts/explain_finetuned.py --config $CONFIG --run $RUN"
 
 step "done"
-echo "report : artifacts/finetune_report_${RUN}.json"
-echo "figures: artifacts/report_${RUN}/"
-echo "history: logs/training_history_${RUN}.csv"
+echo "report  : artifacts/finetune_report_${RUN}.json"
+echo "figures : artifacts/report_${RUN}/"
+echo "examples: artifacts/examples_${RUN}/  (face images - do not commit or share)"
+echo "history : logs/training_history_${RUN}.csv"
