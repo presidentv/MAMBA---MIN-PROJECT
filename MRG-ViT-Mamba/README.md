@@ -1028,13 +1028,19 @@ Time, *estimates* scaled from the development machine:
 
 *Estimate* for an **RTX 4060 (8 GB) desktop with 16 GB RAM**, assuming it is ~1.2–1.4×
 the development GPU: ~30–33 min training + ~2 min validation per epoch, so **~33–37 h
-for all 64 epochs**, plus ~20–30 min of sharded Stage 1 and a few minutes of final
+for all 64 epochs** (~17 h if the run stops at the epoch-30 decision point), plus ~20–30 min of sharded Stage 1 and a few minutes of final
 evaluation.
 
-The config runs every one of the 64 epochs (`early_stopping_patience: 64`); `best.pt`
-is still the epoch with the highest validation macro-F1. On the development subset the
-best epoch was 2, so setting the patience to 10 typically ends the run at epoch 12–20
-(~7–12 h on an RTX 4060) with the same selection rule.
+**Epoch budget: 30, extended to 64 only if still improving.** The first 30 epochs are
+one complete cosine cycle, so a run that stops there has a fully annealed model (~17 h
+on an RTX 4060). After epoch 30 the run continues to 64 (~35 h total) only if the best
+validation macro-F1 in epochs 26–30 beats the best of epochs 1–25 by at least 0.005;
+the continuation is a second cosine cycle restarting at half the peak learning rate.
+The decision is logged, stored in `last.pt` (so `--resume` respects it) and written to
+`finetune_report_<run>.json` as `extend_decision`. `best.pt` is always the epoch with
+the highest validation macro-F1. Settings: `training.extend_decision_epoch`,
+`extend_window`, `extend_min_delta`, `restart_lr_factor`; set `extend_decision_epoch:
+null` for a single cosine over all epochs.
 
 ### What changed for full scale, and why
 

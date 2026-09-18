@@ -260,6 +260,8 @@ def main() -> int:
         ("epochs_run", "batch_size", "grad_accum_steps", "effective_batch",
          "head_lr", "backbone_lr", "backbone", "clips", "label_counts", "subjects")
     }
+    # .get: training JSONs written before the decision point existed lack it.
+    report["extend_decision"] = result.info.get("extend_decision")
     report["history_csv"] = result.info["history_csv"]
     report["checkpoint_dir"] = result.info["checkpoint_dir"]
     report["environment"] = result.info["environment"]

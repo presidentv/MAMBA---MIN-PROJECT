@@ -154,3 +154,34 @@ def test_full_config_is_consistent():
     # Learning rates are the development values x sqrt(32 / 8) = 2.
     assert tr["learning_rate"] == 2 * dev["training"]["learning_rate"]
     assert cfg["vit"]["finetune_lr"] == 2 * dev["vit"]["finetune_lr"]
+    assert tr["warmup_epochs"] < tr["extend_decision_epoch"] < tr["epochs"]
+
+
+# ------------------------------------------------------------ decision point
+def test_extend_only_when_still_rising():
+    from src.finetune import should_extend
+    rising = [0.20 + 0.01 * i for i in range(30)]
+    peaked = [0.30] * 10 + [0.40] + [0.35] * 19          # best at epoch 11
+    flat_tail = [0.20 + 0.01 * i for i in range(25)] + [0.443] * 5
+    assert should_extend(rising, window=5, min_delta=0.005)
+    assert not should_extend(peaked, window=5, min_delta=0.005)
+    # Last-window best 0.443 vs 0.44 before: within the margin, so not rising.
+    assert not should_extend(flat_tail, window=5, min_delta=0.005)
+    assert not should_extend([0.3] * 5, window=5, min_delta=0.005)
+
+
+def test_two_cycle_schedule():
+    from src.finetune import make_lr_lambda
+    lam = make_lr_lambda(epochs=64, warmup=3, scheduler="cosine",
+                         decision_epoch=30, restart_factor=0.5)
+    assert lam(0) == pytest.approx(1 / 3)
+    assert lam(3) == pytest.approx(1.0)
+    # The first cycle is nearly annealed by the decision point ...
+    assert lam(29) < 0.01
+    # ... and a continued run restarts at half the peak, then anneals again.
+    assert lam(30) == pytest.approx(0.5)
+    assert lam(63) < 0.005
+    # Without a decision epoch it is the original single cosine.
+    single = make_lr_lambda(epochs=64, warmup=3, scheduler="cosine",
+                            decision_epoch=None, restart_factor=0.5)
+    assert single(30) == pytest.approx(0.5 * (1 + np.cos(np.pi * 27 / 61)))

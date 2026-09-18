@@ -238,6 +238,48 @@ _RESUME_MUST_MATCH = (
 )
 
 
+def should_extend(val_macro_f1s: list[float], window: int, min_delta: float) -> bool:
+    """Is validation macro-F1 still rising at the end of the first cycle?
+
+    True when the best score in the last `window` epochs beats the best score
+    before them by at least `min_delta`. A peak earlier in the cycle, or a
+    plateau, returns False. The margin is there because the final epochs of a
+    cosine cycle run at a near-zero learning rate and routinely add a sliver of
+    macro-F1 that says nothing about whether more training would help.
+    """
+    if window <= 0 or len(val_macro_f1s) <= window:
+        return False
+    recent = max(val_macro_f1s[-window:])
+    earlier = max(val_macro_f1s[:-window])
+    return recent >= earlier + min_delta
+
+
+def make_lr_lambda(epochs: int, warmup: int, scheduler: str,
+                   decision_epoch: int | None, restart_factor: float):
+    """Per-epoch LR multiplier.
+
+    Without a decision epoch: linear warmup, then one cosine over all epochs.
+    With one: the first cosine ends at the decision epoch, so a run that stops
+    there has a fully annealed model. If training continues, a second cosine
+    runs from the decision epoch to the end, restarting at `restart_factor` of
+    the peak LR (a warm restart, as in SGDR).
+    """
+    cycle1 = decision_epoch if decision_epoch else epochs
+
+    def lr_lambda(epoch: int) -> float:
+        if warmup and epoch < warmup:
+            return (epoch + 1) / warmup
+        if scheduler != "cosine":
+            return 1.0
+        if epoch < cycle1:
+            progress = (epoch - warmup) / max(1, cycle1 - warmup)
+            return 0.5 * (1.0 + np.cos(np.pi * min(progress, 1.0)))
+        progress = (epoch - cycle1) / max(1, epochs - cycle1)
+        return restart_factor * 0.5 * (1.0 + np.cos(np.pi * min(progress, 1.0)))
+
+    return lr_lambda
+
+
 def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
                    overrides: dict | None = None, resume: bool = False,
                    num_workers: int | None = None) -> FineTuneResult:
@@ -324,14 +366,20 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
     epochs = int(tcfg["epochs"])
     warmup = int(tcfg.get("warmup_epochs", 0))
 
-    def lr_lambda(epoch: int) -> float:
-        if warmup and epoch < warmup:
-            return (epoch + 1) / warmup
-        if str(tcfg.get("scheduler", "cosine")) != "cosine":
-            return 1.0
-        progress = (epoch - warmup) / max(1, epochs - warmup)
-        return 0.5 * (1.0 + np.cos(np.pi * min(progress, 1.0)))
+    # Optional decision point: train `extend_decision_epoch` epochs as a
+    # complete cycle, then continue to `epochs` only if validation macro-F1 is
+    # still rising. Ignored when --epochs makes the run no longer than that.
+    decision_epoch = tcfg.get("extend_decision_epoch")
+    decision_epoch = int(decision_epoch) if decision_epoch else None
+    if decision_epoch is not None and not (warmup < decision_epoch < epochs):
+        decision_epoch = None
+    extend_window = int(tcfg.get("extend_window", 5))
+    extend_min_delta = float(tcfg.get("extend_min_delta", 0.005))
+    restart_factor = float(tcfg.get("restart_lr_factor", 0.5))
+    extend_decision: dict | None = None
 
+    lr_lambda = make_lr_lambda(epochs, warmup, str(tcfg.get("scheduler", "cosine")),
+                               decision_epoch, restart_factor)
     scheduler = torch.optim.lr_scheduler.LambdaLR(optimiser, lr_lambda)
 
     use_amp = bool(tcfg.get("mixed_precision", False)) and device_str == "cuda"
@@ -386,6 +434,7 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
         if amp_scaler is not None and state.get("amp_scaler_state"):
             amp_scaler.load_state_dict(state["amp_scaler_state"])
         best = state["best"]
+        extend_decision = state.get("extend_decision")
         since_improved = int(state["since_improved"])
         history = list(state["history"])
         _restore_rng(state["rng"])
@@ -409,6 +458,8 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
 
     if start_epoch > 0 and since_improved >= patience:
         start_epoch = epochs          # the interrupted run had already early-stopped
+    if extend_decision is not None and not extend_decision["extend"]:
+        start_epoch = epochs          # the run had already stopped at the decision point
 
     for epoch in range(start_epoch, epochs):
         t0 = time.perf_counter()
@@ -467,6 +518,26 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
         else:
             since_improved += 1
 
+        if decision_epoch is not None and epoch == decision_epoch - 1:
+            f1s = [float(r["val_macro_f1"]) for r in history]
+            extend = should_extend(f1s, extend_window, extend_min_delta)
+            extend_decision = {
+                "after_epochs": decision_epoch,
+                "extend": extend,
+                "best_last_window": round(max(f1s[-extend_window:]), 6),
+                "best_before_window": round(max(f1s[:-extend_window]), 6),
+                "window": extend_window,
+                "min_delta": extend_min_delta,
+            }
+            if logger:
+                logger.info(
+                    "decision after %d epochs: best val macro-F1 in last %d epochs %.4f "
+                    "vs %.4f before -> %s", decision_epoch, extend_window,
+                    extend_decision["best_last_window"],
+                    extend_decision["best_before_window"],
+                    f"still rising, continuing to {epochs} epochs" if extend
+                    else "peaked earlier, stopping here")
+
         # Everything needed to continue from the next epoch as if uninterrupted.
         _atomic_torch_save({
             "epoch": epoch,
@@ -476,6 +547,7 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
             "amp_scaler_state": amp_scaler.state_dict() if amp_scaler is not None else None,
             "best": best,
             "since_improved": since_improved,
+            "extend_decision": extend_decision,
             "history": history,
             "rng": _rng_state(),
             "config": dict(cfg),
@@ -486,6 +558,8 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
                 logger.info("early stopping at epoch %d (no val macro-F1 improvement for "
                             "%d epochs)", epoch, patience)
             break
+        if extend_decision is not None and not extend_decision["extend"]:
+            break
 
     info = {
         "run_name": run_name,
@@ -495,6 +569,8 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
         "epochs_run": len(history),
         "epochs_configured": epochs,
         "early_stopping_patience": patience,
+        "extend_decision_epoch": decision_epoch,
+        "extend_decision": extend_decision,
         "resumed_from_epoch": resumed_from,
         "num_workers": workers,
         "save_every_epoch": save_every_epoch,

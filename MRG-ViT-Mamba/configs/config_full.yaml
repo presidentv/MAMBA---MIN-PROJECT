@@ -171,11 +171,20 @@ training:
   # al., CVPR 2019) still up-weights the rare classes, by ~28x rather than ~77x.
   class_weighting: "effective_number"   # none | inverse_frequency | effective_number
   label_smoothing: 0.05
-  # FULL: all 64 epochs are run (patience == epochs disables early stopping).
-  # Model selection is unaffected: best.pt is still the epoch with the highest
-  # validation macro-F1. On the development subset the best epoch was 2, so if
-  # time matters, set this to 10 -- that typically ends the run at epoch 12-20
-  # and cuts ~35 h to ~7-12 h on an RTX 4060.
+  # FULL: train 30 epochs, then decide. The first 30 epochs are one complete
+  # cosine cycle, so stopping there leaves a fully annealed model (~17 h on an
+  # RTX 4060). Training continues to `epochs` (64, ~35 h total) only if the best
+  # val macro-F1 in epochs 26-30 beats the best of epochs 1-25 by at least
+  # extend_min_delta -- i.e. it is still rising, not peaked or flat. The
+  # continuation is a second cosine cycle restarting at restart_lr_factor x
+  # the peak LR. Set extend_decision_epoch to null for one cycle over all epochs.
+  extend_decision_epoch: 30
+  extend_window: 5
+  extend_min_delta: 0.005
+  restart_lr_factor: 0.5
+  # FULL: no early stopping within the cycles (patience == epochs disables it);
+  # the decision point above replaces it. best.pt is always the epoch with the
+  # highest validation macro-F1, whichever way the decision goes.
   early_stopping_patience: 64
   # FULL: keep only best.pt (333 MB) and last.pt (~1 GB, for --resume) instead
   # of 64 x 333 MB = ~21 GB. Every epoch's metrics are still in
