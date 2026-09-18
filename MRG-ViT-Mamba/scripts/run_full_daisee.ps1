@@ -113,11 +113,23 @@ Invoke-Py @("scripts/run_finetune.py", "--config", $Config, "--run-name", $Run,
 Step "figures"
 # "--baseline=" rather than --baseline "": PowerShell 5.1 drops an empty-string
 # argument to a native program, which would leave --baseline without a value.
-Invoke-Py @("scripts/make_finetune_figures.py", "--run", $Run, "--baseline=") "figures"
+& $Py scripts/make_finetune_figures.py --run $Run --baseline=
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "figures failed - results above are unaffected; re-run: python scripts/make_finetune_figures.py --run $Run --baseline="
+}
+
+Step "worked examples (three test clips, three people)"
+# Training and evaluation are finished and saved by now, so a failure here is
+# reported but does not fail the run.
+& $Py scripts/explain_finetuned.py --config $Config --run $Run
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "worked examples failed - results above are unaffected; re-run: python scripts/explain_finetuned.py --config $Config --run $Run"
+}
 
 Step "done"
 $Elapsed = (Get-Date) - $Started
 Write-Host ("elapsed: {0:N1} h" -f $Elapsed.TotalHours)
-Write-Host "report : artifacts/finetune_report_$Run.json"
-Write-Host "figures: artifacts/report_$Run/"
-Write-Host "history: logs/training_history_$Run.csv"
+Write-Host "report  : artifacts/finetune_report_$Run.json"
+Write-Host "figures : artifacts/report_$Run/"
+Write-Host "examples: artifacts/examples_$Run/  (face images - do not commit or share)"
+Write-Host "history : logs/training_history_$Run.csv"

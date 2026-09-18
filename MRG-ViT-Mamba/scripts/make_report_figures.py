@@ -70,19 +70,21 @@ def fig_training_curves(rows, best_epoch, out, title=None, baselines=None):
         ("accuracy", "train_accuracy", "val_accuracy", "accuracy"),
         ("macro-F1", "train_macro_f1", "val_macro_f1", "macro-F1"),
     ]
-    for ax, (title, ktr, kva, ylab) in zip(axes, panels):
+    # The loop variable must not be called `title`: it would overwrite the
+    # figure title argument, and the suptitle below would read "macro-F1".
+    for ax, (panel, ktr, kva, ylab) in zip(axes, panels):
         ax.plot(ep, [float(r[ktr]) for r in rows], color=DEEP, lw=1.7, label="train")
         ax.plot(ep, [float(r[kva]) for r in rows], color=MRSC, lw=1.7, label="validation")
         ax.axvline(best_epoch, color=GREY, ls="--", lw=1.1)
         ax.annotate(f"selected\nepoch {best_epoch}", (best_epoch, ax.get_ylim()[1]),
                     xytext=(4, -4), textcoords="offset points", fontsize=7.5,
                     va="top", color=GREY)
-        if title in baselines:
-            value, label = baselines[title]
+        if panel in baselines:
+            value, label = baselines[panel]
             ax.axhline(value, color=LIGHT, lw=1.4, ls=":")
             ax.annotate(label, (ep[-1], value), xytext=(-4, 4),
                         textcoords="offset points", ha="right", fontsize=7.5, color=GREY)
-        ax.set_title(title, fontsize=10, fontweight="bold")
+        ax.set_title(panel, fontsize=10, fontweight="bold")
         ax.set_xlabel("epoch"); ax.set_ylabel(ylab)
         ax.legend(frameon=False, fontsize=8)
     fig.suptitle(title or "Training and validation over 64 epochs "

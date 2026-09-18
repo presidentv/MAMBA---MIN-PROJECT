@@ -1126,6 +1126,45 @@ Training continues from epoch 21 and the history CSV is rolled back to match. A
 `best.pt` written after the snapshot belongs to the abandoned continuation, so it is
 renamed `best_abandoned_epoch_NNN.pt` and best-model selection restarts from the snapshot.
 
+### What the run writes after training
+
+`run_full_daisee.sh` / `.ps1` finish with two steps that read the saved results. If
+either fails, the trained model and the metrics are unaffected, and the step can be
+re-run on its own.
+
+**Graphs** (`scripts/make_finetune_figures.py` → `artifacts/report_full_ft32/`):
+training curves (`ft1`), learned MRS weights per epoch (`ft2`), per-class
+precision/recall/F1 (`ft3`), the row-normalised test confusion matrix (`ft6`),
+one-vs-rest ROC and precision-recall curves (`ft7`), confidence when right vs wrong
+with a calibration curve (`ft8`), and the learning-rate schedule with the selected epoch
+and the epoch-30 decision (`ft9`). The unnormalised confusion matrices and
+classification reports are in `artifacts/` as before.
+
+**Worked examples** (`scripts/explain_finetuned.py` → `artifacts/examples_full_ft32/`):
+three test clips from three different people, chosen automatically: the most confident
+correct prediction, the most confident mistake, and the rarest remaining class. For each:
+
+* `example<k>_<clip>_landmarks.png`: a real frame with the MediaPipe face markers,
+  detector box and head pose, the five MRS components on that frame, and the actual and
+  predicted engagement level;
+* `example<k>_<clip>_decision.png`: how the prediction was reached. (1) Grad-CAM, showing
+  where the ViT looked on the face crop; (2) the per-frame reliability and the pooling
+  weight it gave each frame; (3) the learned MRS weights; (4) how much of the
+  predicted-class score came from the ViT → Mamba branch and how much from the landmark
+  branch (integrated gradients); (5) the named landmark features that pushed the score
+  up or down relative to the average training clip; (6) the class probabilities;
+* `examples_overview.png`: the three frames side by side, with actual and predicted labels;
+* `examples.json`: every number in the figures, plus a one-paragraph explanation of each
+  prediction.
+
+To choose the clips yourself:
+`python scripts/explain_finetuned.py --config configs/config_full.yaml --run full_ft32 --clips <id> <id> <id>`.
+Attribution shows what this model relied on. It does not show what causes engagement.
+
+**`artifacts/examples_*/` is git-ignored and must not be shared.** The images show
+identifiable DAiSEE participants, whom the dataset licence forbids redistributing,
+and `examples.json` pairs clip ids with their labels.
+
 ### Reading the results
 
 The full release is severely imbalanced — roughly 1 % Very Low, 4 % Low, and the rest

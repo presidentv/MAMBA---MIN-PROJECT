@@ -212,3 +212,221 @@ def _plot_top(top: list, path: Path, prefix: str):
     fig.tight_layout()
     fig.savefig(path)
     plt.close(fig)
+
+
+# --------------------------------------------------------------------------- #
+# Per-clip explanations for the fine-tuned model (scripts/explain_finetuned.py)
+# --------------------------------------------------------------------------- #
+def choose_examples(predictions: list[dict], n: int = 3) -> list[dict]:
+    """Pick `n` test clips from `n` different people, chosen to be informative.
+
+    In order: the most confident correct prediction; the most confident mistake
+    (on a class not yet shown, if there is one); then the rarest class not yet
+    shown. Every pick is from a new subject. Deterministic: ties break on clip id.
+    Each prediction needs clip_id, subject_id, true, pred and probs.
+    """
+    ranked = sorted(predictions, key=lambda p: (-p["probs"][p["pred"]], p["clip_id"]))
+    chosen: list[dict] = []
+    subjects: set = set()
+
+    def take(cond) -> bool:
+        for p in ranked:
+            if p["subject_id"] not in subjects and cond(p):
+                chosen.append(p)
+                subjects.add(p["subject_id"])
+                return True
+        return False
+
+    def shown() -> set:
+        return {p["true"] for p in chosen}
+
+    counts: dict[int, int] = {}
+    for p in predictions:
+        counts[p["true"]] = counts.get(p["true"], 0) + 1
+
+    wants = [
+        [lambda p: p["pred"] == p["true"]],
+        [lambda p: p["pred"] != p["true"] and p["true"] not in shown(),
+         lambda p: p["pred"] != p["true"]],
+        [lambda p, c=c: p["true"] == c and c not in shown()
+         for c in sorted(counts, key=lambda c: (counts[c], c))],
+    ]
+    for alternatives in wants:
+        if len(chosen) >= n:
+            break
+        for cond in alternatives:
+            if take(cond):
+                break
+    while len(chosen) < n and take(lambda p: True):
+        pass
+    return chosen[:n]
+
+
+def pick_frame(weights) -> int:
+    """The frame the model weighted most; ties go to the one nearest the middle."""
+    w = np.asarray(weights, dtype=np.float64)
+    candidates = np.flatnonzero(np.isclose(w, w.max()))
+    middle = (len(w) - 1) / 2.0
+    return int(candidates[np.argmin(np.abs(candidates - middle))])
+
+
+def integrated_gradients(f, x: torch.Tensor, baseline: torch.Tensor,
+                         steps: int = 64) -> tuple[torch.Tensor, float]:
+    """Integrated gradients of scalar-per-row `f` from `baseline` to `x` (both [D]).
+
+    Returns (attribution [D], completeness error). The attributions sum to
+    f(x) - f(baseline) up to the returned error, which shrinks with `steps`.
+    """
+    x = x.detach().float()
+    baseline = baseline.detach().float().to(x.device)
+    alphas = ((torch.arange(steps, device=x.device, dtype=torch.float32) + 0.5) / steps)[:, None]
+    path = (baseline + alphas * (x - baseline)).requires_grad_(True)
+    with torch.enable_grad():
+        grads = torch.autograd.grad(f(path).sum(), path)[0]
+    attr = (x - baseline) * grads.mean(dim=0)
+    with torch.no_grad():
+        gap = float(f(x[None])[0] - f(baseline[None])[0])
+    return attr.detach(), float(attr.sum()) - gap
+
+
+class ViTGradCAM:
+    """Grad-CAM for a timm Vision Transformer.
+
+    Hooks the input to the last block's attention (blocks[-1].norm1), the usual
+    target layer for ViT Grad-CAM, and turns the patch tokens back into the
+    patch grid. Works whether the encoder runs the frames in one chunk or many.
+    """
+
+    def __init__(self, backbone: nn.Module):
+        blocks = getattr(backbone, "blocks", None)
+        if blocks is None or not hasattr(backbone, "patch_embed"):
+            raise ValueError("Grad-CAM needs a timm VisionTransformer backbone")
+        self.prefix = int(getattr(backbone, "num_prefix_tokens", 1))
+        self.grid = tuple(int(g) for g in backbone.patch_embed.grid_size)
+        self.acts: list[torch.Tensor] = []
+        self._handle = blocks[-1].norm1.register_forward_hook(self._hook)
+
+    def _hook(self, module, inputs, output):
+        if output.requires_grad:
+            output.retain_grad()
+        self.acts.append(output)
+
+    def maps(self) -> np.ndarray:
+        """[frames, grid_h, grid_w], each map scaled to [0, 1]."""
+        if not self.acts or self.acts[0].grad is None:
+            raise RuntimeError("run a forward and a backward pass before reading Grad-CAM")
+        a = torch.cat([t.detach() for t in self.acts]).float()[:, self.prefix:]
+        g = torch.cat([t.grad for t in self.acts]).float()[:, self.prefix:]
+        h, w = self.grid
+        a = a.reshape(a.shape[0], h, w, -1)
+        g = g.reshape(g.shape[0], h, w, -1)
+        cam = torch.relu((g.mean(dim=(1, 2), keepdim=True) * a).sum(dim=-1))
+        cam = cam / (cam.amax(dim=(1, 2), keepdim=True) + 1e-8)
+        return cam.cpu().numpy()
+
+    def close(self) -> None:
+        self._handle.remove()
+
+
+def explain_clip(model, item: dict, device, ig_steps: int = 64) -> dict:
+    """Everything needed to show how the fine-tuned model reached one prediction.
+
+    item is one FineTuneClipDataset item. Returns the prediction, the per-frame
+    reliability and pooling weights, a Grad-CAM map per frame, and two
+    integrated-gradients decompositions of the predicted-class logit: over the
+    fused vector (deep branch vs landmark branch, baseline all-zero), and over
+    the named landmark clip features (baseline the training-set mean clip).
+    """
+    from .fusion import StandardScaler
+
+    model.eval()
+    enc = model.vit_encoder
+    frames = item["frames"][None].to(device).requires_grad_(True)
+    mrs = item["mrs"][None].to(device)
+    comps = item["mrs_components"][None].to(device)
+    land = item["landmark_features"][None].to(device)
+
+    was_frozen = enc.frozen
+    enc.frozen = False                  # the encoder only builds a graph when not frozen
+    cam = ViTGradCAM(enc.backbone)
+    try:
+        # Full precision, like the final evaluation in run_finetune.py, so the
+        # prediction explained here is the one that was reported.
+        with torch.enable_grad():
+            feats = enc(frames)
+            logits, mid = model(feats, mrs, land, return_intermediates=True,
+                                mrs_components=comps)
+        logits = logits.float()
+        pred = int(logits.argmax(-1)[0])
+        logits[0, pred].backward()
+        cams = cam.maps()
+    finally:
+        cam.close()
+        enc.frozen = was_frozen
+        model.zero_grad(set_to_none=True)
+
+    probs = torch.softmax(logits.detach(), -1)[0].cpu().numpy()
+    r = mid["mrs_used"][0].detach().float().cpu().numpy()
+    pooling = model.temporal.pooling
+    if pooling == "mrs_weighted":
+        pool_w = r / (r.sum() + 1e-6)
+    elif pooling == "mean":
+        pool_w = np.full_like(r, 1.0 / len(r))
+    else:
+        pool_w = None                   # "last" / "attention": not a fixed per-frame weight
+
+    fused = mid["fused"].detach().float()[0]
+    deep = mid["deep_projected"].detach().float()
+    deep_dim = deep.shape[-1]
+
+    def head(z):
+        return model.classifier(z)[:, pred]
+
+    fused_attr, fused_err = integrated_gradients(head, fused, torch.zeros_like(fused), ig_steps)
+    with torch.no_grad():
+        zero_logit = float(head(torch.zeros_like(fused)[None])[0])
+
+    landmark = None
+    if model.landmark_branch is not None:
+        norm = model.landmark_branch.norm
+        x = land[0].float()
+        base = norm.mean.float() if isinstance(norm, StandardScaler) else torch.zeros_like(x)
+
+        def via_landmarks(v):
+            return model.classifier(model.fusion(deep.expand(v.shape[0], -1),
+                                                 model.landmark_branch(v)))[:, pred]
+
+        attr, err = integrated_gradients(via_landmarks, x, base, ig_steps)
+        names = (list(CLIP_FEATURE_NAMES) if len(CLIP_FEATURE_NAMES) == x.shape[0]
+                 else [f"feature_{i}" for i in range(x.shape[0])])
+        groups = {g: cols for g, cols in build_group_index(0, tuple(names)).items()
+                  if g != "deep_temporal"}
+        attr_np = attr.cpu().numpy()
+        landmark = {
+            "names": names,
+            "attribution": attr_np,
+            "value": x.cpu().numpy(),
+            "train_mean": base.cpu().numpy(),
+            "group_attribution": {g: float(attr_np[c].sum()) for g, c in groups.items()},
+            "completeness_error": err,
+        }
+
+    return {
+        "pred": pred,
+        "true": int(item["label"]),
+        "probs": probs,
+        "logits": logits.detach()[0].cpu().numpy(),
+        "mrs": r,
+        "mrs_components": item["mrs_components"].float().cpu().numpy(),
+        "pool_weights": pool_w,
+        "pooling": pooling,
+        "gradcam": cams,
+        "logit_decomposition": {
+            "zero_input_logit": zero_logit,
+            "deep_branch": float(fused_attr[:deep_dim].sum()),
+            "landmark_branch": float(fused_attr[deep_dim:].sum()),
+            "predicted_logit": float(logits.detach()[0, pred]),
+            "completeness_error": fused_err,
+        },
+        "landmark_attribution": landmark,
+    }
