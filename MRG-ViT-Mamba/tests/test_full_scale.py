@@ -170,6 +170,13 @@ def test_extend_only_when_still_rising():
     assert not should_extend([0.3] * 5, window=5, min_delta=0.005)
 
 
+def test_periodic_snapshot_names():
+    from src.finetune import periodic_checkpoint_name
+    saved = [periodic_checkpoint_name(e, 10) for e in range(64)]
+    assert [s for s in saved if s] == [f"after_epoch_{n:03d}.pt" for n in (10, 20, 30, 40, 50, 60)]
+    assert periodic_checkpoint_name(9, 0) is None
+
+
 def test_two_cycle_schedule():
     from src.finetune import make_lr_lambda
     lam = make_lr_lambda(epochs=64, warmup=3, scheduler="cosine",

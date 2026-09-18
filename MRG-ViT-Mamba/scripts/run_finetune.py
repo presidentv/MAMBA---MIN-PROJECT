@@ -109,6 +109,9 @@ def main() -> int:
                     help="score the existing best.pt instead of training again")
     ap.add_argument("--resume", action="store_true",
                     help="continue an interrupted run from checkpoints/<run>/last.pt")
+    ap.add_argument("--resume-from", default=None, metavar="CKPT",
+                    help="continue from a chosen snapshot instead of last.pt, e.g. "
+                         "checkpoints/<run>/after_epoch_020.pt")
     ap.add_argument("--workers", type=int, default=None,
                     help="DataLoader worker processes (overrides training.num_workers)")
     ap.add_argument("--allow-uncalibrated", action="store_true",
@@ -157,7 +160,7 @@ def main() -> int:
     else:
         result = finetune_model(cfg, index, run_name=args.run_name, logger=logger,
                                 overrides=overrides, resume=args.resume,
-                                num_workers=args.workers)
+                                num_workers=args.workers, resume_from=args.resume_from)
     logger.info("best epoch %d  val macro-F1 %.4f",
                 result.best_epoch, result.best_val_macro_f1)
 

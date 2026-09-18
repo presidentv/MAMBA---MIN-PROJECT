@@ -186,10 +186,15 @@ training:
   # the decision point above replaces it. best.pt is always the epoch with the
   # highest validation macro-F1, whichever way the decision goes.
   early_stopping_patience: 64
-  # FULL: keep only best.pt (333 MB) and last.pt (~1 GB, for --resume) instead
-  # of 64 x 333 MB = ~21 GB. Every epoch's metrics are still in
-  # logs/training_history_<run>.csv. Set true if per-epoch weights are needed.
+  # FULL: keep best.pt (333 MB), last.pt (~1 GB, rewritten every epoch; what
+  # --resume continues from) and a snapshot every save_every_n_epochs --
+  # after_epoch_010.pt, _020, _030, ... Each snapshot carries the full resume
+  # state (~1 GB each: ~3 GB if the run stops at 30, ~6 GB at 64), so training
+  # can be restarted from it with --resume-from. Every epoch's metrics are
+  # still in logs/training_history_<run>.csv. save_every_epoch: true instead
+  # saves weights-only epoch_NNN.pt after every epoch (~21 GB).
   save_every_epoch: false
+  save_every_n_epochs: 10
   model_selection_metric: "val_macro_f1"  # never test performance (spec section 29)
   # FULL: each step decodes batch_size x 32 JPEG crops, ~170k per epoch. Worker
   # processes keep the GPU fed. 4 suits a 16 GB RAM machine (the train and val

@@ -1016,8 +1016,9 @@ Disk, per component:
 |---|---|
 | DAiSEE release (video) | ~13.5 GB (*estimate*: 1.49 MB/clip × 9,068, from the 216-clip subset) |
 | Stage 1 cache at T = 32 | ~4.3 GB (0.49 MB/clip measured × 9,068) |
-| One fine-tuned checkpoint | 333 MB; the config keeps only `best.pt` + `last.pt` (`save_every_epoch: true` stores all 64 = ~21 GB) |
+| One fine-tuned checkpoint (`best.pt`) | 333 MB (`save_every_epoch: true` stores all 64 = ~21 GB) |
 | `last.pt` (resume state incl. optimiser) | ~1 GB, overwritten each epoch |
+| `after_epoch_010.pt`, `_020`, … (every `save_every_n_epochs: 10`) | ~1 GB each (weights + full resume state, like `last.pt`): ~3 GB if the run stops at 30, ~6 GB at 64 |
 
 Time, *estimates* scaled from the development machine:
 
@@ -1104,6 +1105,26 @@ python scripts/make_finetune_figures.py --run full_ft32 --baseline=
 
 (`--baseline=` rather than `--baseline ""`: Windows PowerShell 5.1 drops an empty-string
 argument, leaving `--baseline` with no value.)
+
+**If training stops** (crash, power cut, reboot, Ctrl+C), run the same command again.
+`--resume` continues from `checkpoints/full_ft32/last.pt`, which is rewritten after
+**every** epoch, so at most the epoch in progress is lost. The optimiser, learning-rate
+schedule, AMP scaler, random-number state, early-stopping counters and the epoch-30
+decision all carry over, and the learning-rate curve is identical to an uninterrupted
+run.
+
+Every 10 epochs a snapshot is also kept: `after_epoch_010.pt`, `after_epoch_020.pt`, …
+Each holds the same full resume state as `last.pt`, plus everything needed to load it
+for evaluation. To go back to one, for example if `last.pt` is lost or you want to
+retrain from an earlier point:
+
+```powershell
+python scripts/run_finetune.py --config configs/config_full.yaml --run-name full_ft32 --workers 4 --resume-from checkpoints/full_ft32/after_epoch_020.pt
+```
+
+Training continues from epoch 21 and the history CSV is rolled back to match. A
+`best.pt` written after the snapshot belongs to the abandoned continuation, so it is
+renamed `best_abandoned_epoch_NNN.pt` and best-model selection restarts from the snapshot.
 
 ### Reading the results
 

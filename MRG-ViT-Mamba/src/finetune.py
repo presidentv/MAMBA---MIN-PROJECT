@@ -238,6 +238,17 @@ _RESUME_MUST_MATCH = (
 )
 
 
+def periodic_checkpoint_name(epoch: int, every: int) -> str | None:
+    """File name for the periodic checkpoint after 0-based `epoch`, or None.
+
+    Named by the number of epochs completed, so after_epoch_010.pt is the
+    model after 10 epochs -- row epoch=9 of the 0-based history CSV.
+    """
+    if every <= 0 or (epoch + 1) % every != 0:
+        return None
+    return f"after_epoch_{epoch + 1:03d}.pt"
+
+
 def should_extend(val_macro_f1s: list[float], window: int, min_delta: float) -> bool:
     """Is validation macro-F1 still rising at the end of the first cycle?
 
@@ -282,7 +293,8 @@ def make_lr_lambda(epochs: int, warmup: int, scheduler: str,
 
 def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
                    overrides: dict | None = None, resume: bool = False,
-                   num_workers: int | None = None) -> FineTuneResult:
+                   num_workers: int | None = None,
+                   resume_from: str | None = None) -> FineTuneResult:
     device_str = "cuda" if torch.cuda.is_available() else "cpu"
     device = torch.device(device_str)
     tcfg = dict(cfg["training"])
@@ -414,19 +426,33 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
     history: list[dict] = []
     num_classes = int(cfg["dataset"]["num_classes"])
     save_every_epoch = bool(tcfg.get("save_every_epoch", True))
+    # A full model checkpoint every N epochs, alongside best.pt and last.pt.
+    # save_every_epoch keeps its original meaning and takes precedence.
+    save_every_n = 1 if save_every_epoch else int(tcfg.get("save_every_n_epochs", 0) or 0)
     start_epoch = 0
     resumed_from = None
     last_path = ckpt_dir / "last.pt"
 
-    if resume and last_path.is_file():
-        state = torch.load(last_path, map_location=device, weights_only=False)
+    # --resume continues from last.pt (the latest epoch). --resume-from continues
+    # from a chosen snapshot, e.g. checkpoints/<run>/after_epoch_020.pt.
+    resume_path = Path(resume_from) if resume_from else last_path
+    if resume_from and not resume_path.is_file():
+        raise FileNotFoundError(f"--resume-from {resume_path}: no such checkpoint")
+
+    if (resume or resume_from) and resume_path.is_file():
+        state = torch.load(resume_path, map_location=device, weights_only=False)
+        if "optimiser_state" not in state:
+            raise RuntimeError(
+                f"{resume_path} holds model weights only (no optimiser/scheduler state), "
+                f"so training cannot continue from it. Use last.pt or an "
+                f"after_epoch_*.pt snapshot.")
         saved = state["config"]
         for section, key in _RESUME_MUST_MATCH:
             a = saved.get(section, {}).get(key)
             b = cfg[section].get(key) if section in cfg else None
             if a != b:
                 raise RuntimeError(
-                    f"cannot resume {last_path}: {section}.{key} was {a!r} in the "
+                    f"cannot resume {resume_path}: {section}.{key} was {a!r} in the "
                     f"interrupted run but is {b!r} now")
         model.load_state_dict(state["model_state"])
         optimiser.load_state_dict(state["optimiser_state"])
@@ -440,9 +466,28 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
         _restore_rng(state["rng"])
         start_epoch = int(state["epoch"]) + 1
         resumed_from = int(state["epoch"])
+        del state
+        # Rolling back to an earlier snapshot: a best.pt written after that
+        # snapshot belongs to the abandoned continuation, and keeping it would
+        # let the report quote a model the resumed run never produced. Move it
+        # aside and restart selection from the snapshot onward.
+        best_path = ckpt_dir / "best.pt"
+        if resume_from and best_path.is_file():
+            best_on_disk = int(torch.load(best_path, map_location="cpu",
+                                          weights_only=False)["epoch"])
+            if best_on_disk > resumed_from:
+                aside = ckpt_dir / f"best_abandoned_epoch_{best_on_disk:03d}.pt"
+                os.replace(best_path, aside)
+                best = {"macro_f1": -1.0, "epoch": -1}
+                since_improved = 0
+                if logger:
+                    logger.warning(
+                        "best.pt (epoch %d) is later than the snapshot (epoch %d); moved "
+                        "to %s and restarted best-model selection from the snapshot",
+                        best_on_disk, resumed_from, aside.name)
         if logger:
             logger.info("resumed from %s: epoch %d done, best so far epoch %d "
-                        "(val macro-F1 %.4f)", last_path, resumed_from,
+                        "(val macro-F1 %.4f)", resume_path, resumed_from,
                         best["epoch"], best["macro_f1"])
     elif resume and logger:
         logger.info("--resume given but %s does not exist; starting from epoch 0", last_path)
@@ -539,7 +584,7 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
                     else "peaked earlier, stopping here")
 
         # Everything needed to continue from the next epoch as if uninterrupted.
-        _atomic_torch_save({
+        resume_state = {
             "epoch": epoch,
             "model_state": model.state_dict(),
             "optimiser_state": optimiser.state_dict(),
@@ -548,10 +593,20 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
             "best": best,
             "since_improved": since_improved,
             "extend_decision": extend_decision,
-            "history": history,
+            "history": list(history),
             "rng": _rng_state(),
             "config": dict(cfg),
-        }, last_path)
+        }
+        _atomic_torch_save(resume_state, last_path)
+
+        # Periodic snapshot: resumable with --resume-from (it carries the same
+        # state as last.pt) and loadable for evaluation like best.pt.
+        periodic = periodic_checkpoint_name(epoch, 0 if save_every_epoch else save_every_n)
+        if periodic is not None:
+            _atomic_torch_save({**checkpoint_payload(epoch, m_va), **resume_state},
+                               ckpt_dir / periodic)
+            if logger:
+                logger.info("saved snapshot %s", ckpt_dir / periodic)
 
         if since_improved >= patience:
             if logger:
@@ -574,6 +629,7 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
         "resumed_from_epoch": resumed_from,
         "num_workers": workers,
         "save_every_epoch": save_every_epoch,
+        "save_every_n_epochs": save_every_n,
         "num_frames": train_ds.num_frames,
         "batch_size": batch_size,
         "grad_accum_steps": accum_steps,
