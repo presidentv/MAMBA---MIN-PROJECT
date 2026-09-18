@@ -14,7 +14,7 @@ Written to artifacts/report_<run>/:
     ft6_confusion_normalised_test.png  per-class recall breakdown
     ft7_roc_pr_test.png                one-vs-rest ROC and precision-recall
     ft8_confidence_test.png            confidence when right vs wrong, calibration
-    ft9_learning_rate_schedule.png     LR per epoch, selected epoch, epoch-30 decision
+    ft9_learning_rate_schedule.png     LR per epoch, selected epoch, continue-or-stop decision
     ft4/ft5 only with --baseline       comparison against a frozen-backbone run
 
 Run:  python scripts/make_finetune_figures.py --run ft32 --baseline mini64
@@ -220,7 +220,7 @@ def fig_confidence(predictions, split, out):
 
 
 def fig_lr_schedule(rows, best_epoch, decision, out):
-    """Learning rates per epoch, with the selected epoch and the epoch-30 decision."""
+    """Learning rates per epoch, with the selected epoch and the continue-or-stop decision."""
     ep = [int(r["epoch"]) for r in rows]
     fig, ax = plt.subplots(figsize=(8.4, 3.6))
     ax.plot(ep, [float(r["head_lr"]) for r in rows], color=DEEP, lw=1.8,
@@ -235,6 +235,9 @@ def fig_lr_schedule(rows, best_epoch, decision, out):
     if decision:
         d = int(decision["after_epochs"]) - 1
         verdict = ("continued" if decision["extend"] else "stopped")
+        how = decision.get("answer")
+        if how and how != "rule":
+            verdict += f" (asked: {how})"
         ax.axvline(d, color=MRSC, lw=1.4)
         ax.annotate(f"decision after {d + 1} epochs: {verdict}\n"
                     f"best last {decision['window']} = {decision['best_last_window']:.3f} vs "

@@ -1016,9 +1016,9 @@ Disk, per component:
 |---|---|
 | DAiSEE release (video) | ~13.5 GB (*estimate*: 1.49 MB/clip × 9,068, from the 216-clip subset) |
 | Stage 1 cache at T = 32 | ~4.3 GB (0.49 MB/clip measured × 9,068) |
-| One fine-tuned checkpoint (`best.pt`) | 333 MB (`save_every_epoch: true` stores all 64 = ~21 GB) |
+| One fine-tuned checkpoint (`best.pt`) | 333 MB (`save_every_epoch: true` stores every epoch: ~13 GB at 40) |
 | `last.pt` (resume state incl. optimiser) | ~1 GB, overwritten each epoch |
-| `after_epoch_010.pt`, `_020`, … (every `save_every_n_epochs: 10`) | ~1 GB each (weights + full resume state, like `last.pt`): ~3 GB if the run stops at 30, ~6 GB at 64 |
+| `after_epoch_010.pt`, `_020`, … (every `save_every_n_epochs: 10`) | ~1 GB each (weights + full resume state, like `last.pt`): ~2 GB if the run stops at 20, ~4 GB at 40 |
 
 Time, *estimates* scaled from the development machine:
 
@@ -1028,20 +1028,40 @@ Time, *estimates* scaled from the development machine:
 | Fine-tuning epoch | 62 s for 120 train + 80 val clips | ~35–40 min per epoch on the same GPU; several times faster on a data-centre GPU |
 
 *Estimate* for an **RTX 4060 (8 GB) desktop with 16 GB RAM**, assuming it is ~1.2–1.4×
-the development GPU: ~30–33 min training + ~2 min validation per epoch, so **~33–37 h
-for all 64 epochs** (~17 h if the run stops at the epoch-30 decision point), plus ~20–30 min of sharded Stage 1 and a few minutes of final
-evaluation.
+the development GPU: ~30–33 min training + ~2 min validation per epoch, so **~11–12 h
+if the run stops at the epoch-20 decision point, ~22–24 h if it continues to 40**, plus
+~20–30 min of sharded Stage 1 and a few minutes of final evaluation.
 
-**Epoch budget: 30, extended to 64 only if still improving.** The first 30 epochs are
-one complete cosine cycle, so a run that stops there has a fully annealed model (~17 h
-on an RTX 4060). After epoch 30 the run continues to 64 (~35 h total) only if the best
-validation macro-F1 in epochs 26–30 beats the best of epochs 1–25 by at least 0.005;
-the continuation is a second cosine cycle restarting at half the peak learning rate.
-The decision is logged, stored in `last.pt` (so `--resume` respects it) and written to
+**Epoch budget: 20, extended to 40 only if still improving, and only if you agree.** On
+the development subsets the best epoch was 2 (fine-tuned) and validation loss rose from
+about epoch 4 (frozen). A full-release epoch is ~11× more optimiser steps, so the peak
+is expected around epochs 5–15. The first 20 epochs are one complete cosine cycle, so a
+run that stops there has a fully annealed model. After epoch 20 the rule says continue
+only if the best validation macro-F1 in epochs 16–20 beats the best of epochs 1–15 by at
+least 0.005; the continuation is a second cosine cycle restarting at half the peak
+learning rate.
+
+When the rule says continue, the run **asks on the terminal first**, rings the terminal
+bell and shows both scores and the current best epoch:
+
+```
+Validation macro-F1 is still rising after 20 epochs: best of the last 5 = 0.4520, best before = 0.4410.
+Continuing trains 20 more epochs, to 40. best.pt so far is epoch 18 (val macro-F1 0.4520) and is kept either way. If there is no answer in 60 min: yes.
+Continue? [y/n]:
+```
+
+Type `y` or `n` in the tmux window (`tmux attach -t train`). With no answer within
+`extend_confirm_timeout_minutes` (60), or when no terminal is attached (e.g. `nohup`),
+the rule's "continue" stands, so an unattended run still finishes; set the timeout to
+`null` to wait indefinitely. The question is asked only after the epoch is saved, so
+Ctrl+C at the prompt loses nothing, and `--resume` asks it again. A "stop" is never
+asked about. The decision, and how it was made (`yes`, `no`, `no answer (timeout)`,
+`not asked (no terminal)`), is logged, stored in `last.pt` and written to
 `finetune_report_<run>.json` as `extend_decision`. `best.pt` is always the epoch with
 the highest validation macro-F1. Settings: `training.extend_decision_epoch`,
-`extend_window`, `extend_min_delta`, `restart_lr_factor`; set `extend_decision_epoch:
-null` for a single cosine over all epochs.
+`extend_window`, `extend_min_delta`, `restart_lr_factor`, `extend_confirm`,
+`extend_confirm_timeout_minutes`; set `extend_decision_epoch: null` for a single cosine
+over all epochs.
 
 ### What changed for full scale, and why
 
@@ -1109,7 +1129,7 @@ argument, leaving `--baseline` with no value.)
 **If training stops** (crash, power cut, reboot, Ctrl+C), run the same command again.
 `--resume` continues from `checkpoints/full_ft32/last.pt`, which is rewritten after
 **every** epoch, so at most the epoch in progress is lost. The optimiser, learning-rate
-schedule, AMP scaler, random-number state, early-stopping counters and the epoch-30
+schedule, AMP scaler, random-number state, early-stopping counters and the epoch-20
 decision all carry over, and the learning-rate curve is identical to an uninterrupted
 run.
 
@@ -1137,7 +1157,7 @@ training curves (`ft1`), learned MRS weights per epoch (`ft2`), per-class
 precision/recall/F1 (`ft3`), the row-normalised test confusion matrix (`ft6`),
 one-vs-rest ROC and precision-recall curves (`ft7`), confidence when right vs wrong
 with a calibration curve (`ft8`), and the learning-rate schedule with the selected epoch
-and the epoch-30 decision (`ft9`). The unnormalised confusion matrices and
+and the epoch-20 decision (`ft9`). The unnormalised confusion matrices and
 classification reports are in `artifacts/` as before.
 
 **Worked examples** (`scripts/explain_finetuned.py` → `artifacts/examples_full_ft32/`):

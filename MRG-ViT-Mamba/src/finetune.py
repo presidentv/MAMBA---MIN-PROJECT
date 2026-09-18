@@ -26,6 +26,7 @@ from __future__ import annotations
 import csv
 import os
 import random
+import sys
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -265,6 +266,49 @@ def should_extend(val_macro_f1s: list[float], window: int, min_delta: float) -> 
     return recent >= earlier + min_delta
 
 
+def ask_to_continue(question: str, timeout_s: float | None, default: bool,
+                    stream=None, out=None) -> tuple[bool, str]:
+    """Ask a yes/no question on the terminal; returns (answer, how it was decided).
+
+    With no terminal attached (nohup, a service, stdin redirected) it does not
+    ask and returns `default`. Otherwise it waits up to `timeout_s` seconds
+    (None = indefinitely) and returns `default` if nothing is typed, so an
+    unattended run is never left holding an idle GPU. Invalid input re-asks.
+    Reading happens on a daemon thread, which works on Linux and Windows alike.
+    """
+    import threading
+
+    stream = sys.stdin if stream is None else stream
+    out = sys.stdout if out is None else out
+    try:
+        interactive = bool(stream.isatty())
+    except (AttributeError, ValueError):
+        interactive = False
+    if not interactive:
+        return default, "not asked (no terminal)"
+
+    deadline = None if timeout_s is None else time.monotonic() + timeout_s
+    fallback = "yes" if default else "no"
+    wait = ("" if timeout_s is None else
+            f" If there is no answer in {timeout_s / 60:.0f} min: {fallback}.")
+    prompt = f"\a\n{question}{wait}\nContinue? [y/n]: "
+    while True:
+        print(prompt, end="", flush=True, file=out)
+        line: list[str] = []
+        reader = threading.Thread(target=lambda: line.append(stream.readline()), daemon=True)
+        reader.start()
+        reader.join(None if deadline is None else max(0.0, deadline - time.monotonic()))
+        if not line or line[0] == "":          # timed out, or end of input
+            print(f"\nno answer - {fallback}", flush=True, file=out)
+            return default, "no answer (timeout)"
+        reply = line[0].strip().lower()
+        if reply in ("y", "yes"):
+            return True, "yes"
+        if reply in ("n", "no"):
+            return False, "no"
+        prompt = "Please type y or n: "
+
+
 def make_lr_lambda(epochs: int, warmup: int, scheduler: str,
                    decision_epoch: int | None, restart_factor: float):
     """Per-epoch LR multiplier.
@@ -387,6 +431,26 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
         decision_epoch = None
     extend_window = int(tcfg.get("extend_window", 5))
     extend_min_delta = float(tcfg.get("extend_min_delta", 0.005))
+    # When the rule says "continue", ask first. No answer within the timeout
+    # (or no terminal) follows the rule, so an unattended run still finishes.
+    extend_confirm = bool(tcfg.get("extend_confirm", False))
+    confirm_timeout = tcfg.get("extend_confirm_timeout_minutes", 60)
+    confirm_timeout_s = None if confirm_timeout is None else float(confirm_timeout) * 60.0
+
+    def confirm_extension(decision: dict) -> dict:
+        """Put the rule's "continue" to the user; returns the updated decision."""
+        question = (
+            f"Validation macro-F1 is still rising after {decision['after_epochs']} epochs: "
+            f"best of the last {decision['window']} = {decision['best_last_window']:.4f}, "
+            f"best before = {decision['best_before_window']:.4f}.\n"
+            f"Continuing trains {epochs - decision['after_epochs']} more epochs, to "
+            f"{epochs}. best.pt so far is epoch {best['epoch']} "
+            f"(val macro-F1 {best['macro_f1']:.4f}) and is kept either way.")
+        answer, how = ask_to_continue(question, confirm_timeout_s, default=True)
+        if logger:
+            logger.info("continue past epoch %d? %s -> %s", decision["after_epochs"], how,
+                        f"continuing to {epochs} epochs" if answer else "stopping here")
+        return {**decision, "extend": answer, "confirmed": True, "answer": how}
     restart_factor = float(tcfg.get("restart_lr_factor", 0.5))
     extend_decision: dict | None = None
 
@@ -503,6 +567,10 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
 
     if start_epoch > 0 and since_improved >= patience:
         start_epoch = epochs          # the interrupted run had already early-stopped
+    # Interrupted while the question was on screen: ask again rather than
+    # carrying on as if it had been answered.
+    if extend_decision is not None and not extend_decision.get("confirmed", True):
+        extend_decision = confirm_extension(extend_decision)
     if extend_decision is not None and not extend_decision["extend"]:
         start_epoch = epochs          # the run had already stopped at the decision point
 
@@ -573,6 +641,10 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
                 "best_before_window": round(max(f1s[:-extend_window]), 6),
                 "window": extend_window,
                 "min_delta": extend_min_delta,
+                # A "continue" still has to be put to the user (below, once
+                # this epoch is safely on disk); a "stop" needs no question.
+                "confirmed": not (extend and extend_confirm),
+                "answer": "rule",
             }
             if logger:
                 logger.info(
@@ -580,7 +652,8 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
                     "vs %.4f before -> %s", decision_epoch, extend_window,
                     extend_decision["best_last_window"],
                     extend_decision["best_before_window"],
-                    f"still rising, continuing to {epochs} epochs" if extend
+                    ("still rising, asking whether to continue" if extend_confirm
+                     else f"still rising, continuing to {epochs} epochs") if extend
                     else "peaked earlier, stopping here")
 
         # Everything needed to continue from the next epoch as if uninterrupted.
@@ -607,6 +680,17 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
                                ckpt_dir / periodic)
             if logger:
                 logger.info("saved snapshot %s", ckpt_dir / periodic)
+
+        # Asked only now, with the epoch already saved: the question may wait
+        # for a long time, and Ctrl+C at the prompt must not lose the epoch.
+        # The answer is then written into last.pt (and this epoch's snapshot).
+        if extend_decision is not None and not extend_decision.get("confirmed", True):
+            extend_decision = confirm_extension(extend_decision)
+            resume_state["extend_decision"] = extend_decision
+            _atomic_torch_save(resume_state, last_path)
+            if periodic is not None:
+                _atomic_torch_save({**checkpoint_payload(epoch, m_va), **resume_state},
+                                   ckpt_dir / periodic)
 
         if since_improved >= patience:
             if logger:

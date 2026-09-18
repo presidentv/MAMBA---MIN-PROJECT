@@ -170,6 +170,46 @@ def test_extend_only_when_still_rising():
     assert not should_extend([0.3] * 5, window=5, min_delta=0.005)
 
 
+class _Terminal:
+    """A stdin stand-in: replays typed lines, or blocks like an unattended one."""
+
+    def __init__(self, lines=None, tty=True):
+        self.lines, self.tty = list(lines or []), tty
+
+    def isatty(self):
+        return self.tty
+
+    def readline(self):
+        if self.lines is None:
+            import threading
+            threading.Event().wait(5)          # nobody at the keyboard
+            return ""
+        return self.lines.pop(0) if self.lines else ""
+
+
+@pytest.mark.parametrize("typed, expected", [
+    (["y\n"], (True, "yes")), (["NO\n"], (False, "no")),
+    (["maybe\n", "\n", "yes\n"], (True, "yes")),        # re-asks until y or n
+    ([], (True, "no answer (timeout)")),                # end of input -> default
+])
+def test_ask_to_continue_answers(typed, expected, capsys):
+    from src.finetune import ask_to_continue
+    assert ask_to_continue("still rising", 5, True, stream=_Terminal(typed)) == expected
+    assert "Continue? [y/n]" in capsys.readouterr().out
+
+
+def test_ask_to_continue_times_out_and_skips_without_terminal():
+    import time
+    from src.finetune import ask_to_continue
+    t0 = time.monotonic()
+    t = _Terminal()
+    t.lines = None
+    assert ask_to_continue("q", 0.3, True, stream=t) == (True, "no answer (timeout)")
+    assert time.monotonic() - t0 < 3
+    assert ask_to_continue("q", 60, False, stream=_Terminal(tty=False)) == \
+        (False, "not asked (no terminal)")
+
+
 def test_periodic_snapshot_names():
     from src.finetune import periodic_checkpoint_name
     saved = [periodic_checkpoint_name(e, 10) for e in range(64)]

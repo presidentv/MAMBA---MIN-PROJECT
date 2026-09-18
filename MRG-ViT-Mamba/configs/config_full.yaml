@@ -152,7 +152,7 @@ training:
   # raise batch_size and lower grad_accum_steps so their product stays 32.
   batch_size: 4                   # 4 clips x 32 frames = 128 crops per forward
   grad_accum_steps: 8             # FULL: effective batch 4 x 8 = 32
-  epochs: 64
+  epochs: 40                      # the maximum; see extend_decision_epoch below
   # FULL: the development runs used an effective batch of 8. Going to 32 gives
   # 4x fewer optimiser steps per epoch, so every learning rate is scaled by
   # sqrt(32 / 8) = 2 -- the usual rule for Adam-family optimisers, and the more
@@ -171,25 +171,34 @@ training:
   # al., CVPR 2019) still up-weights the rare classes, by ~28x rather than ~77x.
   class_weighting: "effective_number"   # none | inverse_frequency | effective_number
   label_smoothing: 0.05
-  # FULL: train 30 epochs, then decide. The first 30 epochs are one complete
-  # cosine cycle, so stopping there leaves a fully annealed model (~17 h on an
-  # RTX 4060). Training continues to `epochs` (64, ~35 h total) only if the best
-  # val macro-F1 in epochs 26-30 beats the best of epochs 1-25 by at least
+  # FULL: train 20 epochs, then decide. On the development subsets the best
+  # epoch was 2 (fine-tuned) and validation loss rose from about epoch 4
+  # (frozen); a full-release epoch is ~11x more optimiser steps, so the peak is
+  # expected around epochs 5-15. The first 20 epochs are one complete cosine
+  # cycle, so stopping there leaves a fully annealed model (~11-12 h on an
+  # RTX 4060). Training continues to `epochs` (40, ~22-24 h total) only if the
+  # best val macro-F1 in epochs 16-20 beats the best of epochs 1-15 by at least
   # extend_min_delta -- i.e. it is still rising, not peaked or flat. The
   # continuation is a second cosine cycle restarting at restart_lr_factor x
   # the peak LR. Set extend_decision_epoch to null for one cycle over all epochs.
-  extend_decision_epoch: 30
+  extend_decision_epoch: 20
   extend_window: 5
   extend_min_delta: 0.005
   restart_lr_factor: 0.5
+  # When the rule says "continue", ask on the terminal first (y/n). With no
+  # answer within the timeout, or no terminal attached, the rule's "continue"
+  # stands, so an unattended run still finishes. null = wait indefinitely.
+  # An interrupted run asks again on --resume. A "stop" is never asked about.
+  extend_confirm: true
+  extend_confirm_timeout_minutes: 60
   # FULL: no early stopping within the cycles (patience == epochs disables it);
   # the decision point above replaces it. best.pt is always the epoch with the
   # highest validation macro-F1, whichever way the decision goes.
-  early_stopping_patience: 64
+  early_stopping_patience: 40
   # FULL: keep best.pt (333 MB), last.pt (~1 GB, rewritten every epoch; what
   # --resume continues from) and a snapshot every save_every_n_epochs --
   # after_epoch_010.pt, _020, _030, ... Each snapshot carries the full resume
-  # state (~1 GB each: ~3 GB if the run stops at 30, ~6 GB at 64), so training
+  # state (~1 GB each: ~2 GB if the run stops at 20, ~4 GB at 40), so training
   # can be restarted from it with --resume-from. Every epoch's metrics are
   # still in logs/training_history_<run>.csv. save_every_epoch: true instead
   # saves weights-only epoch_NNN.pt after every epoch (~21 GB).
