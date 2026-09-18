@@ -9,7 +9,7 @@
 # Paths can be overridden without editing this file:
 #   DAISEE_ROOT=/data/DAiSEE          -> paths.dataset_root
 #   MRG_CACHE_DIR=/scratch/mrg_cache  -> paths.cache_dir      (~4.3 GB at T=32)
-#   MRG_CHECKPOINT_DIR=/scratch/ckpt  -> paths.checkpoints_dir (333 MB per epoch kept)
+#   MRG_CHECKPOINT_DIR=/scratch/ckpt  -> paths.checkpoints_dir (~1.4 GB: best.pt + last.pt)
 #
 # Every value here is a *starting point* recorded so runs are reproducible.
 # None of these numbers are claimed to be optimal. Anything the code discovers
@@ -112,7 +112,8 @@ vit:
   grad_checkpointing: true
   unfreeze_blocks: null           # null = every block; an int = last N only
   # A pretrained backbone must not be driven at the head's learning rate.
-  finetune_lr: 0.00001
+  # FULL: 2x the development value, matching the batch-size scaling in training.
+  finetune_lr: 0.00002
 
 mamba:
   # Vendored pure-PyTorch reference implementation of the official
@@ -144,11 +145,20 @@ classifier:
   dropout: 0.3
 
 training:
+  # FULL (RTX 4060, 8 GB): an effective batch of 32 clips is 1,024 crops, ~13 GB
+  # even with gradient checkpointing, so it is reached by accumulation instead.
+  # 4 clips x 32 frames = 128 crops per forward peaks at ~2.7 GB, which leaves
+  # headroom on an 8 GB card that is also driving a display. On a 16 GB+ card,
+  # raise batch_size and lower grad_accum_steps so their product stays 32.
   batch_size: 4                   # 4 clips x 32 frames = 128 crops per forward
-  grad_accum_steps: 2             # effective batch 8, matching the frozen run
+  grad_accum_steps: 8             # FULL: effective batch 4 x 8 = 32
   epochs: 64
-  learning_rate: 0.0003
-  mrs_weight_lr: 0.02        # separate LR for the 5 MRS weights
+  # FULL: the development runs used an effective batch of 8. Going to 32 gives
+  # 4x fewer optimiser steps per epoch, so every learning rate is scaled by
+  # sqrt(32 / 8) = 2 -- the usual rule for Adam-family optimisers, and the more
+  # conservative of the two standard choices (linear scaling would be 4x).
+  learning_rate: 0.0006           # was 0.0003 at effective batch 8
+  mrs_weight_lr: 0.04             # was 0.02; separate LR for the 5 MRS weights
   weight_decay: 0.01
   optimizer: "adamw"
   scheduler: "cosine"
@@ -161,17 +171,22 @@ training:
   # al., CVPR 2019) still up-weights the rare classes, by ~28x rather than ~77x.
   class_weighting: "effective_number"   # none | inverse_frequency | effective_number
   label_smoothing: 0.05
-  # FULL: on the development subset the best epoch was 2 of 64 and the rest
-  # were memorisation. An epoch here is ~45x longer, so stop after 10 epochs
-  # without a validation macro-F1 improvement. Set to 64 to force every epoch.
-  early_stopping_patience: 10
-  # FULL: every epoch's weights are still stored, as for the earlier runs, at
-  # 333 MB each. Set false to keep only best.pt and last.pt.
-  save_every_epoch: true
+  # FULL: all 64 epochs are run (patience == epochs disables early stopping).
+  # Model selection is unaffected: best.pt is still the epoch with the highest
+  # validation macro-F1. On the development subset the best epoch was 2, so if
+  # time matters, set this to 10 -- that typically ends the run at epoch 12-20
+  # and cuts ~35 h to ~7-12 h on an RTX 4060.
+  early_stopping_patience: 64
+  # FULL: keep only best.pt (333 MB) and last.pt (~1 GB, for --resume) instead
+  # of 64 x 333 MB = ~21 GB. Every epoch's metrics are still in
+  # logs/training_history_<run>.csv. Set true if per-epoch weights are needed.
+  save_every_epoch: false
   model_selection_metric: "val_macro_f1"  # never test performance (spec section 29)
   # FULL: each step decodes batch_size x 32 JPEG crops, ~170k per epoch. Worker
-  # processes keep the GPU fed. Override per machine with --workers N.
-  num_workers: 8
+  # processes keep the GPU fed. 4 suits a 16 GB RAM machine (the train and val
+  # loaders each keep their own persistent workers, so 8 processes exist at
+  # once). Lower to 2-3 if RAM runs short. Override per machine with --workers N.
+  num_workers: 4
 
 evaluation:
   metrics: [accuracy, weighted_f1, macro_f1, per_class_precision, per_class_recall, per_class_f1]

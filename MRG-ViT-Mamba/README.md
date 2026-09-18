@@ -1004,8 +1004,11 @@ Measured on the development machine (RTX 3060 Laptop, 6 GB) unless marked *estim
 GPU memory, from `scripts/probe_finetune_memory.py`: a training step over 128 crops
 (4 clips × 32 frames) peaks at **2.7 GB** with gradient checkpointing; 256 crops peaks
 at 4.2 GB, and **17.5 GB without checkpointing**. Checkpointing is on in the config,
-which is why 6 GB is enough. On a larger card, raise `training.batch_size` and lower
-`grad_accum_steps` so their product stays 8.
+which is why 6 GB is enough. The config trains at an **effective batch of 32**
+(`batch_size: 4` × `grad_accum_steps: 8`): a real batch of 32 clips is 1,024 crops, about
+13 GB even with checkpointing. On a 16 GB+ card, raise `training.batch_size` and lower
+`grad_accum_steps` so their product stays 32. Learning rates are 2× the development
+values (√(32/8) scaling for the 4× larger effective batch).
 
 Disk, per component:
 
@@ -1013,7 +1016,7 @@ Disk, per component:
 |---|---|
 | DAiSEE release (video) | ~13.5 GB (*estimate*: 1.49 MB/clip × 9,068, from the 216-clip subset) |
 | Stage 1 cache at T = 32 | ~4.3 GB (0.49 MB/clip measured × 9,068) |
-| One fine-tuned checkpoint | 333 MB; all 64 epochs = ~21 GB (`save_every_epoch: false` keeps only `best.pt` + `last.pt`) |
+| One fine-tuned checkpoint | 333 MB; the config keeps only `best.pt` + `last.pt` (`save_every_epoch: true` stores all 64 = ~21 GB) |
 | `last.pt` (resume state incl. optimiser) | ~1 GB, overwritten each epoch |
 
 Time, *estimates* scaled from the development machine:
@@ -1023,9 +1026,15 @@ Time, *estimates* scaled from the development machine:
 | Stage 1, one process | 0.62 s/clip | ~95 min; roughly ÷ number of shards |
 | Fine-tuning epoch | 62 s for 120 train + 80 val clips | ~35–40 min per epoch on the same GPU; several times faster on a data-centre GPU |
 
-With `early_stopping_patience: 10` the run stops once validation macro-F1 has not
-improved for 10 epochs. On the development subset the best epoch was 2, so expect far
-fewer than 64 epochs.
+*Estimate* for an **RTX 4060 (8 GB) desktop with 16 GB RAM**, assuming it is ~1.2–1.4×
+the development GPU: ~30–33 min training + ~2 min validation per epoch, so **~33–37 h
+for all 64 epochs**, plus ~20–30 min of sharded Stage 1 and a few minutes of final
+evaluation.
+
+The config runs every one of the 64 epochs (`early_stopping_patience: 64`); `best.pt`
+is still the epoch with the highest validation macro-F1. On the development subset the
+best epoch was 2, so setting the patience to 10 typically ends the run at epoch 12–20
+(~7–12 h on an RTX 4060) with the same selection rule.
 
 ### What changed for full scale, and why
 
@@ -1067,7 +1076,15 @@ figures. It is safe to re-run after an interruption; delete `checkpoints/full_ft
 fresh start. Outputs: `artifacts/finetune_report_full_ft32.json`,
 `artifacts/report_full_ft32/`, `logs/training_history_full_ft32.csv`.
 
-On Windows, run the same steps individually:
+On Windows, `scripts/run_full_daisee.ps1` runs the same steps, including Stage 1
+sharded across cores, and is equally safe to re-run after an interruption:
+
+```powershell
+$env:DAISEE_ROOT = "D:\DAiSEE"
+powershell -ExecutionPolicy Bypass -File scripts\run_full_daisee.ps1
+```
+
+Or run the steps individually:
 
 ```powershell
 $env:DAISEE_ROOT = "D:\DAiSEE"
@@ -1076,8 +1093,11 @@ python scripts/audit_dataset.py --config configs/config_full.yaml
 python scripts/run_preprocessing.py --config configs/config_full.yaml --stage 1
 python scripts/fit_mrs_stats.py --config configs/config_full.yaml
 python scripts/run_finetune.py --config configs/config_full.yaml --run-name full_ft32 --workers 4 --resume
-python scripts/make_finetune_figures.py --run full_ft32 --baseline ""
+python scripts/make_finetune_figures.py --run full_ft32 --baseline=
 ```
+
+(`--baseline=` rather than `--baseline ""`: Windows PowerShell 5.1 drops an empty-string
+argument, leaving `--baseline` with no value.)
 
 ### Reading the results
 

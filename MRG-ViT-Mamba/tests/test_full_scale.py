@@ -146,3 +146,11 @@ def test_full_config_is_consistent():
     dev = load_config(REPO / "configs" / "config_ft32.yaml")
     assert cfg["mrs"]["calibration_file"] != dev["mrs"]["calibration_file"]
     assert cfg["training"]["class_weighting"] == "effective_number"
+    # Effective batch 32 by accumulation; 4 clips x 32 frames per forward is the
+    # size measured to fit a 6-8 GB card with gradient checkpointing.
+    tr = cfg["training"]
+    assert tr["batch_size"] * tr["grad_accum_steps"] == 32
+    assert tr["batch_size"] * cfg["video"]["num_frames"] <= 128
+    # Learning rates are the development values x sqrt(32 / 8) = 2.
+    assert tr["learning_rate"] == 2 * dev["training"]["learning_rate"]
+    assert cfg["vit"]["finetune_lr"] == 2 * dev["vit"]["finetune_lr"]
