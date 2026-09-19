@@ -995,7 +995,7 @@ Measured on the development machine (RTX 3060 Laptop, 6 GB) unless marked *estim
 
 | | Minimum (verified) | Recommended |
 |---|---|---|
-| GPU | NVIDIA, 6 GB VRAM, CUDA | 16–24 GB+ (e.g. RTX 4090, A5000, A100) |
+| GPU | NVIDIA, 6 GB VRAM, CUDA (with `vit.grad_checkpointing: true`); ~12 GB as configured | 16–24 GB+ (e.g. RTX A4000, 4090, A5000, A100) |
 | CPU | 4 cores | 8–16+ cores — Stage 1 (MediaPipe) is CPU-bound and shards across cores |
 | RAM | 16 GB | 32 GB (8 DataLoader workers) |
 | Disk | ~45 GB free | 60 GB+ on SSD |
@@ -1003,8 +1003,13 @@ Measured on the development machine (RTX 3060 Laptop, 6 GB) unless marked *estim
 
 GPU memory, from `scripts/probe_finetune_memory.py`: a training step over 128 crops
 (4 clips × 32 frames) peaks at **2.7 GB** with gradient checkpointing; 256 crops peaks
-at 4.2 GB, and **17.5 GB without checkpointing**. Checkpointing is on in the config,
-which is why 6 GB is enough. The config trains at an **effective batch of 32**
+at 4.2 GB, and **17.5 GB without checkpointing**. The config is set up for an
+**RTX A4000 (16 GB)**, so **checkpointing is off** (`vit.grad_checkpointing: false`):
+128 crops then need about 9–10 GB (*estimate*, from the 256-crop measurement), and
+skipping the recomputation makes each epoch about 20–25% faster, with the same trained
+model. **On a 6–8 GB card, set it to `true`**. That is what makes 6 GB enough. The
+setting is not checked on `--resume`, so after an out-of-memory error you can switch it
+on and resume. The config trains at an **effective batch of 32**
 (`batch_size: 4` × `grad_accum_steps: 8`): a real batch of 32 clips is 1,024 crops, about
 13 GB even with checkpointing. On a 16 GB+ card, raise `training.batch_size` and lower
 `grad_accum_steps` so their product stays 32. Learning rates are 2× the development
@@ -1030,7 +1035,13 @@ Time, *estimates* scaled from the development machine:
 *Estimate* for an **RTX 4060 (8 GB) desktop with 16 GB RAM**, assuming it is ~1.2–1.4×
 the development GPU: ~30–33 min training + ~2 min validation per epoch, so **~11–12 h
 if the run stops at the epoch-20 decision point, ~22–24 h if it continues to 40**, plus
-~20–30 min of sharded Stage 1 and a few minutes of final evaluation.
+~20–30 min of sharded Stage 1 and a few minutes of final evaluation. That estimate is
+with gradient checkpointing on, which an 8 GB card needs.
+
+*Estimate* for the **RTX A4000 (16 GB)** the config targets, with checkpointing off:
+~20–23 min per epoch, so **~7–8 h to the epoch-20 decision point, ~14–16 h to 40**.
+The real time per epoch and peak GPU memory are at the end of every `ep N | …` log
+line.
 
 **Epoch budget: 20, extended to 40 only if still improving, and only if you agree.** On
 the development subsets the best epoch was 2 (fine-tuned) and validation loss rose from

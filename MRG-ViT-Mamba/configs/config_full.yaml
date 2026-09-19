@@ -109,7 +109,13 @@ vit:
   # Recompute block activations in backward instead of storing them. Measured in
   # artifacts/finetune_memory_probe.json: 256 crops/step costs 17,461 MiB without
   # this and 4,219 MiB with it, against a 6,144 MiB card.
-  grad_checkpointing: true
+  # FULL (RTX A4000, 16 GB): OFF. At 128 crops/step (training.batch_size 4 x 32
+  # frames) storing the activations needs ~9-10 GB (estimated from the 256-crop
+  # measurement), which fits in 16 GB, and skipping the recomputation makes each
+  # epoch ~20-25% faster. The trained model is the same either way. On a 6-8 GB
+  # card set this to true (peak ~2.7 GB at 128 crops, measured); it is not
+  # checked on --resume, so it can be switched and the run resumed.
+  grad_checkpointing: false
   unfreeze_blocks: null           # null = every block; an int = last N only
   # A pretrained backbone must not be driven at the head's learning rate.
   # FULL: 2x the development value, matching the batch-size scaling in training.
@@ -145,11 +151,12 @@ classifier:
   dropout: 0.3
 
 training:
-  # FULL (RTX 4060, 8 GB): an effective batch of 32 clips is 1,024 crops, ~13 GB
-  # even with gradient checkpointing, so it is reached by accumulation instead.
-  # 4 clips x 32 frames = 128 crops per forward peaks at ~2.7 GB, which leaves
-  # headroom on an 8 GB card that is also driving a display. On a 16 GB+ card,
-  # raise batch_size and lower grad_accum_steps so their product stays 32.
+  # FULL: an effective batch of 32 clips is 1,024 crops, ~13 GB even with
+  # gradient checkpointing, so it is reached by accumulation instead.
+  # 4 clips x 32 frames = 128 crops per forward: ~9-10 GB without gradient
+  # checkpointing (the RTX A4000 setting, see vit.grad_checkpointing), ~2.7 GB
+  # with it. Keep this at 4 unless memory allows more; any change must keep
+  # batch_size x grad_accum_steps = 32.
   batch_size: 4                   # 4 clips x 32 frames = 128 crops per forward
   grad_accum_steps: 8             # FULL: effective batch 4 x 8 = 32
   epochs: 40                      # the maximum; see extend_decision_epoch below
