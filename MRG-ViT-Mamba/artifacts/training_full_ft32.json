@@ -1,0 +1,310 @@
+{
+  "run_name": "full_ft32",
+  "regime": "end-to-end fine-tuning (ViT trained, Stage 2 cache unused)",
+  "device": "cuda",
+  "mixed_precision": true,
+  "epochs_run": 15,
+  "epochs_configured": 15,
+  "early_stopping_patience": 40,
+  "extend_decision_epoch": null,
+  "extend_decision": null,
+  "resumed_from_epoch": 14,
+  "num_workers": 0,
+  "save_every_epoch": false,
+  "save_every_n_epochs": 10,
+  "num_frames": 32,
+  "batch_size": 4,
+  "grad_accum_steps": 8,
+  "effective_batch": 32,
+  "head_lr": 0.0006,
+  "backbone_lr": 2e-05,
+  "backbone": {
+    "frozen": false,
+    "total_blocks": 12,
+    "unfreeze_blocks": null,
+    "grad_checkpointing": true,
+    "backbone_params_total": 85798656,
+    "backbone_params_trainable": 85798656
+  },
+  "backbone_spec": {
+    "name": "timm:vit_base_patch16_224.augreg2_in21k_ft_in1k",
+    "family": "timm",
+    "embed_dim": 768,
+    "input_size": 224,
+    "mean": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "std": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "num_params": 85798656
+  },
+  "model": {
+    "architecture": "ViT spatial encoder + Mamba temporal encoder (MRG-ViT--Mamba); not Vim/Vision Mamba",
+    "vit_dim": 768,
+    "landmark_dim": 240,
+    "mrs_weighting_mode": "multiply",
+    "learnable_mrs_weights": [
+      0.003079,
+      0.001274,
+      0.002681,
+      0.002621,
+      0.990346
+    ],
+    "mamba": {
+      "d_model": 256,
+      "n_layers": 2,
+      "bidirectional": false,
+      "pooling": "mrs_weighted",
+      "backend": "pytorch_reference",
+      "version": null,
+      "source": "vendored reference implementation from state-spaces/mamba (selective_scan_ref + mamba_simple.Mamba slow path)",
+      "mamba_ssm_import_error": "ModuleNotFoundError: No module named 'mamba_ssm'"
+    },
+    "fusion": {
+      "mode": "concat",
+      "output_dim": 512
+    },
+    "classifier_input_dim": 512,
+    "num_classes": 4,
+    "parameters": {
+      "total": 87164553,
+      "trainable": 87164553,
+      "frozen": 0,
+      "per_module": {
+        "temporal": 1073152,
+        "deep_branch": 66304,
+        "landmark_branch": 61696,
+        "fusion": 0,
+        "classifier": 164740,
+        "vit_encoder": 85798656
+      }
+    }
+  },
+  "loss": {
+    "scheme": "effective_number",
+    "weights": [
+      3.2082481384277344,
+      0.559056282043457,
+      0.11574013531208038,
+      0.11695532500743866
+    ],
+    "train_counts": {
+      "0": 34,
+      "1": 213,
+      "2": 2617,
+      "3": 2493
+    },
+    "classes_absent_from_train": [],
+    "label_smoothing": 0.05
+  },
+  "landmark_scaler": {
+    "fitted": true,
+    "n_train_clips": 5357,
+    "dim": 240
+  },
+  "s1_key": "faces_T32_066493f654",
+  "clips": {
+    "train": 5357,
+    "val": 1429,
+    "test": 1784
+  },
+  "missing_clips": {
+    "train": [],
+    "val": [],
+    "test": []
+  },
+  "dataset_root": "/home/dongeorge/Desktop/DAiSEE",
+  "path_overrides": {
+    "dataset_root": "DAISEE_ROOT=/home/dongeorge/Desktop/DAiSEE"
+  },
+  "label_counts": {
+    "train": {
+      "2": 2617,
+      "3": 2493,
+      "1": 213,
+      "0": 34
+    },
+    "val": {
+      "2": 813,
+      "3": 450,
+      "1": 143,
+      "0": 23
+    },
+    "test": {
+      "2": 882,
+      "3": 814,
+      "1": 84,
+      "0": 4
+    }
+  },
+  "subjects": {
+    "train": [
+      "110001",
+      "110002",
+      "110004",
+      "110005",
+      "110006",
+      "110007",
+      "110008",
+      "110010",
+      "110011",
+      "110012",
+      "110013",
+      "110014",
+      "110015",
+      "110016",
+      "110017",
+      "110041",
+      "111003",
+      "181374",
+      "200048",
+      "200049",
+      "200050",
+      "200054",
+      "202614",
+      "205601",
+      "210051",
+      "210052",
+      "210053",
+      "210055",
+      "210056",
+      "210057",
+      "210058",
+      "210059",
+      "210060",
+      "210061",
+      "226051",
+      "240846",
+      "248510",
+      "290428",
+      "303830",
+      "310062",
+      "310063",
+      "310064",
+      "310066",
+      "310068",
+      "310069",
+      "310070",
+      "310071",
+      "310072",
+      "310073",
+      "310074",
+      "310075",
+      "310076",
+      "310077",
+      "310078",
+      "310079",
+      "310080",
+      "310081",
+      "310082",
+      "310083",
+      "334463",
+      "337021",
+      "342227",
+      "350361",
+      "400018",
+      "401835",
+      "411021",
+      "411031",
+      "414081",
+      "459999"
+    ],
+    "val": [
+      "400022",
+      "400023",
+      "400030",
+      "400033",
+      "410019",
+      "410020",
+      "410024",
+      "410025",
+      "410026",
+      "410027",
+      "410028",
+      "410029",
+      "410030",
+      "410032",
+      "500039",
+      "500043",
+      "556463",
+      "567496",
+      "591292"
+    ],
+    "test": [
+      "500044",
+      "500067",
+      "500095",
+      "510009",
+      "510034",
+      "510035",
+      "510036",
+      "510037",
+      "510038",
+      "510040",
+      "510042",
+      "510045",
+      "510046",
+      "510047",
+      "826412",
+      "882654",
+      "907001",
+      "928901",
+      "940328",
+      "987736",
+      "998826"
+    ]
+  },
+  "learnable_mrs_weights_final": {
+    "blur": 0.003079,
+    "face_visibility": 0.001274,
+    "head_pose": 0.002681,
+    "eye_visibility": 0.002621,
+    "motion_consistency": 0.990346
+  },
+  "best": {
+    "macro_f1": 0.34234006904770753,
+    "epoch": 4,
+    "accuracy": 0.529741077676697,
+    "weighted_f1": 0.5215233068418507,
+    "loss": 1.7266288875867535
+  },
+  "selection_metric": "val_macro_f1",
+  "history_csv": "/home/dongeorge/MAMBA---MIN-PROJECT/MRG-ViT-Mamba/logs/training_history_full_ft32.csv",
+  "checkpoint": "/home/dongeorge/MAMBA---MIN-PROJECT/MRG-ViT-Mamba/checkpoints/full_ft32/best.pt",
+  "checkpoint_dir": "/home/dongeorge/MAMBA---MIN-PROJECT/MRG-ViT-Mamba/checkpoints/full_ft32",
+  "environment": {
+    "python": "3.12.14 (main, Sep  1 2026, 14:16:52) [Clang 22.1.3 ]",
+    "platform": "Linux-6.8.0-138-generic-x86_64-with-glibc2.35",
+    "machine": "x86_64",
+    "timestamp": "2026-09-19T17:49:16",
+    "git_commit": "2afd0fd6cbe9ae8b770c59d8f15a3b598964f383",
+    "packages": {
+      "torch": "2.11.0+cu128",
+      "torchvision": "0.26.0+cu128",
+      "timm": "1.0.29",
+      "cv2": "5.0.0",
+      "mediapipe": "1.0.1",
+      "numpy": "2.5.2",
+      "sklearn": "1.9.1",
+      "shap": "0.52.0",
+      "pandas": "3.0.6",
+      "matplotlib": "3.11.2",
+      "einops": "0.8.2",
+      "yaml": "6.0.3"
+    },
+    "device": {
+      "device": "cuda",
+      "name": "NVIDIA RTX A4000",
+      "total_memory_bytes": 16741236736,
+      "total_memory_gb": 15.59,
+      "cuda_available": true,
+      "torch_version": "2.11.0+cu128",
+      "torch_cuda_version": "12.8"
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "target_label": "Engagement",
+  "source": "DAiSEE Labels/*.csv integer codes, verified against the values actually present in this copy of the dataset",
+  "verified_encoded_values": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "index_to_name": {
+    "0": "Very Low",
+    "1": "Low",
+    "2": "High",
+    "3": "Very High"
+  },
+  "note": "The CSV integer is used directly as the class index; no remapping is applied. Class names come from the DAiSEE documentation (four intensity levels: very low, low, high, very high).",
+  "counts_per_split": {
+    "train": {
+      "0": 34,
+      "1": 213,
+      "2": 2617,
+      "3": 2493
+    },
+    "val": {
+      "0": 23,
+      "1": 143,
+      "2": 813,
+      "3": 450
+    },
+    "test": {
+      "0": 4,
+      "1": 84,
+      "2": 882,
+      "3": 814
+    }
+  }
+}

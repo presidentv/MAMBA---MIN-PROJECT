@@ -1,0 +1,109 @@
+{
+  "device": "NVIDIA RTX A4000",
+  "budget_mib": 15965.7,
+  "backbone": "vit_base_patch16_224.augreg2_in21k_ft_in1k",
+  "input_size": 224,
+  "rows": [
+    {
+      "peak_mib": null,
+      "ok": false,
+      "error": "CUDA out of memory. Tried to allocate 296.00 MiB. GPU 0 has a total capacity of 15.59 GiB ",
+      "n_crops": 256,
+      "checkpointing": false,
+      "unfreeze_blocks": null,
+      "amp": true,
+      "trainable_params": 85798656,
+      "total_blocks": 12
+    },
+    {
+      "peak_mib": 4218.6,
+      "ok": true,
+      "n_crops": 256,
+      "checkpointing": true,
+      "unfreeze_blocks": null,
+      "amp": true,
+      "trainable_params": 85798656,
+      "total_blocks": 12
+    },
+    {
+      "peak_mib": 2292.3,
+      "ok": true,
+      "n_crops": 128,
+      "checkpointing": true,
+      "unfreeze_blocks": null,
+      "amp": true,
+      "trainable_params": 85798656,
+      "total_blocks": 12
+    },
+    {
+      "peak_mib": 1739.3,
+      "ok": true,
+      "n_crops": 64,
+      "checkpointing": true,
+      "unfreeze_blocks": null,
+      "amp": true,
+      "trainable_params": 85798656,
+      "total_blocks": 12
+    },
+    {
+      "peak_mib": 1700.8,
+      "ok": true,
+      "n_crops": 32,
+      "checkpointing": true,
+      "unfreeze_blocks": null,
+      "amp": true,
+      "trainable_params": 85798656,
+      "total_blocks": 12
+    },
+    {
+      "peak_mib": 1014.4,
+      "ok": true,
+      "n_crops": 64,
+      "checkpointing": true,
+      "unfreeze_blocks": 4,
+      "amp": true,
+      "trainable_params": 28353024,
+      "total_blocks": 12
+    },
+    {
+      "peak_mib": 1663.1,
+      "ok": true,
+      "n_crops": 128,
+      "checkpointing": true,
+      "unfreeze_blocks": 4,
+      "amp": true,
+      "trainable_params": 28353024,
+      "total_blocks": 12
+    },
+    {
+      "peak_mib": 2958.4,
+      "ok": true,
+      "n_crops": 256,
+      "checkpointing": true,
+      "unfreeze_blocks": 4,
+      "amp": true,
+      "trainable_params": 28353024,
+      "total_blocks": 12
+    },
+    {
+      "peak_mib": 1088.4,
+      "ok": true,
+      "n_crops": 64,
+      "checkpointing": true,
+      "unfreeze_blocks": 6,
+      "amp": true,
+      "trainable_params": 42528768,
+      "total_blocks": 12
+    },
+    {
+      "peak_mib": 1811.1,
+      "ok": true,
+      "n_crops": 128,
+      "checkpointing": true,
+      "unfreeze_blocks": 6,
+      "amp": true,
+      "trainable_params": 42528768,
+      "total_blocks": 12
+    }
+  ]
+}

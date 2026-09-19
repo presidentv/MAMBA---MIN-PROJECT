@@ -1,0 +1,53 @@
+{
+  "device": {
+    "device": "cuda",
+    "name": "NVIDIA RTX A4000",
+    "total_memory_bytes": 16741236736,
+    "total_memory_gb": 15.59,
+    "cuda_available": true,
+    "torch_version": "2.11.0+cu128",
+    "torch_cuda_version": "12.8"
+  },
+  "stage1": {
+    "cache_key": "faces_T32_066493f654",
+    "cache_dir": "/home/dongeorge/MAMBA---MIN-PROJECT/MRG-ViT-Mamba/cache/faces_T32_066493f654",
+    "counts": {
+      "total": 1428,
+      "cached": 1428,
+      "processed": 0,
+      "failed": 0
+    },
+    "failure_percentage": 0.0,
+    "failures": [],
+    "settings": {
+      "stage1_version": "1.3.0",
+      "cache_key": "faces_T32_066493f654",
+      "num_frames": 32,
+      "crop_store_size": 256,
+      "corruption": null,
+      "face": {
+        "detector": "mediapipe.tasks.vision.FaceDetector (blaze_face_short_range)",
+        "mediapipe_version": "1.0.1",
+        "model_path": "/home/dongeorge/MAMBA---MIN-PROJECT/MRG-ViT-Mamba/models/blaze_face_short_range.tflite",
+        "min_detection_confidence": 0.3,
+        "crop_padding": 0.25,
+        "align": true,
+        "missing_face_policy": "center_crop"
+      },
+      "landmarks": {
+        "landmarker": "mediapipe.tasks.vision.FaceLandmarker",
+        "mediapipe_version": "1.0.1",
+        "model_path": "/home/dongeorge/MAMBA---MIN-PROJECT/MRG-ViT-Mamba/models/face_landmarker.task",
+        "num_landmarks_expected": 478,
+        "num_blendshapes": 52,
+        "feature_dim": 80
+      }
+    },
+    "per_clip": [],
+    "shard": [
+      4,
+      6
+    ],
+    "elapsed_seconds": 2.28
+  }
+}
