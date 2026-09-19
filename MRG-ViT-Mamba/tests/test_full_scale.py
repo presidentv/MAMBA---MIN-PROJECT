@@ -140,14 +140,17 @@ def test_full_config_is_consistent():
     cfg = load_config(REPO / "configs" / "config_full.yaml")
     assert cfg["video"]["num_frames"] == 32
     assert cfg["vit"]["freeze"] is False
-    assert cfg["vit"]["grad_checkpointing"] is True
+    # Off for the 16 GB RTX A4000 the full run targets; either value is valid,
+    # but it must be an explicit boolean, not left to the code default.
+    assert isinstance(cfg["vit"]["grad_checkpointing"], bool)
     assert missing_clip_policy(cfg) == (True, 0.02)
     # Must not share a calibration file with the development runs.
     dev = load_config(REPO / "configs" / "config_ft32.yaml")
     assert cfg["mrs"]["calibration_file"] != dev["mrs"]["calibration_file"]
     assert cfg["training"]["class_weighting"] == "effective_number"
     # Effective batch 32 by accumulation; 4 clips x 32 frames per forward is the
-    # size measured to fit a 6-8 GB card with gradient checkpointing.
+    # size measured to fit a 6-8 GB card with gradient checkpointing, and
+    # estimated at ~9-10 GB without it.
     tr = cfg["training"]
     assert tr["batch_size"] * tr["grad_accum_steps"] == 32
     assert tr["batch_size"] * cfg["video"]["num_frames"] <= 128
