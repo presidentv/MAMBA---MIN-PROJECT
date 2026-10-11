@@ -177,6 +177,16 @@ training:
   # which makes ~30 clips dominate the loss. The effective-number scheme (Cui et
   # al., CVPR 2019) still up-weights the rare classes, by ~28x rather than ~77x.
   class_weighting: "effective_number"   # none | inverse_frequency | effective_number
+  # FULL: how often each class is DRAWN, which is separate from how much each
+  # mistake COSTS (class_weighting above). natural | sqrt | balanced.
+  #
+  # Undersampling the common classes to balance would cap training at 4x the
+  # rarest class -- on DAiSEE roughly 136 clips, fewer than the 120 that already
+  # overfit. So no clip is discarded; the rare classes are drawn more often
+  # instead. "sqrt" (p ~ 1/sqrt(n_c)) lifts them without repeating a few dozen
+  # clips many times per epoch, and sampling_max_ratio caps that repetition.
+  sampling: "sqrt"
+  sampling_max_ratio: 8.0
   label_smoothing: 0.05
   # FULL: train 20 epochs, then decide. On the development subsets the best
   # epoch was 2 (fine-tuned) and validation loss rose from about epoch 4

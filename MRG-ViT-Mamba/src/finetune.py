@@ -36,13 +36,16 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
+from .augment import ClipAugment
 from .dataset import FineTuneClipDataset, collate_finetune, load_calibration
 from .fusion import StandardScaler
 from .losses import build_loss
 from .metrics import compute_metrics
 from .model import MRGViTMamba
 from .mrs import COMPONENTS
+from .param_groups import build_param_groups
 from .preprocess import stage1_key
+from .sampling import build_train_sampler
 from .utils import ensure_dir, environment_record, gpu_memory_mb, save_json, set_seed
 from .vit_encoder import ViTFrameEncoder
 
@@ -62,10 +65,18 @@ class FineTuneResult:
     info: dict = field(default_factory=dict)
 
 
-def build_finetune_datasets(cfg, index, s1_key: str, spec, splits=("train", "val", "test")):
+def build_finetune_datasets(cfg, index, s1_key: str, spec, splits=("train", "val", "test"),
+                            augment=None):
+    """Datasets for the requested splits.
+
+    ``augment`` is attached to the training split alone: augmenting validation
+    or test would measure the model on data the evaluation protocol does not
+    describe, and would make runs incomparable.
+    """
     calibration = load_calibration(cfg)
     return {
-        split: FineTuneClipDataset(cfg, index, split, s1_key, spec, calibration)
+        split: FineTuneClipDataset(cfg, index, split, s1_key, spec, calibration,
+                                   augment=augment if split == "train" else None)
         for split in splits
     }
 
@@ -355,13 +366,19 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
         pretrained=bool(vcfg.get("pretrained", True)),
         freeze=False,
         chunk_size=int(vcfg.get("batch_size", 32)),
+        drop_path_rate=float(vcfg.get("drop_path_rate", 0.0)),
     )
     backbone_info = configure_backbone(encoder, vcfg, logger)
     spec = encoder.spec
 
+    augment = ClipAugment.from_config(cfg.get("augmentation"))
     s1_key = stage1_key(cfg)
-    datasets = build_finetune_datasets(cfg, index, s1_key, spec, ("train", "val", "test"))
+    datasets = build_finetune_datasets(cfg, index, s1_key, spec, ("train", "val", "test"),
+                                       augment=augment)
     train_ds, val_ds, test_ds = datasets["train"], datasets["val"], datasets["test"]
+    if logger:
+        logger.info("augmentation: %s",
+                    augment.describe() if augment is not None else "disabled")
 
     if logger:
         logger.info("clips: train=%d val=%d test=%d | T=%d  landmark_dim=%d  vit_dim=%d",
@@ -380,8 +397,19 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
     if workers > 0:
         loader_kw["persistent_workers"] = True
         loader_kw["prefetch_factor"] = 2
-    train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, **loader_kw)
+    # Imbalance is handled by how often each class is drawn, not by deleting
+    # clips from the common classes. sampler and shuffle are mutually exclusive.
+    train_sampler, sampling_info = build_train_sampler(
+        train_ds.labels(), int(cfg["dataset"]["num_classes"]), tcfg)
+    train_loader = DataLoader(train_ds, batch_size=batch_size,
+                              shuffle=train_sampler is None, sampler=train_sampler,
+                              **loader_kw)
     val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, **loader_kw)
+    if logger:
+        logger.info("sampling: %s", sampling_info["sampler"])
+        if train_sampler is not None:
+            logger.info("  class share natural -> sampled: %s -> %s",
+                        sampling_info["natural_share"], sampling_info["expected_share"])
 
     model = MRGViTMamba(vit_dim=spec.embed_dim, landmark_dim=train_ds.landmark_dim,
                         cfg=cfg, vit_encoder=encoder).to(device)
@@ -392,32 +420,22 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
                                     int(cfg["dataset"]["num_classes"]))
     loss_fn = loss_fn.to(device)
 
-    # Three parameter groups: the pretrained backbone at a small rate, the
-    # freshly initialised head at the normal rate, and the five MRS weights
-    # faster still with no decay (see the note in src/train.py).
-    backbone_params, mrs_params, head_params = [], [], []
-    for name, prm in model.named_parameters():
-        if not prm.requires_grad:
-            continue
-        if name.startswith("vit_encoder."):
-            backbone_params.append(prm)
-        elif name.startswith("learnable_mrs."):
-            mrs_params.append(prm)
-        else:
-            head_params.append(prm)
-
+    # The pretrained backbone trains at a small rate (optionally decayed per
+    # layer), the freshly initialised head at the normal rate, and the five MRS
+    # weights faster still with no decay. Norms, biases, the class token and
+    # the position embedding are never weight-decayed -- see src/param_groups.py.
     head_lr = float(tcfg["learning_rate"])
     backbone_lr = float(vcfg.get("finetune_lr", head_lr / 30.0))
-    groups = [{"params": head_params, "lr": head_lr,
-               "weight_decay": float(tcfg["weight_decay"]), "name": "head"}]
-    if backbone_params:
-        groups.append({"params": backbone_params, "lr": backbone_lr,
-                       "weight_decay": float(tcfg["weight_decay"]), "name": "backbone"})
-    if mrs_params:
-        groups.append({"params": mrs_params,
-                       "lr": float(tcfg.get("mrs_weight_lr", 0.02)),
-                       "weight_decay": 0.0, "name": "mrs"})
+    groups, group_summary = build_param_groups(
+        model, head_lr=head_lr, backbone_lr=backbone_lr,
+        weight_decay=float(tcfg["weight_decay"]),
+        mrs_lr=float(tcfg.get("mrs_weight_lr", 0.02)),
+        layer_decay=vcfg.get("layer_decay"))
     optimiser = torch.optim.AdamW(groups)
+    if logger:
+        logger.info("optimiser: %d groups, layer_decay=%s, backbone_lr=%.2e, head_lr=%.2e",
+                    group_summary["n_groups"], group_summary["layer_decay"],
+                    backbone_lr, head_lr)
 
     epochs = int(tcfg["epochs"])
     warmup = int(tcfg.get("warmup_epochs", 0))
@@ -588,6 +606,12 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
         m_tr = compute_metrics(tr_true, tr_pred, num_classes)
         m_va = compute_metrics(va_true, va_pred, num_classes)
         lrs = {g.get("name", str(i)): g["lr"] for i, g in enumerate(optimiser.param_groups)}
+        # With layer-wise decay there are many backbone groups; report the
+        # largest, which is the one applied to the final block.
+        bb = [g["lr"] for g in optimiser.param_groups
+              if str(g.get("name", "")).startswith("backbone")]
+        hd = [g["lr"] for g in optimiser.param_groups
+              if str(g.get("name", "")).startswith("head")]
         row = {
             "epoch": epoch, "train_loss": round(tr_loss, 6),
             "train_accuracy": round(m_tr["accuracy"], 6),
@@ -597,7 +621,8 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
             "val_accuracy": round(m_va["accuracy"], 6),
             "val_macro_f1": round(m_va["macro_f1"], 6),
             "val_weighted_f1": round(m_va["weighted_f1"], 6),
-            "head_lr": lrs.get("head"), "backbone_lr": lrs.get("backbone"),
+            "head_lr": max(hd) if hd else lrs.get("head"),
+            "backbone_lr": max(bb) if bb else lrs.get("backbone"),
             "gpu_memory_mb": round(gpu_memory_mb() or 0.0, 1),
             "seconds": round(time.perf_counter() - t0, 2),
         }
@@ -720,10 +745,15 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
         "effective_batch": batch_size * accum_steps,
         "head_lr": head_lr,
         "backbone_lr": backbone_lr,
+        "layer_decay": vcfg.get("layer_decay"),
+        "drop_path_rate": float(vcfg.get("drop_path_rate", 0.0)),
+        "param_groups": group_summary,
+        "augmentation": augment.describe() if augment is not None else None,
         "backbone": backbone_info,
         "backbone_spec": spec.as_dict(),
         "model": model.describe(),
         "loss": loss_info,
+        "sampling": sampling_info,
         "landmark_scaler": scaler_info,
         "s1_key": s1_key,
         "clips": {"train": len(train_ds), "val": len(val_ds), "test": len(test_ds)},

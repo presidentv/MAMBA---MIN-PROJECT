@@ -183,12 +183,14 @@ class FineTuneClipDataset(Dataset):
 
     def __init__(self, cfg, index, split: str, s1_key: str, spec,
                  calibration: MRSCalibration, mrs_mode: str | None = None,
-                 require_all: bool | None = None):
+                 require_all: bool | None = None, augment=None):
         self.cfg = cfg
         self.split = split
         self.s1_key = s1_key
         self.spec = spec
         self.calibration = calibration
+        # Set on the training split only; see src/augment.py.
+        self.augment = augment
         if mrs_mode not in (None, "real", "none"):
             raise ValueError(f"dataset mrs_mode must be 'real' or 'none', got {mrs_mode!r}")
         self.mrs_mode = mrs_mode or "real"
@@ -247,6 +249,8 @@ class FineTuneClipDataset(Dataset):
         data = np.load(p1)
 
         crops = unpack_crops(data["crops_data"], data["crops_offsets"])
+        if self.augment is not None:
+            crops = self.augment(crops)
         frames = preprocess_crops(crops, self.spec)          # [T, 3, S, S] float32
         land = np.asarray(data["landmark_clip_features"], dtype=np.float32)
 

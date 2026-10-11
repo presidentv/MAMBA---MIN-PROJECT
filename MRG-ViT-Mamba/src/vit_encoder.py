@@ -85,12 +85,15 @@ class ViTFrameEncoder(nn.Module):
     """
 
     def __init__(self, model_name: str, pretrained: bool = True, freeze: bool = True,
-                 chunk_size: int = 32):
+                 chunk_size: int = 32, drop_path_rate: float = 0.0):
         super().__init__()
         self.model_name = model_name
         self.family, self.backbone_id = _split_name(model_name)
         self.chunk_size = int(chunk_size)
         self.frozen = bool(freeze)
+        # Stochastic depth regularises a backbone that is being trained; it is
+        # inert under eval() and so pointless on the frozen path.
+        self.drop_path_rate = float(drop_path_rate)
 
         if self.family == "timm":
             self.backbone, spec = self._build_timm(self.backbone_id, pretrained)
@@ -108,7 +111,10 @@ class ViTFrameEncoder(nn.Module):
         import timm
 
         # num_classes=0 makes timm return the pooled pre-logits feature.
-        model = timm.create_model(name, pretrained=pretrained, num_classes=0)
+        kwargs = {"num_classes": 0}
+        if self.drop_path_rate > 0:
+            kwargs["drop_path_rate"] = self.drop_path_rate
+        model = timm.create_model(name, pretrained=pretrained, **kwargs)
         model.eval()
 
         embed_dim = int(getattr(model, "num_features", 0))
