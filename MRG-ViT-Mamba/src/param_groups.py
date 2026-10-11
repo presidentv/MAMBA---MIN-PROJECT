@@ -51,12 +51,20 @@ def _no_decay(module: nn.Module, name: str, param) -> bool:
 
 def build_param_groups(model, *, head_lr: float, backbone_lr: float,
                        weight_decay: float, mrs_lr: float,
-                       layer_decay: float | None = None) -> tuple[list[dict], dict]:
+                       layer_decay: float | None = None,
+                       mrs_weight_decay: float = 0.0) -> tuple[list[dict], dict]:
     """Group the model's trainable parameters for AdamW.
 
     ``layer_decay`` of None or 1.0 gives every backbone parameter the same
     ``backbone_lr`` -- the original behaviour, kept so the two recipes can be
     compared.
+
+    ``mrs_weight_decay`` is decay on theta, where w = softmax(theta) and
+    theta = 0 is exactly the uniform 0.2 weighting. It is therefore a prior
+    pulling the learned reliability weights back towards uniform, and it is
+    what stops them collapsing onto a single component; see the note in
+    src/finetune.py. The decay strength sets the ceiling on how far the
+    weights can be driven, the learning rate only how fast they get there.
     """
     encoder = getattr(model, "vit_encoder", None)
     backbone = getattr(encoder, "backbone", None) if encoder is not None else None
@@ -73,7 +81,7 @@ def build_param_groups(model, *, head_lr: float, backbone_lr: float,
             continue
 
         if name.startswith("learnable_mrs."):
-            key, lr, wd = ("mrs", 0), mrs_lr, 0.0
+            key, lr, wd = ("mrs", 0), mrs_lr, mrs_weight_decay
         elif name.startswith("vit_encoder."):
             inner = name[len("vit_encoder.backbone."):] if ".backbone." in name else name
             decay = not _no_decay(backbone, inner, param)

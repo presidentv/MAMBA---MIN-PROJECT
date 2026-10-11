@@ -158,9 +158,14 @@ def train_model(cfg, index, s1_key: str, s2_key: str, run_name: str = "main",
         logger.info("class weights (%s): %s", loss_info["scheme"],
                     [round(w, 3) for w in loss_info["weights"]])
 
-    # The five MRS weights get their own, larger learning rate and no weight
-    # decay. Five parameters among 1.37M would otherwise barely move, and decay
-    # would pull theta toward zero, i.e. silently back toward uniform 0.2.
+    # The five MRS weights get their own, larger learning rate. Five parameters
+    # among 1.37M would otherwise barely move.
+    #
+    # Decay on theta pulls the weights back towards uniform 0.2 (theta = 0).
+    # That was originally switched off as an unwanted bias; the full-scale run
+    # showed it is the only thing that stops the softmax collapsing onto one
+    # component over thousands of steps, so it is now a configurable prior,
+    # defaulting to off here to keep earlier short runs reproducible.
     mrs_params, main_params = [], []
     for name, prm in model.named_parameters():
         if not prm.requires_grad:
@@ -171,7 +176,7 @@ def train_model(cfg, index, s1_key: str, s2_key: str, run_name: str = "main",
     if mrs_params:
         groups.append({"params": mrs_params,
                        "lr": float(tcfg.get("mrs_weight_lr", 0.02)),
-                       "weight_decay": 0.0})
+                       "weight_decay": float(tcfg.get("mrs_weight_decay", 0.0))})
     optimiser = torch.optim.AdamW(groups)
 
     epochs = int(tcfg["epochs"])

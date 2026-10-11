@@ -49,6 +49,10 @@ from .sampling import build_train_sampler
 from .utils import ensure_dir, environment_record, gpu_memory_mb, save_json, set_seed
 from .vit_encoder import ViTFrameEncoder
 
+# One component holding more than this share of the weight means the softmax
+# has collapsed and the remaining components are no longer contributing.
+COLLAPSE_WARN_AT = 0.80
+
 HISTORY_FIELDS = [
     "epoch", "train_loss", "train_accuracy", "train_macro_f1", "train_weighted_f1",
     "val_loss", "val_accuracy", "val_macro_f1", "val_weighted_f1",
@@ -426,11 +430,21 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
     # the position embedding are never weight-decayed -- see src/param_groups.py.
     head_lr = float(tcfg["learning_rate"])
     backbone_lr = float(vcfg.get("finetune_lr", head_lr / 30.0))
+    # Decay on theta is a prior towards the uniform 0.2 weighting. Without it
+    # the five weights collapse onto one component over a long run: the full
+    # DAiSEE run (~6,700 steps) ended at motion_consistency 0.990 with the
+    # other four near 0.001, which makes a five-component reliability score a
+    # one-component one. Simulated over the same number of steps under constant
+    # one-sided pressure, lowering the learning rate does not prevent this
+    # (lr 0.002, no decay -> w_max 0.999); decay does, and its strength sets
+    # the bound (wd 1.0 -> w_max 0.649). A real, weaker signal still moves the
+    # weights well off uniform, and pure noise leaves them at 0.2.
     groups, group_summary = build_param_groups(
         model, head_lr=head_lr, backbone_lr=backbone_lr,
         weight_decay=float(tcfg["weight_decay"]),
         mrs_lr=float(tcfg.get("mrs_weight_lr", 0.02)),
-        layer_decay=vcfg.get("layer_decay"))
+        layer_decay=vcfg.get("layer_decay"),
+        mrs_weight_decay=float(tcfg.get("mrs_weight_decay", 0.0)))
     optimiser = torch.optim.AdamW(groups)
     if logger:
         logger.info("optimiser: %d groups, layer_decay=%s, backbone_lr=%.2e, head_lr=%.2e",
@@ -503,6 +517,7 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
         }
 
     best = {"macro_f1": -1.0, "epoch": -1}
+    collapse_reported = False
     patience = int(tcfg.get("early_stopping_patience", epochs))
     since_improved = 0
     history: list[dict] = []
@@ -629,6 +644,17 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
         if model.learnable_mrs is not None:
             w = model.learnable_mrs.weights().detach().cpu().numpy()
             row.update({f"w_{c}": round(float(w[i]), 6) for i, c in enumerate(COMPONENTS)})
+            # A five-component score that has become a one-component score is
+            # worth saying out loud while there is still time to stop the run.
+            if float(w.max()) > COLLAPSE_WARN_AT and not collapse_reported:
+                collapse_reported = True
+                if logger:
+                    logger.warning(
+                        "MRS weights have collapsed: %s = %.3f of the total. The score "
+                        "is now effectively single-component. Raise "
+                        "training.mrs_weight_decay (currently %.3g).",
+                        COMPONENTS[int(w.argmax())], float(w.max()),
+                        float(tcfg.get("mrs_weight_decay", 0.0)))
         else:
             row.update({f"w_{c}": "" for c in COMPONENTS})
         history.append(row)
@@ -777,6 +803,10 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
             {c: round(float(v), 6) for c, v in
              zip(COMPONENTS, model.learnable_mrs.weights().detach().cpu().numpy())}
             if model.learnable_mrs is not None else None),
+        "learnable_mrs_weight_concentration": (
+            round(float(model.learnable_mrs.weights().detach().cpu().numpy().max()), 6)
+            if model.learnable_mrs is not None else None),
+        "mrs_weight_decay": float(tcfg.get("mrs_weight_decay", 0.0)),
         "best": best,
         "selection_metric": "val_macro_f1",
         "history_csv": str(history_path),

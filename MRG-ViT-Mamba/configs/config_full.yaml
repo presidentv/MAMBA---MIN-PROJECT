@@ -81,6 +81,7 @@ mrs:
   # fitted.
   # FULL: a separate file, so the calibration fitted on the 120 development
   # clips can never be picked up by the full run by accident.
+  #
   calibration_file: "artifacts/mrs_calibration_full_T32.json"
   calibration_percentiles: [5.0, 95.0]
   # Learn the five component weights end to end, starting from 0.2 each.
@@ -105,6 +106,19 @@ vit:
   model_name: "vit_base_patch16_224.augreg2_in21k_ft_in1k"
   pretrained: true
   freeze: false                   # FINE-TUNING RUN: the backbone is trained
+  # The 15-epoch full run still overfits: train accuracy 0.58 -> 0.955 while
+  # validation loss rises 1.71 -> 2.39, with the best epoch at 4 of 15. These
+  # two and the augmentation block below are the standard ViT fine-tuning
+  # regularisers, measured on the 216-clip subset to delay memorisation from
+  # epoch 16 to epoch 46. They did not raise the peak score there, where 120
+  # clips was the binding constraint; at 5,357 clips the overfitting they
+  # address is the actual failure mode.
+  #
+  # layer_decay: finetune_lr applies to the last block and the final norm;
+  # each earlier block is scaled by this factor again, down to ~0.024x at the
+  # patch embedding. Early blocks hold generic features that should barely move.
+  layer_decay: 0.75
+  drop_path_rate: 0.1             # stochastic depth, inert at eval time
   batch_size: 32                  # frames per ViT forward chunk
   # Recompute block activations in backward instead of storing them. Measured in
   # artifacts/finetune_memory_probe.json: 256 crops/step costs 17,461 MiB without
@@ -120,6 +134,20 @@ vit:
   # A pretrained backbone must not be driven at the head's learning rate.
   # FULL: 2x the development value, matching the batch-size scaling in training.
   finetune_lr: 0.00002
+
+# Training-time augmentation. One transform is sampled per clip and applied to
+# all of its frames: per-frame jitter would inject motion and flicker that the
+# temporal encoder reads as signal. MRS is NOT recomputed on augmented frames,
+# so it keeps describing the real observation quality of the original video.
+# See src/augment.py.
+augmentation:
+  enabled: true
+  scale: [0.80, 1.0]              # random resized crop, area kept
+  ratio: [0.90, 1.11]             # aspect jitter
+  brightness: 0.20
+  contrast: 0.20
+  erase_prob: 0.25
+  erase_scale: [0.02, 0.12]
 
 mamba:
   # Vendored pure-PyTorch reference implementation of the official
@@ -165,7 +193,22 @@ training:
   # sqrt(32 / 8) = 2 -- the usual rule for Adam-family optimisers, and the more
   # conservative of the two standard choices (linear scaling would be 4x).
   learning_rate: 0.0006           # was 0.0003 at effective batch 8
-  mrs_weight_lr: 0.04             # was 0.02; separate LR for the 5 MRS weights
+  # The 15-epoch full run ended with the five MRS weights at
+  # motion_consistency 0.990 and the other four near 0.001 -- the softmax had
+  # collapsed and the five-component score had become a one-component one.
+  #
+  # Simulated over the same ~6,700 steps under constant one-sided pressure,
+  # the learning rate turns out not to control this (lr 0.002 with no decay
+  # still reaches w_max 0.999); it only sets how fast the weights move. The
+  # decay below is what bounds them, because theta = 0 IS the uniform 0.2
+  # weighting, so decay on theta is a prior pulling back towards uniform:
+  #     wd 0.0 -> w_max 0.999   (collapse)
+  #     wd 0.5 -> w_max 0.902
+  #     wd 1.0 -> w_max 0.649   (bounded, and a weak real signal still moves
+  #                              a component to ~0.30 while noise alone leaves
+  #                              every weight at 0.2)
+  mrs_weight_lr: 0.01
+  mrs_weight_decay: 1.0
   weight_decay: 0.01
   optimizer: "adamw"
   scheduler: "cosine"
