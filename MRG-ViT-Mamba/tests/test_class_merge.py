@@ -293,9 +293,33 @@ def test_three_class_config_is_internally_consistent():
     assert m is not None and m.num_classes == int(c["dataset"]["num_classes"]) == 3
     assert m.groups == ((0, 1), (2), (3)) or m.groups == ((0, 1), (2,), (3,))
     assert class_names(c) == ("Low", "High", "Very High")
-    # The two changes that make training on the whole release affordable.
+    # The changes that make this affordable, asserted as properties rather than
+    # as literal numbers, so the reasoning is what is pinned.
     assert int(c["video"]["num_frames"]) == 16
-    assert int(c["training"]["batch_size"]) * int(c["training"]["grad_accum_steps"]) == 32
+
+    t = c["training"]
+    effective_batch = int(t["batch_size"]) * int(t["grad_accum_steps"])
+    # At 1,500 training clips an effective batch of 32 gives only ~1,470
+    # optimiser steps over a 32-epoch run, which is what left the layer-decayed
+    # rungs unable to move. Accumulation makes a smaller effective batch free:
+    # the same clips are processed either way.
+    steps = (1500 // effective_batch) * 32
+    assert steps >= 2500, f"only {steps} optimiser steps; halve the effective batch"
+
+    # Only the top of the backbone is trained. Driving all twelve blocks at
+    # layer-decayed rates meant blocks 0-5 could move at most 2-7% of a weight
+    # over the whole run while still costing a full backward pass; measured on
+    # a 6 GB card, training four blocks instead is 1.82x faster per clip.
+    assert int(c["vit"]["unfreeze_blocks"]) == 4
+
+    # Every trainable rung must be able to move a meaningful fraction of a
+    # weight. AdamW's update is about `lr` per step, so lr * steps against a
+    # typical 0.03 ViT weight is the bound. The lowest trainable block is
+    # finetune_lr * layer_decay**(12 + 1 - 9).
+    lowest = float(c["vit"]["finetune_lr"]) * float(c["vit"]["layer_decay"]) ** 4
+    assert lowest * steps / 0.03 > 0.5, (
+        "the lowest trainable block cannot move half a weight over the run; "
+        "either raise finetune_lr or soften layer_decay")
     # Selecting on raw accuracy would have picked the majority-predictor epoch.
     assert c["training"]["selection_metric"] == "balanced_accuracy"
     # T=16 cannot share the T=32 calibration file.

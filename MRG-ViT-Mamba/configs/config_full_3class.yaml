@@ -176,9 +176,12 @@ vit:
   # address is the actual failure mode.
   #
   # layer_decay: finetune_lr applies to the last block and the final norm;
-  # each earlier block is scaled by this factor again, down to ~0.024x at the
-  # patch embedding. Early blocks hold generic features that should barely move.
-  layer_decay: 0.75
+  # each earlier block is scaled by this factor again. With only the last four
+  # blocks trainable (see unfreeze_blocks) the generic early layers are frozen
+  # outright rather than driven at a token rate, so the decay no longer has to
+  # span twelve blocks and is gentler: across the four that do train it spreads
+  # the rate by 1.6x rather than 42x.
+  layer_decay: 0.85
   drop_path_rate: 0.1             # stochastic depth, inert at eval time
   batch_size: 32                  # frames per ViT forward chunk
   # Recompute block activations in backward instead of storing them. Measured in
@@ -190,11 +193,45 @@ vit:
   # epoch ~20-25% faster. The trained model is the same either way. On a 6-8 GB
   # card set this to true (peak ~2.7 GB at 128 crops, measured); it is not
   # checked on --resume, so it can be switched and the run resumed.
+  # false is correct even on a 6 GB card once unfreeze_blocks is 4: the real-run
+  # peak is 3,080 MB at batch 4, T=16. What matters is not fitting "roughly" --
+  # Windows spills past VRAM into host memory instead of raising, so a setting
+  # that nearly fits is far slower than one that comfortably does. All 12
+  # blocks at batch 4 peaked at 8,249 MB and took 134 s/epoch where 4 blocks at
+  # 3,080 MB take 23.6 s on the same clips.
   grad_checkpointing: false
-  unfreeze_blocks: null           # null = every block; an int = last N only
+  # Train the last 4 of 12 blocks, plus the final norm. Two measurements drove
+  # this, both at T=16 on 1,500 training clips:
+  #
+  # 1. Training all twelve is mostly fiction. AdamW moves a weight by about
+  #    `lr` per step, so over a run's 1,472 optimiser steps the layer-decayed
+  #    lower rungs cannot move: the patch embedding by at most 2% of a typical
+  #    0.03 weight, block 0 by 3%, block 3 by 7% -- and that assumes every
+  #    gradient points the same way. Blocks 0-5 were frozen in all but name
+  #    while still costing a full backward pass and full stored activations.
+  #
+  # 2. Measured in real runs on an RTX 3060 Laptop (6 GB) at T=16, on the
+  #    216-clip set (120 train + 80 val), workers 0:
+  #       all 12 blocks, batch 4          134.3 s/epoch   8,249 MB  (spilling)
+  #       last 4 blocks, batch 8 x 2       46.5 s/epoch   5,566 MB  (spilling)
+  #       last 4 blocks, batch 4 x 4       23.6 s/epoch   3,080 MB  (fits)
+  #    5.7x faster, from two effects: the backward stops at block 8, and the
+  #    result stops exceeding VRAM. Windows spills past VRAM into host memory
+  #    rather than failing, so the old setting was not merely slower, it was
+  #    thrashing. On a 16 GB card none of it spills and the gain is the
+  #    backward alone.
+  #
+  # Fewer trainable parameters should also help accuracy here, not just speed:
+  # the 4-class full run drove training accuracy 0.58 -> 0.955 while validation
+  # loss rose 1.71 -> 2.39, and that was with 5,357 clips. 28.4M parameters on
+  # 1,500 clips overfits less than 85.8M.
+  #
+  # unfreeze_blocks: 2 is faster again (0.047 s/clip, 1.03 h) at 14.2M
+  # trainable; worth trying if 4 still overfits. null trains all twelve.
+  unfreeze_blocks: 4
   # A pretrained backbone must not be driven at the head's learning rate.
   # FULL: 2x the development value, matching the batch-size scaling in training.
-  finetune_lr: 0.00002
+  finetune_lr: 0.0000141
 
 # Training-time augmentation. One transform is sampled per clip and applied to
 # all of its frames: per-frame jitter would inject motion and flicker that the
@@ -262,14 +299,32 @@ training:
   #
   # On a 6-8 GB card set vit.grad_checkpointing true as well; it costs ~20-25%
   # of the epoch but avoids spilling into host memory, which costs far more.
-  batch_size: 8                   # 8 clips x 16 frames = 128 crops per forward
-  grad_accum_steps: 4             # effective batch 8 x 4 = 32
+  # Effective batch 16, not 32. At 1,500 training clips an effective batch of
+  # 32 gives 46 optimiser steps per epoch and 1,472 in the whole 32-epoch run,
+  # which is thin for fine-tuning and is what left the layer-decayed rungs
+  # unable to move. Halving it doubles the steps to 2,976 at IDENTICAL compute:
+  # accumulation processes the same clips either way, the optimiser is just
+  # called twice as often, which costs nothing measurable.
+  # batch 4, not 8. With unfreeze_blocks 4 the real-run peak is 3,080 MB at
+  # batch 4 against 5,566 MB at batch 8, and on a 6 GB card that difference
+  # decides whether it spills: batch 4 ran 23.6 s/epoch where batch 8 ran 46.5
+  # on the same clips. Both give the same effective batch of 16, so the model
+  # being trained is identical.
+  #
+  # On a 16 GB card batch 8 x 2 fits without spilling and may be marginally
+  # faster; measure it rather than assuming, with
+  #     python scripts/probe_finetune_memory.py --config configs/config_full_3class.yaml
+  # Whatever batch_size is chosen, grad_accum_steps must keep the product at 16.
+  batch_size: 4                   # 4 clips x 16 frames = 64 crops per forward
+  grad_accum_steps: 4             # effective batch 4 x 4 = 16
   epochs: 40                      # the maximum; see extend_decision_epoch below
   # FULL: the development runs used an effective batch of 8. Going to 32 gives
   # 4x fewer optimiser steps per epoch, so every learning rate is scaled by
   # sqrt(32 / 8) = 2 -- the usual rule for Adam-family optimisers, and the more
   # conservative of the two standard choices (linear scaling would be 4x).
-  learning_rate: 0.0006           # was 0.0003 at effective batch 8
+  # Scaled by sqrt(16 / 32) = 0.707 from the 6e-4 used at effective batch 32,
+  # by the same rule this config applies elsewhere.
+  learning_rate: 0.000424
   # The 15-epoch full run ended with the five MRS weights at
   # motion_consistency 0.990 and the other four near 0.001 -- the softmax had
   # collapsed and the five-component score had become a one-component one.
@@ -372,6 +427,10 @@ training:
   # processes keep the GPU fed. 4 suits a 16 GB RAM machine (the train and val
   # loaders each keep their own persistent workers, so 8 processes exist at
   # once). Lower to 2-3 if RAM runs short. Override per machine with --workers N.
+  # 4 suits the A4000 machine. Measured on the 6 GB laptop, --workers 2 took a
+  # steady-state epoch from 23.6 s to 15.7 s on the 216-clip set, so the decode
+  # is worth overlapping; --workers 8 there caused host-RAM paging instead.
+  # Override per machine with --workers N.
   num_workers: 4
 
 evaluation:
