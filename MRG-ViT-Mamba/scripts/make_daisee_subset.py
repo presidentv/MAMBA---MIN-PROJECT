@@ -19,6 +19,9 @@ Then, to build it:
 
     python make_daisee_subset.py
 
+The default is 1500 training clips, allocated in proportion to the real class
+distribution. --total N changes that.
+
 Then verify, which re-reads the output from scratch rather than trusting the
 build:
 
@@ -62,14 +65,14 @@ questions.
              distribution it will actually be evaluated on, and the only thing
              lost is sample size. Nothing about the evaluation changes.
 
-             Measured on the real distribution, --total 2000 gives 92/977/931
+             Measured on the real distribution, --total 1500 gives 69/733/698
              and a prior that differs from the full split's by 0.001. Nearly
              all of the budget lands on High vs Very High, which is 95% of the
              test split and therefore where accuracy is won or lost.
 
 --min-per-class N applies a floor under --total, for when macro-F1 matters more
-             than accuracy. It costs a measurable prior shift -- 247/893/860
-             and a drift of 0.077 at --total 2000 -- so pair it with
+             than accuracy. It costs a measurable prior shift -- 241/640/619
+             and a drift of 0.115 at --total 1500 -- so pair it with
              run_finetune.py --logit-adjust. The script prints the before and
              after priors and the size of the drift, so the trade is never
              invisible.
@@ -112,7 +115,7 @@ CLASS_NAMES = ["Low", "High", "Very High"]
 
 # Default sizing: a prior-matched training subset of this many clips. Set to
 # None, with --cap given instead, to cap the common classes instead.
-DEFAULT_TOTAL = 2000
+DEFAULT_TOTAL = 1500
 
 # Floor applied to every class under --total. 0 means strict proportionality,
 # which is the right default when test ACCURACY is the goal: it keeps the
@@ -120,13 +123,13 @@ DEFAULT_TOTAL = 2000
 # calibrated for the distribution it will be evaluated on.
 #
 # The cost is that the merged rare class gets its proportional share and no
-# more -- 92 clips at --total 2000 -- so its own recall will be poor. That
+# more -- 69 clips at --total 1500 -- so its own recall will be poor. That
 # bounds the accuracy loss at the rare class's share of the test split, 4.9%,
-# while the 95% of test clips that are High or Very High are backed by ~900
+# while the 95% of test clips that are High or Very High are backed by ~700
 # training clips each, which is where accuracy is actually won.
 #
 # Raise it (--min-per-class 200) when macro-F1 matters more than accuracy. That
-# shifts the prior measurably -- 0.077 at --total 2000 -- so pair it with
+# shifts the prior measurably -- 0.115 at --total 1500 -- so pair it with
 # run_finetune.py --logit-adjust, which corrects the shift at inference.
 DEFAULT_MIN_PER_CLASS = 0
 
