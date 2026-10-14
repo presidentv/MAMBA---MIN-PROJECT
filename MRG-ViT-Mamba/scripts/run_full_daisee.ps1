@@ -10,6 +10,9 @@
 # checkpoints\<run> first.
 #
 # Optional environment:
+#   $env:CONFIG = "configs/config_full_3class.yaml"   the 3-class, T=16 recipe
+#   $env:LOGIT_ADJUST = "1"     also report metrics corrected for the sampler's prior
+#   $env:TTA = "1"              average over evaluation.tta_scales at evaluation time
 #   $env:RUN = "full_ft32"      run name (checkpoints\, logs\, artifacts\ file names)
 #   $env:STAGE1_SHARDS = "6"    parallel Stage 1 processes (default: cores - 1, max 8)
 #   $env:WORKERS = "4"          DataLoader workers during training/evaluation
@@ -23,8 +26,12 @@ $ErrorActionPreference = "Stop"
 $Repo = Split-Path -Parent $PSScriptRoot
 Set-Location $Repo
 
-$Config = "configs/config_full.yaml"
+$Config = if ($env:CONFIG) { $env:CONFIG } else { "configs/config_full.yaml" }
 $Run = if ($env:RUN) { $env:RUN } else { "full_ft32" }
+# Post-hoc evaluation corrections; both leave the weights untouched.
+$EvalFlags = @()
+if ($env:LOGIT_ADJUST) { $EvalFlags += "--logit-adjust" }
+if ($env:TTA) { $EvalFlags += "--tta" }
 $Workers = if ($env:WORKERS) { $env:WORKERS } else { "4" }
 
 # Leave one core for the OS; more than 8 MediaPipe processes gains little and
@@ -107,8 +114,8 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Step "6/6  fine-tune and evaluate (run: $Run)"
-Invoke-Py @("scripts/run_finetune.py", "--config", $Config, "--run-name", $Run,
-            "--workers", $Workers, "--resume") "fine-tuning"
+Invoke-Py (@("scripts/run_finetune.py", "--config", $Config, "--run-name", $Run,
+             "--workers", $Workers, "--resume") + $EvalFlags) "fine-tuning"
 
 Step "figures"
 # "--baseline=" rather than --baseline "": PowerShell 5.1 drops an empty-string

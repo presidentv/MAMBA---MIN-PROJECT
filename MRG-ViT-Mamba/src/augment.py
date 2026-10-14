@@ -121,3 +121,56 @@ class ClipAugment:
         out = crops.copy()
         out[:, y0:y0 + eh, x0:x0 + ew, :] = fill
         return out
+
+
+@dataclass
+class CenterCropView:
+    """One deterministic view of a clip, for test-time augmentation.
+
+    TTA averages a model's probabilities over several views of the same clip.
+    The views must be *deterministic*, or the reported score depends on an RNG
+    and the evaluation stops being reproducible -- so this is a fixed centre
+    crop at a given scale, not a sample from ClipAugment's distribution. No
+    photometric shift and no erasing either: those exist to make training
+    harder, and at evaluation time they would only add noise.
+
+    ``scale`` is the fraction of the frame area kept. 1.0 returns the clip
+    untouched, which is the view the model is normally evaluated on, so a TTA
+    set should always include it.
+
+    Horizontal flip is absent here for the same reason as in ClipAugment: the
+    landmark branch carries signed geometry computed from unflipped frames.
+    """
+
+    scale: float = 1.0
+
+    def __post_init__(self):
+        if not 0.0 < float(self.scale) <= 1.0:
+            raise ValueError(f"CenterCropView scale must be in (0, 1], got {self.scale}")
+
+    @staticmethod
+    def set_from_config(cfg_eval: dict | None) -> "list[CenterCropView]":
+        """Views named by ``evaluation.tta_scales``; empty list when unset.
+
+        An empty list means "no TTA" rather than "one default view", so the
+        plain single-pass evaluation stays the default everywhere.
+        """
+        scales = (cfg_eval or {}).get("tta_scales") or []
+        return [CenterCropView(float(s)) for s in scales]
+
+    def describe(self) -> dict:
+        return {"view": "center_crop", "scale": float(self.scale)}
+
+    def __call__(self, crops: np.ndarray) -> np.ndarray:
+        if crops.ndim != 4 or crops.shape[-1] != 3:
+            raise ValueError(f"expected [T, H, W, 3] uint8, got {crops.shape}")
+        if self.scale >= 1.0:
+            return crops
+        t, h, w, _ = crops.shape
+        side = np.sqrt(float(self.scale))
+        ch, cw = max(1, int(round(h * side))), max(1, int(round(w * side)))
+        y0, x0 = (h - ch) // 2, (w - cw) // 2
+        return np.stack([
+            cv2.resize(f[y0:y0 + ch, x0:x0 + cw], (w, h), interpolation=cv2.INTER_LINEAR)
+            for f in crops
+        ])

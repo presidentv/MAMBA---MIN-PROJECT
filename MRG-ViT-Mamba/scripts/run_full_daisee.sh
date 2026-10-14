@@ -9,19 +9,36 @@
 # run, delete checkpoints/$RUN first.
 #
 # Optional environment:
+#   CONFIG=configs/config_full_3class.yaml   the 3-class, T=16 recipe
+#   LOGIT_ADJUST=1         also report metrics corrected for the sampler's prior
+#   TTA=1                  average over evaluation.tta_scales at evaluation time
 #   RUN=full_ft32          run name (checkpoints/, logs/, artifacts/ file names)
 #   STAGE1_SHARDS=<nproc>  parallel Stage 1 processes (CPU-bound MediaPipe)
 #   WORKERS=4              DataLoader workers during training/evaluation
 #   MRG_CACHE_DIR=...      put the ~4.3 GB Stage 1 cache on a fast local disk
 #   MRG_CHECKPOINT_DIR=... put checkpoints (best.pt + last.pt, ~1.4 GB) somewhere with space
 #
+# The three-class run, which is the recommended one -- see the header of
+# configs/config_full_3class.yaml for why:
+#
+#   export DAISEE_ROOT=/path/to/DAiSEE
+#   CONFIG=configs/config_full_3class.yaml RUN=full_3class LOGIT_ADJUST=1 TTA=1 \
+#       bash scripts/run_full_daisee.sh
+#
+# That config uses T=16, so it builds its own Stage 1 cache and its own MRS
+# calibration; it does not share the T=32 ones.
+#
 # On Windows use scripts/run_full_daisee.ps1, which runs the same steps.
 
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-CONFIG="configs/config_full.yaml"
+CONFIG="${CONFIG:-configs/config_full.yaml}"
 RUN="${RUN:-full_ft32}"
+# Post-hoc evaluation corrections; both leave the weights untouched.
+EVAL_FLAGS=()
+[ -n "${LOGIT_ADJUST:-}" ] && EVAL_FLAGS+=(--logit-adjust)
+[ -n "${TTA:-}" ] && EVAL_FLAGS+=(--tta)
 WORKERS="${WORKERS:-4}"
 NPROC="$(nproc 2>/dev/null || getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)"
 STAGE1_SHARDS="${STAGE1_SHARDS:-$NPROC}"
@@ -73,8 +90,9 @@ step "5/6  GPU memory probe (informational)"
     echo "memory probe failed - continuing; training uses the configured batch size"
 
 step "6/6  fine-tune and evaluate (run: $RUN)"
+echo "config: $CONFIG${EVAL_FLAGS[*]:+   eval flags: ${EVAL_FLAGS[*]}}"
 "$PY" scripts/run_finetune.py --config "$CONFIG" --run-name "$RUN" \
-    --workers "$WORKERS" --resume
+    --workers "$WORKERS" --resume ${EVAL_FLAGS[@]+"${EVAL_FLAGS[@]}"}
 
 step "figures"
 "$PY" scripts/make_finetune_figures.py --run "$RUN" --baseline '' || \

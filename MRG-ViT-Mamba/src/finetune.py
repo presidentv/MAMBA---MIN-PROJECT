@@ -37,6 +37,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 
 from .augment import ClipAugment
+from .class_merge import class_names as merged_class_names
 from .dataset import FineTuneClipDataset, collate_finetune, load_calibration
 from .fusion import StandardScaler
 from .losses import build_loss
@@ -53,9 +54,20 @@ from .vit_encoder import ViTFrameEncoder
 # has collapsed and the remaining components are no longer contributing.
 COLLAPSE_WARN_AT = 0.80
 
+# Which validation number picks the checkpoint. The default stays macro-F1:
+# it is the headline metric and changing it silently would make past runs
+# incomparable. Set training.selection_metric to choose a different one --
+# selecting on macro-F1 and then reporting accuracy means the checkpoint was
+# never chosen for the number being quoted. On the 15-epoch full run the two
+# disagree by a whole model: macro-F1 picks epoch 4 (val acc 0.530) while
+# accuracy picks epoch 0 (val acc 0.579).
+SELECTION_METRICS = ("macro_f1", "accuracy", "balanced_accuracy", "weighted_f1")
+
 HISTORY_FIELDS = [
     "epoch", "train_loss", "train_accuracy", "train_macro_f1", "train_weighted_f1",
+    "train_balanced_accuracy",
     "val_loss", "val_accuracy", "val_macro_f1", "val_weighted_f1",
+    "val_balanced_accuracy",
     "head_lr", "backbone_lr", "gpu_memory_mb", "seconds",
 ] + [f"w_{c}" for c in COMPONENTS]
 
@@ -67,6 +79,12 @@ class FineTuneResult:
     best_checkpoint: str
     history: list[dict] = field(default_factory=list)
     info: dict = field(default_factory=dict)
+    # The value and name of the metric selection actually used. These are
+    # best_val_macro_f1 and "macro_f1" unless training.selection_metric says
+    # otherwise; kept separate so the macro-F1 field never silently means
+    # something else to code that reads it.
+    best_val_score: float | None = None
+    selection_metric: str = "macro_f1"
 
 
 def build_finetune_datasets(cfg, index, s1_key: str, spec, splits=("train", "val", "test"),
@@ -251,7 +269,20 @@ def _restore_rng(state: dict) -> None:
 _RESUME_MUST_MATCH = (
     ("video", "num_frames"), ("vit", "model_name"), ("vit", "unfreeze_blocks"),
     ("dataset", "num_classes"), ("mamba", "d_model"), ("mamba", "n_layers"),
+    # A different labelling or a different selection rule makes the resumed run
+    # a different experiment, and the checkpoint's recorded best would refer to
+    # a metric no longer being tracked.
+    ("dataset", "class_merge"), ("training", "selection_metric"),
 )
+
+
+def resolve_selection_metric(tcfg) -> str:
+    """The validation metric selection is done on, validated."""
+    metric = str(tcfg.get("selection_metric", "macro_f1"))
+    if metric not in SELECTION_METRICS:
+        raise ValueError(
+            f"training.selection_metric must be one of {SELECTION_METRICS}, got {metric!r}")
+    return metric
 
 
 def periodic_checkpoint_name(epoch: int, every: int) -> str | None:
@@ -359,6 +390,9 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
     tcfg = dict(cfg["training"])
     if overrides:
         tcfg.update(overrides)
+    # After the overrides, so an overridden selection_metric is the one used.
+    selection_metric = resolve_selection_metric(tcfg)
+    class_names = merged_class_names(cfg, int(cfg["dataset"]["num_classes"]))
 
     set_seed(int(cfg.get("seed", 42)))
 
@@ -514,6 +548,15 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
             "backbone_info": backbone_info,
             "backbone_spec": spec.as_dict(),
             "finetuned": True,
+            # Evaluation needs these to label its reports and to undo the
+            # sampler's prior shift; reading them from the checkpoint means a
+            # model is never scored against a different config's assumptions.
+            "class_merge": getattr(index, "class_merge", None),
+            "class_names": list(class_names),
+            "sampling": sampling_info,
+            "selection_metric": selection_metric,
+            "train_label_counts": {int(k): int(v)
+                                   for k, v in train_ds.label_counts().items()},
         }
 
     best = {"macro_f1": -1.0, "epoch": -1}
@@ -585,7 +628,7 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
         if logger:
             logger.info("resumed from %s: epoch %d done, best so far epoch %d "
                         "(val macro-F1 %.4f)", resume_path, resumed_from,
-                        best["epoch"], best["macro_f1"])
+                        best["epoch"], best.get("macro_f1", float("nan")))
     elif resume and logger:
         logger.info("--resume given but %s does not exist; starting from epoch 0", last_path)
 
@@ -618,8 +661,8 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
         va_loss, va_true, va_pred = _run_epoch(model, val_loader, loss_fn, None, device)
         scheduler.step()
 
-        m_tr = compute_metrics(tr_true, tr_pred, num_classes)
-        m_va = compute_metrics(va_true, va_pred, num_classes)
+        m_tr = compute_metrics(tr_true, tr_pred, num_classes, class_names)
+        m_va = compute_metrics(va_true, va_pred, num_classes, class_names)
         lrs = {g.get("name", str(i)): g["lr"] for i, g in enumerate(optimiser.param_groups)}
         # With layer-wise decay there are many backbone groups; report the
         # largest, which is the one applied to the final block.
@@ -632,10 +675,12 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
             "train_accuracy": round(m_tr["accuracy"], 6),
             "train_macro_f1": round(m_tr["macro_f1"], 6),
             "train_weighted_f1": round(m_tr["weighted_f1"], 6),
+            "train_balanced_accuracy": round(m_tr["balanced_accuracy"], 6),
             "val_loss": round(va_loss, 6),
             "val_accuracy": round(m_va["accuracy"], 6),
             "val_macro_f1": round(m_va["macro_f1"], 6),
             "val_weighted_f1": round(m_va["weighted_f1"], 6),
+            "val_balanced_accuracy": round(m_va["balanced_accuracy"], 6),
             "head_lr": max(hd) if hd else lrs.get("head"),
             "backbone_lr": max(bb) if bb else lrs.get("backbone"),
             "gpu_memory_mb": round(gpu_memory_mb() or 0.0, 1),
@@ -673,10 +718,12 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
             _atomic_torch_save(checkpoint_payload(epoch, m_va),
                                ckpt_dir / f"epoch_{epoch:03d}.pt")
 
-        if m_va["macro_f1"] > best["macro_f1"]:
+        if m_va[selection_metric] > best.get(selection_metric, -1.0):
             best = {"macro_f1": m_va["macro_f1"], "epoch": epoch,
                     "accuracy": m_va["accuracy"], "weighted_f1": m_va["weighted_f1"],
-                    "loss": va_loss}
+                    "balanced_accuracy": m_va["balanced_accuracy"],
+                    "loss": va_loss, "selection_metric": selection_metric,
+                    "selection_score": m_va[selection_metric]}
             _atomic_torch_save(checkpoint_payload(epoch, m_va), ckpt_dir / "best.pt")
             since_improved = 0
         else:
@@ -745,8 +792,8 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
 
         if since_improved >= patience:
             if logger:
-                logger.info("early stopping at epoch %d (no val macro-F1 improvement for "
-                            "%d epochs)", epoch, patience)
+                logger.info("early stopping at epoch %d (no val %s improvement for "
+                            "%d epochs)", epoch, selection_metric, patience)
             break
         if extend_decision is not None and not extend_decision["extend"]:
             break
@@ -780,6 +827,9 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
         "model": model.describe(),
         "loss": loss_info,
         "sampling": sampling_info,
+        "selection_metric": selection_metric,
+        "class_merge": getattr(index, "class_merge", None),
+        "class_names": list(class_names),
         "landmark_scaler": scaler_info,
         "s1_key": s1_key,
         "clips": {"train": len(train_ds), "val": len(val_ds), "test": len(test_ds)},
@@ -817,5 +867,7 @@ def finetune_model(cfg, index, run_name: str = "ft32", logger=None,
     save_json(info, Path(cfg["paths"]["artifacts_dir"]) / f"training_{run_name}.json")
 
     return FineTuneResult(best_epoch=best["epoch"], best_val_macro_f1=best["macro_f1"],
+                          best_val_score=best.get("selection_score", best["macro_f1"]),
+                          selection_metric=selection_metric,
                           best_checkpoint=str(ckpt_dir / "best.pt"),
                           history=history, info=info)

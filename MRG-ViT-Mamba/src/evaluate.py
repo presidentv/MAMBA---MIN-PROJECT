@@ -13,9 +13,10 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
+from .class_merge import class_names as merged_class_names
 from .dataset import CachedClipDataset, collate, load_calibration
 from .mamba_ref import mamba_backend_info
-from .metrics import DEFAULT_CLASS_NAMES, compute_metrics, format_report, plot_confusion_matrix
+from .metrics import compute_metrics, format_report, plot_confusion_matrix
 from .model import MRGViTMamba
 from .utils import ensure_dir, environment_record, get_device, resolve_path, save_json
 
@@ -135,7 +136,11 @@ def evaluate_split(cfg, index, s1_key: str, s2_key: str, checkpoint: str,
 
     y_true, y_pred, logits, clip_ids, subjects = predict(model, loader, device)
     num_classes = int(cfg["dataset"]["num_classes"])
-    metrics = compute_metrics(y_true, y_pred, num_classes)
+    # The labelling follows the checkpoint's own config, so a model trained on
+    # merged classes is never reported under the four original level names.
+    names = tuple(ckpt.get("class_names")
+                  or merged_class_names(ckpt.get("config") or cfg, num_classes))
+    metrics = compute_metrics(y_true, y_pred, num_classes, names)
 
     eff = measure_efficiency(model, dataset, device,
                              repeats=int(cfg["evaluation"]["timing_repeats"]),
@@ -144,7 +149,7 @@ def evaluate_split(cfg, index, s1_key: str, s2_key: str, checkpoint: str,
     prefix = artifact_prefix or f"{run_name}_{split}"
     art = ensure_dir(cfg["paths"]["artifacts_dir"])
 
-    report_text = format_report(y_true, y_pred, num_classes)
+    report_text = format_report(y_true, y_pred, num_classes, names)
     (art / f"classification_report_{prefix}.txt").write_text(
         f"Split: {split}\nCheckpoint: {checkpoint}\n"
         f"Selected on: validation macro-F1 (epoch {ckpt.get('epoch')})\n"
@@ -157,10 +162,10 @@ def evaluate_split(cfg, index, s1_key: str, s2_key: str, checkpoint: str,
     # pair of near-identical plots per run buries the real artifacts. The numbers
     # are always in the JSON, so only the plots are optional.
     if plots:
-        plot_confusion_matrix(metrics["confusion_matrix"], DEFAULT_CLASS_NAMES,
+        plot_confusion_matrix(metrics["confusion_matrix"], names,
                               art / f"confusion_matrix_{prefix}.png",
                               title=f"{split} confusion matrix ({len(y_true)} clips)")
-        plot_confusion_matrix(metrics["confusion_matrix"], DEFAULT_CLASS_NAMES,
+        plot_confusion_matrix(metrics["confusion_matrix"], names,
                               art / f"confusion_matrix_{prefix}_normalised.png",
                               title=f"{split} confusion matrix, row-normalised",
                               normalize=True)
@@ -175,6 +180,9 @@ def evaluate_split(cfg, index, s1_key: str, s2_key: str, checkpoint: str,
         "model_mrs_weighting_mode": model.mrs_weighting.mode,
         "model_pooling": model.temporal.pooling,
         "num_videos": int(len(y_true)),
+        "num_classes": num_classes,
+        "class_names": list(names),
+        "class_merge": ckpt.get("class_merge"),
         "num_unique_subjects": len(set(subjects)),
         "subjects": sorted(set(subjects)),
         "label_counts": {str(k): int(v) for k, v in sorted(dataset.label_counts().items())},

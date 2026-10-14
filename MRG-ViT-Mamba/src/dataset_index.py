@@ -21,6 +21,7 @@ from dataclasses import dataclass, field, asdict
 from pathlib import Path
 from typing import Iterable
 
+from .class_merge import RAW_LABEL_KEY, apply_to_index, parse_class_merge
 from .utils import resolve_path
 
 SPLITS = ("train", "val", "test")
@@ -37,7 +38,16 @@ class ClipRecord:
 
     @property
     def engagement(self) -> int | None:
+        """The training label. Merged when dataset.class_merge is set.
+
+        ``labels["Engagement_raw"]`` keeps the original DAiSEE level in that
+        case, so the mapping can always be checked after the fact.
+        """
         return self.labels.get("Engagement")
+
+    @property
+    def engagement_raw(self) -> int | None:
+        return self.labels.get(RAW_LABEL_KEY, self.labels.get("Engagement"))
 
 
 @dataclass
@@ -52,6 +62,10 @@ class DatasetIndex:
     root: str
     clips: dict[str, list[ClipRecord]]
     problems: list[IndexProblem]
+    # Set when dataset.class_merge collapsed the engagement levels; None for the
+    # original 4-class labelling. Recorded so every artifact built from this
+    # index can state which labelling produced it.
+    class_merge: dict | None = None
 
     def all_clips(self) -> Iterable[ClipRecord]:
         for split in SPLITS:
@@ -188,7 +202,16 @@ def build_index(cfg) -> DatasetIndex:
                 f"{split}: {len(orphan_labels)} label rows have no video file on disk",
                 orphan_labels))
 
-    return DatasetIndex(str(root), clips, problems)
+    index = DatasetIndex(str(root), clips, problems)
+
+    # One choke point for the labelling. Every dataset, sampler, loss and metric
+    # reads ClipRecord.engagement, so merging here makes it impossible for the
+    # train split to be collapsed while val or test is not -- which would look
+    # like a trained model and produce meaningless scores.
+    merge = parse_class_merge(cfg, source_classes=4)
+    index.class_merge = apply_to_index(index, merge,
+                                       str(cfg["dataset"].get("target_label", "Engagement")))
+    return index
 
 
 def label_distribution(records: list[ClipRecord], target: str = "Engagement") -> dict[int, int]:
@@ -214,4 +237,5 @@ def index_to_dict(index: DatasetIndex) -> dict:
         "root": index.root,
         "counts": {s: len(index.clips.get(s, [])) for s in SPLITS},
         "problems": [asdict(p) for p in index.problems],
+        "class_merge": index.class_merge,
     }
