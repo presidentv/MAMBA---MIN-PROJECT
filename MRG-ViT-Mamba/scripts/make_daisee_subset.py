@@ -33,14 +33,49 @@ clips. The label CSVs written out keep the ORIGINAL 4-level values, so the
 merge stays a decision your training config makes at load time and nothing is
 baked irreversibly into the data.
 
-Only the training split is subsampled. Validation and Test are copied whole.
+Only the training split is subsampled. Validation and Test are copied whole --
+every one of the 1,429 validation and 1,784 test clips, in both modes. So the
+test measurement itself is untouched: the same clips, the same 0.494
+majority-class baseline, and a number still comparable with published work.
+Shrinking the TRAINING split can of course still cost accuracy; what these
+modes control is whether it costs anything beyond the reduced sample size.
 Subsampling an evaluation split changes the baseline it is measured against
 (balancing DAiSEE's test split moves majority-class accuracy from 0.494 to
 0.333), throws away most of the statistical power, and makes the result
 incomparable to published work.
 
-The rare class is kept whole and only the common ones are capped. Matching
-every class to the rarest would cap training at ~136 clips.
+There are two ways to size the training split, and they answer different
+questions.
+
+--cap N      caps each common class at N and keeps the rare class whole. Use it
+             when the goal is to spend less time per epoch and the rare class
+             needs every clip it has. It shifts the class distribution towards
+             the rare class, which costs accuracy unless the shift is corrected
+             at inference (run_finetune.py --logit-adjust does that).
+
+--total N    allocates N clips across the classes IN PROPORTION to the real
+             class distribution, with a floor of --min-per-class on each. This
+             is the setting to use when test accuracy is what matters. A
+             proportional, subject-stratified sample is an unbiased smaller
+             draw from the same distribution: the training prior still matches
+             the test prior, so the decision boundary is calibrated for the
+             distribution it will actually be evaluated on, and the only thing
+             lost is sample size. Nothing about the evaluation changes.
+
+             Measured on the real distribution, --total 2000 gives 92/977/931
+             and a prior that differs from the full split's by 0.001. Nearly
+             all of the budget lands on High vs Very High, which is 95% of the
+             test split and therefore where accuracy is won or lost.
+
+--min-per-class N applies a floor under --total, for when macro-F1 matters more
+             than accuracy. It costs a measurable prior shift -- 247/893/860
+             and a drift of 0.077 at --total 2000 -- so pair it with
+             run_finetune.py --logit-adjust. The script prints the before and
+             after priors and the size of the drift, so the trade is never
+             invisible.
+
+Matching every class to the rarest would cap training at ~136 clips, which is
+why neither mode does that.
 
 Selection is round-robin across subjects, not random. The training split is
 5,357 clips from only 69 subjects and the clips per subject are very uneven, so
@@ -75,11 +110,25 @@ OUTPUT = r"D:\Mini project\daisee_subset"
 CLASS_MERGE = [[0, 1], [2], [3]]
 CLASS_NAMES = ["Low", "High", "Very High"]
 
-# Clips per merged class in the training split. A class with fewer is kept
-# whole; it is never padded or duplicated. 1200 keeps ~2,647 of 5,357 training
-# clips, which roughly halves the epoch time while leaving the class prior close
-# to the real one.
-DEFAULT_CAP = 1200
+# Default sizing: a prior-matched training subset of this many clips. Set to
+# None, with --cap given instead, to cap the common classes instead.
+DEFAULT_TOTAL = 2000
+
+# Floor applied to every class under --total. 0 means strict proportionality,
+# which is the right default when test ACCURACY is the goal: it keeps the
+# training prior equal to the real one, so the decision boundary stays
+# calibrated for the distribution it will be evaluated on.
+#
+# The cost is that the merged rare class gets its proportional share and no
+# more -- 92 clips at --total 2000 -- so its own recall will be poor. That
+# bounds the accuracy loss at the rare class's share of the test split, 4.9%,
+# while the 95% of test clips that are High or Very High are backed by ~900
+# training clips each, which is where accuracy is actually won.
+#
+# Raise it (--min-per-class 200) when macro-F1 matters more than accuracy. That
+# shifts the prior measurably -- 0.077 at --total 2000 -- so pair it with
+# run_finetune.py --logit-adjust, which corrects the shift at inference.
+DEFAULT_MIN_PER_CLASS = 0
 
 SPLITS = ("train", "val", "test")
 VIDEO_EXTENSIONS = (".avi", ".mp4")
@@ -260,6 +309,61 @@ def merge_map(groups) -> dict[int, int]:
     return mapping
 
 
+def allocate_proportional(counts: list[int], total: int,
+                          min_per_class: int) -> list[int]:
+    """Split `total` across classes in proportion to `counts`.
+
+    Each class gets at least ``min_per_class`` (or everything it has, if that is
+    fewer), and no class is asked for more than it has. The remainder after the
+    floors is handed out by largest remainder on the real proportions, then any
+    clips left over because a class ran out are redistributed to the classes
+    that still have headroom. Returns the per-class targets.
+    """
+    k = len(counts)
+    available = list(counts)
+    alloc = [min(min_per_class, available[c]) for c in range(k)]
+
+    if sum(alloc) > total:
+        # The floors alone exceed the budget: honour the budget and scale the
+        # floors down proportionally rather than silently overshooting.
+        scale = total / sum(alloc)
+        alloc = [int(a * scale) for a in alloc]
+        return alloc
+
+    remaining = total - sum(alloc)
+    while remaining > 0:
+        headroom = [available[c] - alloc[c] for c in range(k)]
+        if not any(headroom):
+            break
+        weight_total = sum(counts[c] for c in range(k) if headroom[c] > 0)
+        if weight_total <= 0:
+            break
+        # Proportional share of what is left, floored, then largest-remainder
+        # for the rounding so the total lands exactly on the budget.
+        shares = []
+        for c in range(k):
+            if headroom[c] <= 0:
+                shares.append((0.0, c))
+                continue
+            shares.append((remaining * counts[c] / weight_total, c))
+        given = 0
+        for share, c in shares:
+            take = min(int(share), headroom[c])
+            alloc[c] += take
+            given += take
+        remaining -= given
+        if given == 0:
+            # Rounding left less than one clip per class; hand the rest to the
+            # classes with headroom, largest proportion first.
+            for _, c in sorted(shares, reverse=True):
+                if remaining <= 0:
+                    break
+                if available[c] - alloc[c] > 0:
+                    alloc[c] += 1
+                    remaining -= 1
+    return alloc
+
+
 def select_round_robin(clips: list[Clip], target: int, seed: int) -> list[Clip]:
     """Up to `target` clips, taken one per subject per pass.
 
@@ -293,11 +397,17 @@ def select_round_robin(clips: list[Clip], target: int, seed: int) -> list[Clip]:
 
 
 def plan(clips: list[Clip], mapping: dict[int, int], num_classes: int,
-         per_class: list[int] | None, cap: int | None, keep_all: set[int],
-         seed: int, subsample: bool) -> tuple[list[Clip], dict]:
+         per_class: list[int] | None, cap: int | None, total: int | None,
+         min_per_class: int, keep_all: set[int], seed: int,
+         subsample: bool) -> tuple[list[Clip], dict]:
     by_class: dict[int, list[Clip]] = {c: [] for c in range(num_classes)}
     for clip in clips:
         by_class[mapping[clip.engagement]].append(clip)
+
+    proportional = None
+    if subsample and total is not None and per_class is None:
+        proportional = allocate_proportional(
+            [len(by_class[c]) for c in range(num_classes)], total, min_per_class)
 
     chosen: list[Clip] = []
     detail: dict[int, dict] = {}
@@ -309,6 +419,10 @@ def plan(clips: list[Clip], mapping: dict[int, int], num_classes: int,
             target, reason = len(available), "kept whole (--keep-all)"
         elif per_class is not None:
             target, reason = min(per_class[c], len(available)), f"--per-class {per_class[c]}"
+        elif proportional is not None:
+            target = min(proportional[c], len(available))
+            reason = (f"--total {total}, prior-matched"
+                      + (f", floored at {min_per_class}" if target == min_per_class else ""))
         elif cap is not None:
             target, reason = min(cap, len(available)), f"--cap {cap}"
         else:
@@ -447,8 +561,18 @@ def main() -> int:
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--source", default=SOURCE, help=f"DAiSEE root (default: {SOURCE})")
     ap.add_argument("--out", default=OUTPUT, help=f"subset root (default: {OUTPUT})")
-    ap.add_argument("--cap", type=int, default=DEFAULT_CAP,
-                    help=f"max training clips per merged class (default: {DEFAULT_CAP})")
+    ap.add_argument("--total", type=int, default=None,
+                    help=f"total training clips, allocated in proportion to the real "
+                         f"class distribution (default: {DEFAULT_TOTAL} when neither "
+                         f"--cap nor --per-class is given). Use this when test "
+                         f"accuracy is what matters.")
+    ap.add_argument("--min-per-class", type=int, default=DEFAULT_MIN_PER_CLASS,
+                    help=f"floor per class under --total (default: "
+                         f"{DEFAULT_MIN_PER_CLASS})")
+    ap.add_argument("--cap", type=int, default=None,
+                    help="max training clips per merged class, rare class kept whole; "
+                         "shifts the class prior, so pair it with "
+                         "run_finetune.py --logit-adjust")
     ap.add_argument("--per-class", type=int, nargs="+", default=None,
                     help="explicit per-class training targets instead of --cap")
     ap.add_argument("--keep-all", type=int, nargs="*", default=None,
@@ -463,6 +587,14 @@ def main() -> int:
     ap.add_argument("--verify-only", action="store_true",
                     help="check an existing subset and exit")
     args = ap.parse_args()
+
+    # Exactly one sizing mode. Defaulting to --total means the recommended
+    # behaviour is what you get by running the script with no arguments.
+    modes = [args.total is not None, args.cap is not None, args.per_class is not None]
+    if sum(modes) > 1:
+        sys.exit("give only one of --total, --cap, --per-class")
+    if not any(modes):
+        args.total = DEFAULT_TOTAL
 
     src_root = Path(args.source).expanduser()
     out_root = Path(args.out).expanduser()
@@ -482,6 +614,13 @@ def main() -> int:
     print(f"source : {src_root}")
     print(f"output : {out_root}")
     print(f"merge  : {CLASS_MERGE} -> {CLASS_NAMES}")
+    if args.total is not None:
+        print(f"sizing : {args.total} training clips, prior-matched, "
+              f"floor {args.min_per_class} per class")
+    elif args.cap is not None:
+        print(f"sizing : common classes capped at {args.cap}, rare class kept whole")
+    else:
+        print(f"sizing : explicit per-class targets {args.per_class}")
 
     layout = locate_layout(src_root)
     print(f"layout : {layout['data_dir'].name}/"
@@ -494,7 +633,8 @@ def main() -> int:
         "source_root": str(src_root), "output_root": str(out_root),
         "seed": args.seed, "link_mode": args.link,
         "class_merge": CLASS_MERGE, "class_names": CLASS_NAMES,
-        "cap": args.cap, "per_class": args.per_class,
+        "cap": args.cap, "per_class": args.per_class, "total": args.total,
+        "min_per_class": args.min_per_class,
         "subsampled_splits": list(args.splits), "splits": {},
     }
 
@@ -511,7 +651,9 @@ def main() -> int:
                   f"{PUBLISHED[split]}; using what is on disk")
 
         chosen, detail = plan(clips, mapping, num_classes, args.per_class, args.cap,
-                              set(args.keep_all or []), args.seed, split in args.splits)
+                              args.total, args.min_per_class,
+                              set(args.keep_all or []), args.seed,
+                              split in args.splits)
         selected[split] = chosen
 
         after: dict[int, int] = {}
@@ -529,8 +671,26 @@ def main() -> int:
             print(f"   {c} {CLASS_NAMES[c]:<12} {d['available']:>5} -> {d['selected']:>5} clips"
                   f"   {d['subjects_available']:>3} -> {d['subjects_selected']:>3} subjects"
                   f"   [{d['reason']}]")
-        print("   resulting class prior: " +
+        merged_before: dict[int, int] = {}
+        for clip in clips:
+            c = mapping[clip.engagement]
+            merged_before[c] = merged_before.get(c, 0) + 1
+        before_total = sum(merged_before.values()) or 1
+        print("   class prior before: " +
+              "  ".join(f"{merged_before.get(c, 0) / before_total:.3f}"
+                        for c in range(num_classes)))
+        print("   class prior after : " +
               "  ".join(f"{after.get(c, 0) / total:.3f}" for c in range(num_classes)))
+        if split in args.splits:
+            drift = max(abs(after.get(c, 0) / total
+                            - merged_before.get(c, 0) / before_total)
+                        for c in range(num_classes))
+            # The training prior is what the decision boundary is calibrated to,
+            # so drift away from the real distribution is what costs accuracy --
+            # not the smaller clip count by itself.
+            print(f"   largest prior shift: {drift:.3f}"
+                  + ("   (negligible; no correction needed)" if drift < 0.02 else
+                     "   (train with run_finetune.py --logit-adjust to correct it)"))
 
         summary["splits"][split] = {
             "subsampled": split in args.splits,

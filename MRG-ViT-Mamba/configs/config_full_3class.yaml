@@ -21,17 +21,27 @@
 #    at T=64 -- every interval overlaps every other. There is no evidence T=32
 #    buys anything, and it costs exactly double.
 #
-# 3. Larger batch. The full run peaked at 2,745 MB of GPU memory with
-#    batch_size 4 -- 17% of a 16 GB card -- and spent 17.2 min/epoch at 193
-#    ms/clip. Most of that was launch overhead and idle SMs, not arithmetic.
+# 3. Larger batch -- but a modest one. The 15-epoch run logged 2,745 MB of GPU
+#    memory, which looks like vast headroom on a 16 GB card. It is not: that
+#    run had vit.grad_checkpointing TRUE (see backbone.grad_checkpointing in
+#    artifacts/training_full_ft32.json), and config_full.yaml now sets it
+#    false, which its own comment puts at ~9-10 GB for the same 128 crops per
+#    forward. The usable figure is therefore ~9-10 GB at 128 crops, not 2.7.
+#
+#    At T=16 a batch of 8 is those same 128 crops, so it is the largest setting
+#    already known to fit with checkpointing off. Batch 16 would be 256 crops,
+#    roughly 18-20 GB, and would not.
 #
 # 4. Selection on balanced accuracy. See training.selection_metric: selecting
 #    on plain accuracy would have picked epoch 0 of that run, which scored
 #    0.579 -- the majority-class baseline -- i.e. a model that had learned
 #    almost nothing.
 #
-# Together 2 and 3 cut the epoch from ~17 min to roughly 4, which is what makes
-# training on the whole release affordable rather than something to subsample.
+# Change 2 is the one that matters for time: it halves the per-clip cost
+# exactly, taking the epoch from 17.2 min to roughly 8-9 min on the A4000, so
+# 40 epochs over the whole release is about 6 hours. Change 3 is worth a little
+# more on top but is not the 2-3x a starved GPU would give -- 128 crops of
+# 224x224 through ViT-B/16 is already a real workload, not launch overhead.
 #
 # Paths can be overridden without editing this file:
 #   DAISEE_ROOT=/data/DAiSEE          -> paths.dataset_root
@@ -236,17 +246,24 @@ training:
   # checkpointing (the RTX A4000 setting, see vit.grad_checkpointing), ~2.7 GB
   # with it. Keep this at 4 unless memory allows more; any change must keep
   # batch_size x grad_accum_steps = 32.
-  # 3CLASS: the 4-class run peaked at 2,745 MB with batch_size 4 at T=32, i.e.
-  # 128 crops per forward on a 16 GB card. At T=16 a batch of 16 is 256 crops
-  # per forward -- about twice the activations, so roughly 5-6 GB, with room to
-  # spare. The effective batch stays 32, so no learning rate changes.
+  # 3CLASS: batch 8 at T=16 is 128 crops per forward -- exactly the number the
+  # 4-class run already sustained at batch 4, T=32. With
+  # vit.grad_checkpointing false that is ~9-10 GB of the A4000's 16 GB, per the
+  # measurement recorded in config_full.yaml. The effective batch stays 32, so
+  # no learning rate changes.
   #
-  # MEASURE THIS FIRST on the machine that will run it:
+  # The 2,745 MB in artifacts/training_full_ft32.json is NOT headroom: that run
+  # had gradient checkpointing enabled and this config does not.
+  #
+  # MEASURE on the machine that will run it before the long run:
   #     python scripts/probe_finetune_memory.py --config configs/config_full_3class.yaml
   # then set batch_size to the largest value that fits and grad_accum_steps to
   # 32 / batch_size. The product must stay 32.
-  batch_size: 16                  # 16 clips x 16 frames = 256 crops per forward
-  grad_accum_steps: 2             # effective batch 16 x 2 = 32
+  #
+  # On a 6-8 GB card set vit.grad_checkpointing true as well; it costs ~20-25%
+  # of the epoch but avoids spilling into host memory, which costs far more.
+  batch_size: 8                   # 8 clips x 16 frames = 128 crops per forward
+  grad_accum_steps: 4             # effective batch 8 x 4 = 32
   epochs: 40                      # the maximum; see extend_decision_epoch below
   # FULL: the development runs used an effective batch of 8. Going to 32 gives
   # 4x fewer optimiser steps per epoch, so every learning rate is scaled by
