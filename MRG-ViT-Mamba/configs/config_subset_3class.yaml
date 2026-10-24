@@ -1,0 +1,481 @@
+# MRG-ViT--Mamba on the 1,500-clip prior-matched DAiSEE subset, 3 classes, T=16.
+#
+# Derived from config_full_3class.yaml. The only differences are run shape, not
+# modelling: a fixed 32 epochs with no mid-run decision point, no early
+# stopping, 2 DataLoader workers, and its own MRS calibration file (calibration
+# is fitted on the training split, and this training split is a subset of the
+# one config_full_3class.yaml describes, so it cannot share that file).
+#
+# The subset itself: train 1,500 clips (69 / 733 / 698) drawn in proportion to
+# the real class distribution across all 69 training subjects; validation
+# (1,429) and test (1,784) untouched. Built by scripts/make_daisee_subset.py
+# --total 1500, seed 42.
+#
+# Derived from config_full.yaml; every change from it is marked "3CLASS:".
+# config_full.yaml remains the 4-class, T=32 reference run and is unchanged, so
+# the two can be compared.
+#
+# The four changes and the measured reason for each, from the 15-epoch 4-class
+# full run (logs/training_history_full_ft32.csv, artifacts/training_full_ft32.json):
+#
+# 1. Three classes. Engagement level 0 has 34 training and 4 TEST clips. Four
+#    test clips makes one clip 25% of that class's recall, so its F1 is noise
+#    whatever training does. Merging levels 0 and 1 gives 247 train / 166 val /
+#    88 test clips. Crucially this does not lower the bar: majority-class
+#    accuracy on the test split is 882/1784 = 0.494 under BOTH labellings,
+#    because "High" is the largest class either way. The unlearnable class goes
+#    away and the number to beat is unchanged.
+#
+# 2. T=16 instead of 32. The 3-seed frame-count ablation
+#    (artifacts/test_metrics_T*_s*_test.json) gives accuracy 0.222 +/- 0.000 at
+#    T=8, 0.259 +/- 0.035 at T=16, 0.222 +/- 0.039 at T=32 and 0.287 +/- 0.069
+#    at T=64 -- every interval overlaps every other. There is no evidence T=32
+#    buys anything, and it costs exactly double.
+#
+# 3. Larger batch -- but a modest one. The 15-epoch run logged 2,745 MB of GPU
+#    memory, which looks like vast headroom on a 16 GB card. It is not: that
+#    run had vit.grad_checkpointing TRUE (see backbone.grad_checkpointing in
+#    artifacts/training_full_ft32.json), and config_full.yaml now sets it
+#    false, which its own comment puts at ~9-10 GB for the same 128 crops per
+#    forward. The usable figure is therefore ~9-10 GB at 128 crops, not 2.7.
+#
+#    At T=16 a batch of 8 is those same 128 crops, so it is the largest setting
+#    already known to fit with checkpointing off. Batch 16 would be 256 crops,
+#    roughly 18-20 GB, and would not.
+#
+# 4. Selection on balanced accuracy. See training.selection_metric: selecting
+#    on plain accuracy would have picked epoch 0 of that run, which scored
+#    0.579 -- the majority-class baseline -- i.e. a model that had learned
+#    almost nothing.
+#
+# Change 2 is the one that matters for time: it halves the per-clip cost
+# exactly, taking the epoch from 17.2 min to roughly 8-9 min on the A4000, so
+# 40 epochs over the whole release is about 6 hours. Change 3 is worth a little
+# more on top but is not the 2-3x a starved GPU would give -- 128 crops of
+# 224x224 through ViT-B/16 is already a real workload, not launch overhead.
+#
+# Paths can be overridden without editing this file:
+#   DAISEE_ROOT=/data/DAiSEE          -> paths.dataset_root
+#   MRG_CACHE_DIR=/scratch/mrg_cache  -> paths.cache_dir      (~2.2 GB at T=16)
+#   MRG_CHECKPOINT_DIR=/scratch/ckpt  -> paths.checkpoints_dir (~1.4 GB: best.pt + last.pt)
+#
+# Every value here is a *starting point* recorded so runs are reproducible.
+# None of these numbers are claimed to be optimal. Anything the code discovers
+# at runtime (ViT embedding dim, landmark feature dim, actual FPS) is NOT set
+# here -- it is written to artifacts/ after being measured.
+
+seed: 42
+
+paths:
+  # Relative to the repository root (the directory containing this configs/ dir).
+  # FULL: the complete release. Expected layout (as shipped):
+  #   <root>/DataSet/{Train,Validation,Test}/<SubjectID>/<ClipID>/<ClipID>.avi
+  #   <root>/Labels/{Train,Validation,Test}Labels.csv
+  dataset_root: "../Datasets/DAiSEE"
+  cache_dir: "cache"
+  artifacts_dir: "artifacts"
+  checkpoints_dir: "checkpoints"
+  logs_dir: "logs"
+  models_dir: "models"
+
+dataset:
+  name: "DAiSEE"
+  # 3CLASS: must equal the number of class_merge groups; a disagreement is an
+  # error rather than something resolved silently, because every tensor shape
+  # downstream is built from it.
+  num_classes: 3
+  target_label: "Engagement"      # spec section 2.2: engagement only
+  # 3CLASS: DAiSEE levels 0 (Very Low) and 1 (Low) are collapsed into one
+  # class; 2 and 3 are left alone. The remap is applied once, inside
+  # build_index, which is the single point a label enters the pipeline -- so
+  # training, sampling, loss weighting, metrics and the test evaluation cannot
+  # disagree about the labelling, and the train split cannot end up merged
+  # while test is not. The original level is kept on every record as
+  # Engagement_raw. See src/class_merge.py.
+  #
+  # No cache key depends on labels (see preprocess.stage1_key), so switching
+  # this on re-uses the existing Stage 1 cache for the same T and triggers no
+  # reprocessing.
+  class_merge: [[0, 1], [2], [3]]
+  class_names: ["Low", "High", "Very High"]
+  video_extensions: [".avi", ".mp4"]
+  # DAiSEE ships its own Train/Validation/Test directory split. We use it as-is
+  # and verify subject disjointness rather than re-splitting (spec section 6).
+  split_dirs:
+    train: "DataSet/Train"
+    val: "DataSet/Validation"
+    test: "DataSet/Test"
+  label_files:
+    train: "Labels/TrainLabels.csv"
+    val: "Labels/ValidationLabels.csv"
+    test: "Labels/TestLabels.csv"
+  # FULL: a handful of videos in the full release do not decode. They are
+  # recorded by Stage 1 and left out of training rather than aborting a
+  # many-hour run. Above 2% of a split missing, the cause is almost certainly
+  # an incomplete preprocessing run, and everything stops instead.
+  missing_clip_policy: "skip"     # error | skip
+  max_missing_fraction: 0.02
+
+video:
+  # 3CLASS: 16 frames, not 32. The frame-count ablation found no measurable
+  # difference between 8, 16, 32 and 64 (see the header), and T=16 halves both
+  # the Stage 1 cache and the per-clip compute. A different T is a different
+  # cache key, so Stage 1 must be run again for this config -- it does not
+  # share the T=32 cache.
+  num_frames: 16
+  sampling: "uniform"             # uniform only for the reproducible pipeline
+
+face:
+  detector: "mediapipe_face_detector"
+  image_size: 224                 # overridden per-backbone by the ViT's own cfg
+  min_detection_confidence: 0.3
+  crop_padding: 0.25              # fraction of box size added on each side
+  align: true                     # roll-align using the two eye landmarks
+  # Policy when no face is found in a frame (spec section 9). We never drop the
+  # temporal position; we fall back and mark the frame as unreliable.
+  missing_face_policy: "center_crop"
+
+mrs:
+  weights:
+    blur: 0.2
+    face_visibility: 0.2
+    head_pose: 0.2
+    eye_visibility: 0.2
+    motion_consistency: 0.2
+  weighting_mode: "multiply"      # multiply | none | residual  (none = ablation baseline)
+  residual_floor: 0.2             # only used when weighting_mode == "residual"
+  # Blur sharpness and face size have no dataset-independent scale, so both are
+  # mapped through percentiles fitted on the TRAINING split only (spec Rule 8),
+  # by scripts/fit_mrs_stats.py. Head pose is in physical degrees, so it is not
+  # fitted.
+  # FULL: a separate file, so the calibration fitted on the 120 development
+  # clips can never be picked up by the full run by accident.
+  #
+  # 3CLASS: calibration is fitted on the frames of a given T, so T=16 needs
+  # its own file. Run scripts/fit_mrs_stats.py with this config after Stage 1;
+  # run_finetune.py refuses to start on an unfitted calibration.
+  calibration_file: "artifacts/mrs_calibration_subset_T16.json"
+  calibration_percentiles: [5.0, 95.0]
+  # Learn the five component weights end to end, starting from 0.2 each.
+  # See LearnableMRSWeights in src/model.py for the semantic caveat.
+  learnable_weights: true
+  head_pose_full_reliability_deg: 15.0   # |angle| below this -> reliability 1.0
+  head_pose_zero_reliability_deg: 60.0   # |angle| above this -> reliability 0.0
+  motion_ref_displacement: 0.08          # normalised landmark displacement/s -> M=0
+
+landmarks:
+  model_bundle: "models/face_landmarker.task"
+  num_faces: 1
+  output_blendshapes: true
+  output_transformation_matrix: true
+  min_face_detection_confidence: 0.3
+  min_face_presence_confidence: 0.3
+  min_tracking_confidence: 0.3
+
+vit:
+  # timm model name. Verified-available choices are listed in
+  # artifacts/backbone_benchmark.json after scripts/compare_backbones.py runs.
+  model_name: "vit_base_patch16_224.augreg2_in21k_ft_in1k"
+  pretrained: true
+  freeze: false                   # FINE-TUNING RUN: the backbone is trained
+  # The 15-epoch full run still overfits: train accuracy 0.58 -> 0.955 while
+  # validation loss rises 1.71 -> 2.39, with the best epoch at 4 of 15. These
+  # two and the augmentation block below are the standard ViT fine-tuning
+  # regularisers, measured on the 216-clip subset to delay memorisation from
+  # epoch 16 to epoch 46. They did not raise the peak score there, where 120
+  # clips was the binding constraint; at 5,357 clips the overfitting they
+  # address is the actual failure mode.
+  #
+  # layer_decay: finetune_lr applies to the last block and the final norm;
+  # each earlier block is scaled by this factor again. With only the last four
+  # blocks trainable (see unfreeze_blocks) the generic early layers are frozen
+  # outright rather than driven at a token rate, so the decay no longer has to
+  # span twelve blocks and is gentler: across the four that do train it spreads
+  # the rate by 1.6x rather than 42x.
+  layer_decay: 0.85
+  drop_path_rate: 0.1             # stochastic depth, inert at eval time
+  batch_size: 32                  # frames per ViT forward chunk
+  # Recompute block activations in backward instead of storing them. Measured in
+  # artifacts/finetune_memory_probe.json: 256 crops/step costs 17,461 MiB without
+  # this and 4,219 MiB with it, against a 6,144 MiB card.
+  # FULL (RTX A4000, 16 GB): OFF. At 128 crops/step (training.batch_size 4 x 32
+  # frames) storing the activations needs ~9-10 GB (estimated from the 256-crop
+  # measurement), which fits in 16 GB, and skipping the recomputation makes each
+  # epoch ~20-25% faster. The trained model is the same either way. On a 6-8 GB
+  # card set this to true (peak ~2.7 GB at 128 crops, measured); it is not
+  # checked on --resume, so it can be switched and the run resumed.
+  # false is correct even on a 6 GB card once unfreeze_blocks is 4: the real-run
+  # peak is 3,080 MB at batch 4, T=16. What matters is not fitting "roughly" --
+  # Windows spills past VRAM into host memory instead of raising, so a setting
+  # that nearly fits is far slower than one that comfortably does. All 12
+  # blocks at batch 4 peaked at 8,249 MB and took 134 s/epoch where 4 blocks at
+  # 3,080 MB take 23.6 s on the same clips.
+  grad_checkpointing: false
+  # Train the last 4 of 12 blocks, plus the final norm. Two measurements drove
+  # this, both at T=16 on 1,500 training clips:
+  #
+  # 1. Training all twelve is mostly fiction. AdamW moves a weight by about
+  #    `lr` per step, so over a run's 1,472 optimiser steps the layer-decayed
+  #    lower rungs cannot move: the patch embedding by at most 2% of a typical
+  #    0.03 weight, block 0 by 3%, block 3 by 7% -- and that assumes every
+  #    gradient points the same way. Blocks 0-5 were frozen in all but name
+  #    while still costing a full backward pass and full stored activations.
+  #
+  # 2. Measured in real runs on an RTX 3060 Laptop (6 GB) at T=16, on the
+  #    216-clip set (120 train + 80 val), workers 0:
+  #       all 12 blocks, batch 4          134.3 s/epoch   8,249 MB  (spilling)
+  #       last 4 blocks, batch 8 x 2       46.5 s/epoch   5,566 MB  (spilling)
+  #       last 4 blocks, batch 4 x 4       23.6 s/epoch   3,080 MB  (fits)
+  #    5.7x faster, from two effects: the backward stops at block 8, and the
+  #    result stops exceeding VRAM. Windows spills past VRAM into host memory
+  #    rather than failing, so the old setting was not merely slower, it was
+  #    thrashing. On a 16 GB card none of it spills and the gain is the
+  #    backward alone.
+  #
+  # Fewer trainable parameters should also help accuracy here, not just speed:
+  # the 4-class full run drove training accuracy 0.58 -> 0.955 while validation
+  # loss rose 1.71 -> 2.39, and that was with 5,357 clips. 28.4M parameters on
+  # 1,500 clips overfits less than 85.8M.
+  #
+  # unfreeze_blocks: 2 is faster again (0.047 s/clip, 1.03 h) at 14.2M
+  # trainable; worth trying if 4 still overfits. null trains all twelve.
+  unfreeze_blocks: 4
+  # A pretrained backbone must not be driven at the head's learning rate.
+  # FULL: 2x the development value, matching the batch-size scaling in training.
+  finetune_lr: 0.0000141
+
+# Training-time augmentation. One transform is sampled per clip and applied to
+# all of its frames: per-frame jitter would inject motion and flicker that the
+# temporal encoder reads as signal. MRS is NOT recomputed on augmented frames,
+# so it keeps describing the real observation quality of the original video.
+# See src/augment.py.
+augmentation:
+  enabled: true
+  scale: [0.80, 1.0]              # random resized crop, area kept
+  ratio: [0.90, 1.11]             # aspect jitter
+  brightness: 0.20
+  contrast: 0.20
+  erase_prob: 0.25
+  erase_scale: [0.02, 0.12]
+
+mamba:
+  # Vendored pure-PyTorch reference implementation of the official
+  # state-spaces/mamba selective SSM. See src/mamba_ref.py and README.
+  d_model: 256
+  n_layers: 2
+  d_state: 16
+  d_conv: 4
+  expand: 2
+  bidirectional: false            # true = Vim-style bi-directional scan (ablation)
+  dropout: 0.1
+  # mean | last | attention | mrs_weighted.
+  # "mrs_weighted" pools as sum_t r_t h_t / sum_t r_t. See the note in
+  # src/temporal_mamba.py: a scale-invariant norm cancels pure feature
+  # multiplication, so this is where reliability actually takes effect.
+  pooling: "mrs_weighted"
+
+fusion:
+  projected_dim: 256
+  mode: "concat"                  # concat | gated
+  dropout: 0.1
+  use_landmark_branch: true
+  landmark_norm: "standard"       # standardise with train-split statistics
+  deep_norm: "layernorm"
+
+classifier:
+  hidden_dims: [256, 128]
+  activation: "gelu"
+  dropout: 0.3
+
+training:
+  # FULL: an effective batch of 32 clips is 1,024 crops, ~13 GB even with
+  # gradient checkpointing, so it is reached by accumulation instead.
+  # 4 clips x 32 frames = 128 crops per forward: ~9-10 GB without gradient
+  # checkpointing (the RTX A4000 setting, see vit.grad_checkpointing), ~2.7 GB
+  # with it. Keep this at 4 unless memory allows more; any change must keep
+  # batch_size x grad_accum_steps = 32.
+  # 3CLASS: batch 8 at T=16 is 128 crops per forward -- exactly the number the
+  # 4-class run already sustained at batch 4, T=32. With
+  # vit.grad_checkpointing false that is ~9-10 GB of the A4000's 16 GB, per the
+  # measurement recorded in config_full.yaml. The effective batch stays 32, so
+  # no learning rate changes.
+  #
+  # The 2,745 MB in artifacts/training_full_ft32.json is NOT headroom: that run
+  # had gradient checkpointing enabled and this config does not.
+  #
+  # MEASURE on the machine that will run it before the long run:
+  #     python scripts/probe_finetune_memory.py --config configs/config_full_3class.yaml
+  # then set batch_size to the largest value that fits and grad_accum_steps to
+  # 32 / batch_size. The product must stay 32.
+  #
+  # On a 6-8 GB card set vit.grad_checkpointing true as well; it costs ~20-25%
+  # of the epoch but avoids spilling into host memory, which costs far more.
+  # Effective batch 16, not 32. At 1,500 training clips an effective batch of
+  # 32 gives 46 optimiser steps per epoch and 1,472 in the whole 32-epoch run,
+  # which is thin for fine-tuning and is what left the layer-decayed rungs
+  # unable to move. Halving it doubles the steps to 2,976 at IDENTICAL compute:
+  # accumulation processes the same clips either way, the optimiser is just
+  # called twice as often, which costs nothing measurable.
+  # batch 4, not 8. With unfreeze_blocks 4 the real-run peak is 3,080 MB at
+  # batch 4 against 5,566 MB at batch 8, and on a 6 GB card that difference
+  # decides whether it spills: batch 4 ran 23.6 s/epoch where batch 8 ran 46.5
+  # on the same clips. Both give the same effective batch of 16, so the model
+  # being trained is identical.
+  #
+  # On a 16 GB card batch 8 x 2 fits without spilling and may be marginally
+  # faster; measure it rather than assuming, with
+  #     python scripts/probe_finetune_memory.py --config configs/config_full_3class.yaml
+  # Whatever batch_size is chosen, grad_accum_steps must keep the product at 16.
+  batch_size: 4                   # 4 clips x 16 frames = 64 crops per forward
+  grad_accum_steps: 4             # effective batch 4 x 4 = 16
+  epochs: 32                      # fixed; no decision point, no early stopping
+  # FULL: the development runs used an effective batch of 8. Going to 32 gives
+  # 4x fewer optimiser steps per epoch, so every learning rate is scaled by
+  # sqrt(32 / 8) = 2 -- the usual rule for Adam-family optimisers, and the more
+  # conservative of the two standard choices (linear scaling would be 4x).
+  # Scaled by sqrt(16 / 32) = 0.707 from the 6e-4 used at effective batch 32,
+  # by the same rule this config applies elsewhere.
+  learning_rate: 0.000424
+  # The 15-epoch full run ended with the five MRS weights at
+  # motion_consistency 0.990 and the other four near 0.001 -- the softmax had
+  # collapsed and the five-component score had become a one-component one.
+  #
+  # Simulated over the same ~6,700 steps under constant one-sided pressure,
+  # the learning rate turns out not to control this (lr 0.002 with no decay
+  # still reaches w_max 0.999); it only sets how fast the weights move. The
+  # decay below is what bounds them, because theta = 0 IS the uniform 0.2
+  # weighting, so decay on theta is a prior pulling back towards uniform:
+  #     wd 0.0 -> w_max 0.999   (collapse)
+  #     wd 0.5 -> w_max 0.902
+  #     wd 1.0 -> w_max 0.649   (bounded, and a weak real signal still moves
+  #                              a component to ~0.30 while noise alone leaves
+  #                              every weight at 0.2)
+  mrs_weight_lr: 0.01
+  mrs_weight_decay: 1.0
+  weight_decay: 0.01
+  optimizer: "adamw"
+  scheduler: "cosine"
+  warmup_epochs: 3
+  grad_clip: 1.0
+  mixed_precision: true           # only enabled when CUDA is actually present
+  # FULL: engagement in the full release is roughly 1% Very Low, 4% Low and
+  # 95% High/Very High. Pure inverse frequency weights Very Low ~77x above High,
+  # which makes ~30 clips dominate the loss. The effective-number scheme (Cui et
+  # al., CVPR 2019) still up-weights the rare classes, by ~28x rather than ~77x.
+  class_weighting: "effective_number"   # none | inverse_frequency | effective_number
+  # FULL: how often each class is DRAWN, which is separate from how much each
+  # mistake COSTS (class_weighting above). natural | sqrt | balanced.
+  #
+  # Undersampling the common classes to balance would cap training at 4x the
+  # rarest class -- on DAiSEE roughly 136 clips, fewer than the 120 that already
+  # overfit. So no clip is discarded; the rare classes are drawn more often
+  # instead. "sqrt" (p ~ 1/sqrt(n_c)) lifts them without repeating a few dozen
+  # clips many times per epoch, and sampling_max_ratio caps that repetition.
+  # 3CLASS: natural, not sqrt. With the classes merged, the training prior is
+  # 0.046 / 0.488 / 0.466 against a test prior of 0.049 / 0.494 / 0.456 -- a
+  # match to within 0.006. Since accuracy on DAiSEE largely measures how well
+  # the class prior was guessed, matching it is most of the way to a good
+  # accuracy, and the merged rare class has 247 clips rather than 34, so it no
+  # longer needs the sampler to be learnable at all.
+  #
+  # Set this to "sqrt" instead when macro-F1 is the headline: it lifts the rare
+  # class to an effective 721 draws per epoch (3.3x repetition, down from 8x
+  # before the merge) and costs accuracy, because it moves the training prior
+  # away from the test prior. --logit-adjust then corrects that at inference;
+  # see src/prior_shift.py.
+  sampling: "natural"
+  sampling_max_ratio: 8.0
+  label_smoothing: 0.05
+  # FULL: train 20 epochs, then decide. On the development subsets the best
+  # epoch was 2 (fine-tuned) and validation loss rose from about epoch 4
+  # (frozen); a full-release epoch is ~11x more optimiser steps, so the peak is
+  # expected around epochs 5-15. The first 20 epochs are one complete cosine
+  # cycle, so stopping there leaves a fully annealed model (~11-12 h on an
+  # RTX 4060). Training continues to `epochs` (40, ~22-24 h total) only if the
+  # best val macro-F1 in epochs 16-20 beats the best of epochs 1-15 by at least
+  # extend_min_delta -- i.e. it is still rising, not peaked or flat. The
+  # continuation is a second cosine cycle restarting at restart_lr_factor x
+  # the peak LR. Set extend_decision_epoch to null for one cycle over all epochs.
+  extend_decision_epoch: null
+  extend_window: 5
+  extend_min_delta: 0.005
+  restart_lr_factor: 0.5
+  # When the rule says "continue", ask on the terminal first (y/n). With no
+  # answer within the timeout, or no terminal attached, the rule's "continue"
+  # stands, so an unattended run still finishes. null = wait indefinitely.
+  # An interrupted run asks again on --resume. A "stop" is never asked about.
+  extend_confirm: true
+  extend_confirm_timeout_minutes: 60
+  # FULL: no early stopping within the cycles (patience == epochs disables it);
+  # the decision point above replaces it. best.pt is always the epoch with the
+  # highest validation macro-F1, whichever way the decision goes.
+  early_stopping_patience: 32
+  # FULL: keep best.pt (333 MB), last.pt (~1 GB, rewritten every epoch; what
+  # --resume continues from) and a snapshot every save_every_n_epochs --
+  # after_epoch_010.pt, _020, _030, ... Each snapshot carries the full resume
+  # state (~1 GB each: ~2 GB if the run stops at 20, ~4 GB at 40), so training
+  # can be restarted from it with --resume-from. Every epoch's metrics are
+  # still in logs/training_history_<run>.csv. save_every_epoch: true instead
+  # saves weights-only epoch_NNN.pt after every epoch (~21 GB).
+  save_every_epoch: false
+  # A full resume snapshot every 8 epochs, alongside last.pt (rewritten every
+  # epoch, ~600 MB, what --resume continues from) and best.pt (~350 MB).
+  save_every_n_epochs: 8
+  model_selection_metric: "val_macro_f1"  # never test performance (spec section 29)
+  # 3CLASS: what best.pt is actually chosen by. macro_f1 | accuracy |
+  # balanced_accuracy | weighted_f1.
+  #
+  # Selecting on accuracy is a trap on this dataset. In the 4-class full run
+  # the best validation accuracy was 0.579, at epoch 0 -- and the validation
+  # majority class is 813/1429 = 0.569, so that "best" epoch was a model that
+  # had barely stopped answering "High" to everything. Accuracy rewards
+  # guessing the prior, which an untrained model does well.
+  #
+  # Balanced accuracy (mean per-class recall) cannot be won that way: a
+  # constant predictor scores 1/K = 0.333 whatever the prior. It also tracks
+  # accuracy more closely than macro-F1 does, so the selected checkpoint is
+  # near-optimal for both numbers being reported.
+  selection_metric: "balanced_accuracy"
+  # FULL: each step decodes batch_size x 32 JPEG crops, ~170k per epoch. Worker
+  # processes keep the GPU fed. 4 suits a 16 GB RAM machine (the train and val
+  # loaders each keep their own persistent workers, so 8 processes exist at
+  # once). Lower to 2-3 if RAM runs short. Override per machine with --workers N.
+  # 4 suits the A4000 machine. Measured on the 6 GB laptop, --workers 2 took a
+  # steady-state epoch from 23.6 s to 15.7 s on the 216-clip set, so the decode
+  # is worth overlapping; --workers 8 there caused host-RAM paging instead.
+  # Override per machine with --workers N.
+  num_workers: 2
+
+evaluation:
+  metrics: [accuracy, balanced_accuracy, weighted_f1, macro_f1,
+            per_class_precision, per_class_recall, per_class_f1]
+  timing_repeats: 20
+  timing_warmup: 5
+  # 3CLASS: test-time augmentation. Probabilities are averaged over these
+  # deterministic centre crops (fraction of frame area kept). 1.0 is the
+  # ordinary single pass and should always be present; each further scale costs
+  # one more forward pass over the split and nothing else. Deterministic, so
+  # the reported number does not depend on an RNG. Enable with
+  # `run_finetune.py --tta`; without that flag these are ignored.
+  tta_scales: [1.0, 0.90, 0.80]
+  # 3CLASS: the distribution the model should be calibrated to when
+  # --logit-adjust is given. Left unset, the correction targets the natural
+  # prior of the training split, which uses no held-out information at all and
+  # undoes exactly the distortion weighted sampling introduces.
+  #
+  # Set it ONLY when training on a subset, where the subset's own prior is not
+  # the corpus prior -- then put the published full-DAiSEE distribution here.
+  # A published corpus-level distribution is a documented property of the
+  # dataset; a prior read off the test split's own labels would be using the
+  # test set, and must never go here.
+  #
+  # Getting this wrong is worse than leaving it unset: the correction moves the
+  # decision boundary towards a distribution that is not there. Measured on the
+  # 216-clip subset, calibrating a 0.50/0.25/0.25 model to 0.20/0.40/0.40
+  # dropped test accuracy from 0.750 to 0.375. run_finetune.py logs the prior
+  # and the resulting shift once per run so a wrong value is visible.
+  # reference_prior: [0.049, 0.494, 0.456]
+
+explain:
+  shap_background_size: 64
+  shap_eval_size: 64

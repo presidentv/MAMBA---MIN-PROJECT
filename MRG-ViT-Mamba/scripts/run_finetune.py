@@ -43,6 +43,7 @@ from src.augment import CenterCropView  # noqa: E402
 from src.class_merge import class_names as merged_class_names  # noqa: E402
 from src.dataset import collate_finetune, load_calibration  # noqa: E402
 from src.dataset_index import build_index  # noqa: E402
+from src.detection import evaluate_detector  # noqa: E402
 from src.finetune import (  # noqa: E402
     FineTuneResult, _run_epoch, build_finetune_datasets, finetune_model,
 )
@@ -289,6 +290,7 @@ def main() -> int:
         "splits": {},
     }
 
+    collected = {}
     for split in ("train", "val", "test"):
         ds = datasets[split]
         metrics, per_clip, y_true, y_pred, probs = evaluate_split(
@@ -361,6 +363,7 @@ def main() -> int:
         }
         metrics["num_unique_subjects"] = len(set(ds.subjects()))
         report["splits"][split] = metrics
+        collected[split] = (np.asarray(y_true), np.asarray(probs))
 
         (Path(art_dir) / f"classification_report_{args.run_name}_{split}.txt").write_text(
             format_report(y_true, y_pred, num_classes, class_names), encoding="utf-8")
@@ -379,6 +382,28 @@ def main() -> int:
                     split, metrics["num_samples"], metrics["accuracy"],
                     metrics["balanced_accuracy"], metrics["macro_f1"],
                     metrics["weighted_f1"], metrics["loss"])
+
+    # On the binary task accuracy is uninformative: 1,696 engaged clips against
+    # 88 not-engaged means a constant "engaged" answer scores 0.95 while
+    # detecting nothing, and a real detector usually scores LOWER. So ROC-AUC is
+    # the headline and the operating point is chosen on validation, never on
+    # test. See src/detection.py.
+    if num_classes == 2:
+        tune_on = collected.get("val")
+        report["detection"] = {}
+        for split, (y_s, p_s) in collected.items():
+            report["detection"][split] = evaluate_detector(
+                y_s, p_s, tune_on=tune_on if split != "val" else None,
+                objective=str(ccfg.get("evaluation", {}).get(
+                    "threshold_objective", "balanced_accuracy")))
+        # Validation needs its own threshold reported too, but tuned and applied
+        # on the same split is optimistic by construction, so it is labelled.
+        v_true, v_probs = collected["val"]
+        report["detection"]["val"]["tuned_in_sample"] = evaluate_detector(
+            v_true, v_probs, tune_on=(v_true, v_probs))["tuned"]
+        report["detection"]["val"]["tuned_in_sample"]["note"] = (
+            "threshold tuned and applied on validation; optimistic by "
+            "construction and shown only to bound what tuning can buy")
 
     # The weights that matter are the ones inside the checkpoint being scored.
     # Reporting the last epoch's values instead is wrong whenever selection
@@ -440,6 +465,35 @@ def main() -> int:
                   f"(p={adj['p_vs_majority_baseline']:.4g})")
         if m.get("tta"):
             print(f"       TTA over {m['tta']['num_passes']} deterministic views")
+
+    det = report.get("detection")
+    if det:
+        print()
+        print("=" * 94)
+        print("BINARY DETECTION: finding the not-engaged clips (the minority)")
+        print("=" * 94)
+        for split in ("train", "val", "test"):
+            d = det.get(split)
+            if not d:
+                continue
+            r, b = d["ranking"], d["baselines"]
+            print(f"{split:<6} n={r['n_positive'] + r['n_negative']:<5} "
+                  f"not-engaged {r['n_positive']:<5} "
+                  f"ROC-AUC {r['roc_auc']:.4f} (0.5 = no signal)   "
+                  f"avg precision {r['average_precision']:.4f} "
+                  f"(baseline {b['average_precision']:.4f})")
+            for key in ("argmax", "tuned"):
+                p = d.get(key)
+                if not p:
+                    continue
+                label = "  at 0.5     " if key == "argmax" else f"  at {p['threshold']:.3f}  "
+                print(f"{label} acc {p['accuracy']:.4f} "
+                      f"(majority {b['majority_class_accuracy']:.4f})   "
+                      f"balAcc {p['balanced_accuracy']:.4f}   "
+                      f"recall {p['recall_not_engaged']:.3f}   "
+                      f"precision {p['precision_not_engaged']:.3f}   "
+                      f"flags {p['predicted_not_engaged']} of "
+                      f"{p['actually_not_engaged']} real")
     print(f"\nMRS weights in the SELECTED checkpoint (epoch {report['best_epoch']}), "
           f"from 0.2 each  <- these are the weights that produced the scores above:")
     for c, v in (report["learned_mrs_weights"] or {}).items():

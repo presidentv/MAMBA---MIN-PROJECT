@@ -26,6 +26,7 @@ from __future__ import annotations
 import csv
 import os
 import random
+import shutil
 import sys
 import time
 from dataclasses import dataclass, field
@@ -230,14 +231,37 @@ def _run_epoch(model, loader, loss_fn, optimiser, device, scaler=None,
     return out
 
 
+# A checkpoint is written to a temporary name first, so a free-space check
+# before each write needs room for the new copy alongside the existing one.
+# Measured: last.pt is ~590 MB and best.pt ~350 MB at unfreeze_blocks 4, so a
+# gigabyte of headroom is a real margin rather than a guess.
+CHECKPOINT_HEADROOM_BYTES = 1 << 30
+
+
 def _atomic_torch_save(obj, path: Path) -> None:
     """torch.save to a temporary name, then rename into place.
 
     A checkpoint is overwritten every epoch; dying half-way through writing it
     would otherwise destroy the only copy - for last.pt, the only way back in.
+
+    The free-space check exists because of how this fails without it. A full
+    disk surfaces from torch as ``RuntimeError: ios_base::badbit set: iostream
+    stream error``, then a second RuntimeError about an "unexpected pos" while
+    the half-written file is closed. Neither mentions the disk. On a 32-epoch
+    run that died at epoch 0 and cost two hours to discover, so the condition
+    is checked up front and named.
     """
     path = Path(path)
     tmp = path.with_name(path.name + ".partial")
+    free = shutil.disk_usage(path.parent).free
+    if free < CHECKPOINT_HEADROOM_BYTES:
+        raise RuntimeError(
+            f"refusing to write {path.name}: only {free / 2**30:.2f} GB free on "
+            f"{path.parent}, and a checkpoint needs about "
+            f"{CHECKPOINT_HEADROOM_BYTES / 2**30:.0f} GB of headroom to be written "
+            f"alongside the copy it replaces. Free space, or point "
+            f"MRG_CHECKPOINT_DIR at a volume that has some. Training state up to "
+            f"the previous epoch is intact.")
     torch.save(obj, tmp)
     os.replace(tmp, path)
 
