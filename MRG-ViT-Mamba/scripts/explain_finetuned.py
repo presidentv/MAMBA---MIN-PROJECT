@@ -58,7 +58,15 @@ from src.explain import (  # noqa: E402
 from src.face_processing import FaceDetector  # noqa: E402
 from src.finetune import build_finetune_datasets  # noqa: E402
 from src.landmarks import LandmarkExtractor  # noqa: E402
-from src.metrics import DEFAULT_CLASS_NAMES  # noqa: E402
+from src.class_merge import class_names as merged_class_names  # noqa: E402
+
+# The labelling the model was trained with, set by main() from the
+# checkpoint's own config. It was previously the four original DAiSEE level
+# names, hardcoded, which crashed a 2-class model on the probability chart
+# (2 bars, 4 labels) and would silently have mislabelled every figure had
+# the counts happened to match. A module global rather than a parameter
+# threaded through nine figure helpers.
+CLASS_NAMES: tuple = ()
 from src.model import MRGViTMamba  # noqa: E402
 from src.mrs import COMPONENTS  # noqa: E402
 from src.preprocess import stage1_key  # noqa: E402
@@ -104,8 +112,8 @@ def fig_landmarks(k, rec, annotated, t, source_frame, frame_count, comps, weight
     a2.set_title(f"MRS components on this frame\nweighted MRS = {float(comps @ weights):.3f}",
                  fontsize=9.5, fontweight="bold")
     word, col = verdict(true, pred)
-    fig.suptitle(f"Example {k}:  actual = {DEFAULT_CLASS_NAMES[true]}   "
-                 f"predicted = {DEFAULT_CLASS_NAMES[pred]} ({probs[pred]:.2f})   [{word}]",
+    fig.suptitle(f"Example {k}:  actual = {CLASS_NAMES[true]}   "
+                 f"predicted = {CLASS_NAMES[pred]} ({probs[pred]:.2f})   [{word}]",
                  fontsize=11.5, fontweight="bold", color=col, y=1.03)
     fig.savefig(out); plt.close(fig)
 
@@ -122,7 +130,7 @@ def fig_decision(k, rec, ex, t, crop, weights, out, top_n=8):
     a.imshow(crop); a.imshow(np.clip(cam, 0, 1), cmap="jet", alpha=.42)
     a.axis("off")
     a.set_title(f"1. Where the ViT looked (frame t={t})\n"
-                f"Grad-CAM for '{DEFAULT_CLASS_NAMES[pred]}', face crop the model saw",
+                f"Grad-CAM for '{CLASS_NAMES[pred]}', face crop the model saw",
                 fontsize=9.2, fontweight="bold")
 
     # 2. reliability and pooling weight per frame
@@ -176,7 +184,7 @@ def fig_decision(k, rec, ex, t, crop, weights, out, top_n=8):
     pad = 0.18 * (hi - lo or 1.0)
     a.set_ylim(lo - pad, hi + pad)
     a.axhline(0, color=GREY, lw=.8)
-    a.set_xticks(range(4), [s[0] for s in steps] + ["score for\n" + DEFAULT_CLASS_NAMES[pred]],
+    a.set_xticks(range(4), [s[0] for s in steps] + ["score for\n" + CLASS_NAMES[pred]],
                  fontsize=7.8)
     a.set_ylabel("logit (score before softmax)")
     a.set_title("4. Where the score came from\n(integrated gradients over the fused vector)",
@@ -197,7 +205,7 @@ def fig_decision(k, rec, ex, t, crop, weights, out, top_n=8):
         a.axvline(0, color=GREY, lw=.8)
         a.set_yticks(range(len(idx)), [la["names"][i] for i in idx], fontsize=7)
         a.xaxis.set_major_locator(matplotlib.ticker.MaxNLocator(4, symmetric=True))
-        a.set_xlabel(f"contribution to '{DEFAULT_CLASS_NAMES[pred]}' score")
+        a.set_xlabel(f"contribution to '{CLASS_NAMES[pred]}' score")
         shown = sorted({group_of.get(i, "other") for i in idx})
         handles = [plt.Rectangle((0, 0), 1, 1, color=GROUP_COLS.get(g, GREY)) for g in shown]
         a.legend(handles, [g.replace("_", " ") for g in shown], frameon=False, fontsize=6.8,
@@ -215,12 +223,12 @@ def fig_decision(k, rec, ex, t, crop, weights, out, top_n=8):
         cols[true] = TRUE_C
     b = a.bar(range(len(probs)), probs, color=cols)
     a.bar_label(b, fmt="%.3f", fontsize=7.8, padding=2)
-    a.set_xticks(range(len(probs)), [n.replace(" ", "\n") for n in DEFAULT_CLASS_NAMES],
+    a.set_xticks(range(len(probs)), [n.replace(" ", "\n") for n in CLASS_NAMES],
                  fontsize=8)
     a.set_ylim(0, 1.08); a.set_ylabel("probability")
     word, col = verdict(true, pred)
-    a.set_title(f"6. Output: actual {DEFAULT_CLASS_NAMES[true]}, predicted "
-                f"{DEFAULT_CLASS_NAMES[pred]}\n[{word}]", fontsize=9.2, fontweight="bold",
+    a.set_title(f"6. Output: actual {CLASS_NAMES[true]}, predicted "
+                f"{CLASS_NAMES[pred]}\n[{word}]", fontsize=9.2, fontweight="bold",
                 color=col)
 
     fig.suptitle(f"Example {k}: how the prediction was reached   ({rec.clip_id}, "
@@ -234,8 +242,8 @@ def fig_overview(panels, out):
         a.imshow(cv2.cvtColor(p["image"], cv2.COLOR_BGR2RGB)); a.axis("off")
         word, col = verdict(p["true"], p["pred"])
         a.set_title(f"Example {p['k']}  (person {p['subject']})\n"
-                    f"actual: {DEFAULT_CLASS_NAMES[p['true']]}\n"
-                    f"predicted: {DEFAULT_CLASS_NAMES[p['pred']]}  "
+                    f"actual: {CLASS_NAMES[p['true']]}\n"
+                    f"predicted: {CLASS_NAMES[p['pred']]}  "
                     f"(p = {p['prob']:.2f})  [{word}]",
                     fontsize=10, fontweight="bold", color=col)
     fig.suptitle("Three test clips, three different people", fontsize=12, y=1.02)
@@ -244,7 +252,7 @@ def fig_overview(panels, out):
 
 def summary_text(ex, t) -> str:
     dec = ex["logit_decomposition"]
-    true, pred = DEFAULT_CLASS_NAMES[ex["true"]], DEFAULT_CLASS_NAMES[ex["pred"]]
+    true, pred = CLASS_NAMES[ex["true"]], CLASS_NAMES[ex["pred"]]
     parts = [f"Actual {true}; predicted {pred} with probability {ex['probs'][ex['pred']]:.2f} "
              f"({'correct' if ex['true'] == ex['pred'] else 'incorrect'})."]
     parts.append(f"Relative to an all-zero fused input (score {dec['zero_input_logit']:+.2f}), "
@@ -286,6 +294,11 @@ def main() -> int:
                  resolve_path(Path(cfg["paths"]["checkpoints_dir"]) / args.run / "best.pt"))
     ckpt = torch.load(ckpt_path, map_location=device, weights_only=False)
     ccfg = ckpt["config"]
+    # Label every figure with the classes this checkpoint was trained on, taken
+    # from the checkpoint rather than from whatever config the caller passed.
+    global CLASS_NAMES
+    CLASS_NAMES = tuple(ckpt.get("class_names")
+                        or merged_class_names(ccfg, int(ccfg["dataset"]["num_classes"])))
     encoder = ViTFrameEncoder(model_name=ccfg["vit"]["model_name"], pretrained=False,
                               freeze=True, chunk_size=int(ccfg["vit"]["batch_size"]))
     model = MRGViTMamba(vit_dim=int(ckpt["vit_dim"]), landmark_dim=int(ckpt["landmark_dim"]),
@@ -328,8 +341,8 @@ def main() -> int:
             item = ds[position[choice["clip_id"]]]
             ex = explain_clip(model, item, device)
             if ex["pred"] != choice["pred"]:
-                print(f"note: {rec.clip_id} is predicted {DEFAULT_CLASS_NAMES[ex['pred']]} "
-                      f"here but {DEFAULT_CLASS_NAMES[choice['pred']]} in the test "
+                print(f"note: {rec.clip_id} is predicted {CLASS_NAMES[ex['pred']]} "
+                      f"here but {CLASS_NAMES[choice['pred']]} in the test "
                       f"predictions file - is {ckpt_path.name} the checkpoint that was "
                       f"evaluated?")
             t = pick_frame(ex["pool_weights"] if ex["pool_weights"] is not None else ex["mrs"])
@@ -355,11 +368,11 @@ def main() -> int:
             text = summary_text(ex, t)
             report.append({
                 "example": k, "clip_id": rec.clip_id, "subject_id": rec.subject_id,
-                "actual": DEFAULT_CLASS_NAMES[ex["true"]],
-                "predicted": DEFAULT_CLASS_NAMES[ex["pred"]],
+                "actual": CLASS_NAMES[ex["true"]],
+                "predicted": CLASS_NAMES[ex["pred"]],
                 "correct": ex["true"] == ex["pred"],
                 "probabilities": {n: round(float(p), 4)
-                                  for n, p in zip(DEFAULT_CLASS_NAMES, ex["probs"])},
+                                  for n, p in zip(CLASS_NAMES, ex["probs"])},
                 "logits": [round(float(v), 4) for v in ex["logits"]],
                 "explanation": text,
                 "frame_drawn": {"sampled_index": t, "source_frame": int(indices[t]),
@@ -392,7 +405,7 @@ def main() -> int:
     if panels:
         fig_overview(panels, out / "examples_overview.png")
     save_json({"checkpoint": str(ckpt_path), "run": args.run,
-               "class_names": list(DEFAULT_CLASS_NAMES),
+               "class_names": list(CLASS_NAMES),
                "method": {
                    "gradcam": "Grad-CAM on the ViT's last block (input to its attention), "
                               "target = predicted-class logit of the full model",

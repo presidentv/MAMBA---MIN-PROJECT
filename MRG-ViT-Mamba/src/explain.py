@@ -29,7 +29,7 @@ import torch
 import torch.nn as nn
 
 from .landmarks import CLIP_FEATURE_NAMES, FEATURE_GROUPS
-from .metrics import DEFAULT_CLASS_NAMES
+from .metrics import resolve_names
 from .utils import ensure_dir, save_json
 
 
@@ -87,7 +87,7 @@ def collect_inputs(model, loader, device) -> tuple[np.ndarray, np.ndarray]:
 
 
 def run_shap(model, train_loader, eval_loader, device, cfg,
-             out_prefix: str = "main") -> dict:
+             out_prefix: str = "main", class_names=None) -> dict:
     import shap
 
     background, _ = collect_inputs(model, train_loader, device)
@@ -127,9 +127,13 @@ def run_shap(model, train_loader, eval_loader, device, cfg,
     total = sum(group_totals.values()) or 1.0
     group_share = {g: v / total for g, v in group_totals.items()}
 
+    # The labelling the model was actually trained with, taken from the output
+    # width rather than assumed: a merged 2- or 3-class model must never be
+    # reported under the four original DAiSEE level names.
+    names = resolve_names(class_names, num_classes)
     per_class_groups = {
-        DEFAULT_CLASS_NAMES[c]: {g: float(mean_abs[idx, c].sum()) for g, idx in groups.items()}
-        for c in range(min(num_classes, len(DEFAULT_CLASS_NAMES)))
+        names[c]: {g: float(mean_abs[idx, c].sum()) for g, idx in groups.items()}
+        for c in range(num_classes)
     }
 
     landmark_scores = {
