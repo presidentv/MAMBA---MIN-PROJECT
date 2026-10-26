@@ -1,0 +1,36 @@
+{
+  "run_name": "main",
+  "seed": 42,
+  "training_seconds": 34.8,
+  "best_epoch": 8,
+  "best_val_macro_f1": 0.22817460317460317,
+  "checkpoint": "C:\\Users\\ashok\\OneDrive\\Desktop\\Adhvaith\\VIT\\MINI PROJECT\\MRG-ViT-Mamba\\checkpoints\\main\\best.pt",
+  "backbone": {
+    "name": "timm:vit_base_patch16_224.augreg2_in21k_ft_in1k",
+    "family": "timm",
+    "embed_dim": 768,
+    "input_size": 224,
+    "mean": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "std": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "num_params": 85798656
+  },
+  "cache_keys": {
+    "stage1": "faces_T16_d54f87dc2c",
+    "stage2": "vit_timm_vit_base_patch16_224.augreg2_in21k_ft_in1k_13756dcdd4"
+  },
+  "test": {
+    "accuracy": 0.3055555555555556,
+    "macro_f1": 0.23974358974358975,
+    "weighted_f1": 0.3021367521367522,
+    "num_videos": 36,
+    "num_unique_subjects": 8
+  }
+}

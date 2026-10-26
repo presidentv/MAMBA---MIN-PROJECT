@@ -122,6 +122,12 @@ def main() -> int:
     # MRG_CACHE_DIR still work.
     ccfg = Config(dict(ckpt["config"]))
     ccfg["paths"] = dict(cfg["paths"])
+    # How many clips SHAP samples is an analysis choice, not a property of the
+    # trained model, so it comes from the config passed on the command line.
+    # Leaving it baked into the checkpoint would mean re-running the analysis at
+    # a different sample size required retraining, and would silently ignore the
+    # caller's setting.
+    ccfg["explain"] = dict(cfg["explain"])
     if bool(ccfg["vit"].get("freeze", True)):
         log.warning("this checkpoint has a FROZEN backbone; scripts/run_shap.py is "
                     "the cheaper path for it (it reuses the Stage 2 cache)")

@@ -1,0 +1,113 @@
+{
+  "settings": {
+    "detector": "mediapipe.tasks.vision.FaceDetector (blaze_face_short_range)",
+    "mediapipe_version": "1.0.1",
+    "model_path": "C:\\Users\\ashok\\OneDrive\\Desktop\\Adhvaith\\VIT\\MINI PROJECT\\MRG-ViT-Mamba\\models\\blaze_face_short_range.tflite",
+    "min_detection_confidence": 0.3,
+    "crop_padding": 0.25,
+    "align": true,
+    "input_resolution": 224,
+    "missing_face_policy": "center_crop"
+  },
+  "frames_examined": 144,
+  "detector_hit_rate_pct": 100.0,
+  "landmark_hit_rate_pct": 100.0,
+  "fallback_counts": {
+    "landmark_bbox": 0,
+    "center_fallback": 0
+  },
+  "per_clip": [
+    {
+      "clip_id": "1100011002.avi",
+      "split": "train",
+      "detector_hits": 16,
+      "num_frames": 16,
+      "mean_confidence": 0.9827995672821999,
+      "bbox_sources": {
+        "mediapipe_face_detector": 16
+      }
+    },
+    {
+      "clip_id": "1100011003.avi",
+      "split": "train",
+      "detector_hits": 16,
+      "num_frames": 16,
+      "mean_confidence": 0.9792134873569012,
+      "bbox_sources": {
+        "mediapipe_face_detector": 16
+      }
+    },
+    {
+      "clip_id": "1100011004.avi",
+      "split": "train",
+      "detector_hits": 16,
+      "num_frames": 16,
+      "mean_confidence": 0.974625576287508,
+      "bbox_sources": {
+        "mediapipe_face_detector": 16
+      }
+    },
+    {
+      "clip_id": "4000221001.avi",
+      "split": "val",
+      "detector_hits": 16,
+      "num_frames": 16,
+      "mean_confidence": 0.9648195765912533,
+      "bbox_sources": {
+        "mediapipe_face_detector": 16
+      }
+    },
+    {
+      "clip_id": "4000221002.avi",
+      "split": "val",
+      "detector_hits": 16,
+      "num_frames": 16,
+      "mean_confidence": 0.9633930027484894,
+      "bbox_sources": {
+        "mediapipe_face_detector": 16
+      }
+    },
+    {
+      "clip_id": "4000221006.avi",
+      "split": "val",
+      "detector_hits": 16,
+      "num_frames": 16,
+      "mean_confidence": 0.9573063887655735,
+      "bbox_sources": {
+        "mediapipe_face_detector": 16
+      }
+    },
+    {
+      "clip_id": "5000441001.avi",
+      "split": "test",
+      "detector_hits": 16,
+      "num_frames": 16,
+      "mean_confidence": 0.972425602376461,
+      "bbox_sources": {
+        "mediapipe_face_detector": 16
+      }
+    },
+    {
+      "clip_id": "5000441002.avi",
+      "split": "test",
+      "detector_hits": 16,
+      "num_frames": 16,
+      "mean_confidence": 0.9812488220632076,
+      "bbox_sources": {
+        "mediapipe_face_detector": 16
+      }
+    },
+    {
+      "clip_id": "5000441003.avi",
+      "split": "test",
+      "detector_hits": 16,
+      "num_frames": 16,
+      "mean_confidence": 0.9768758043646812,
+      "bbox_sources": {
+        "mediapipe_face_detector": 16
+      }
+    }
+  ],
+  "validation_problems": [],
+  "preview_image": "C:\\Users\\ashok\\OneDrive\\Desktop\\Adhvaith\\VIT\\MINI PROJECT\\MRG-ViT-Mamba\\artifacts\\face_crop_preview.png"
+}

@@ -1,0 +1,52 @@
+{
+  "backend": {
+    "backend": "pytorch_reference",
+    "version": null,
+    "source": "vendored reference implementation from state-spaces/mamba (selective_scan_ref + mamba_simple.Mamba slow path)",
+    "mamba_ssm_import_error": "ModuleNotFoundError: No module named 'mamba_ssm'"
+  },
+  "device": {
+    "device": "cuda",
+    "name": "NVIDIA GeForce RTX 3060 Laptop GPU",
+    "total_memory_bytes": 6441926656,
+    "total_memory_gb": 6.0,
+    "cuda_available": true,
+    "torch_version": "2.11.0+cu128",
+    "torch_cuda_version": "12.8"
+  },
+  "shapes": {
+    "input": [
+      4,
+      16,
+      768
+    ],
+    "sequence": [
+      4,
+      16,
+      256
+    ],
+    "pooled": [
+      4,
+      256
+    ]
+  },
+  "forward_ms": 810.91,
+  "parameters": 1073152,
+  "causality": {
+    "max_change_before_cut": 0.0,
+    "max_change_after_cut": 5.704102516174316,
+    "bidirectional_control_change_before_cut": 0.22718608379364014
+  },
+  "selective_scan_max_error_vs_naive_float64": 0.0,
+  "gradient": {
+    "loss": 0.06093871593475342,
+    "params_without_gradient": 0
+  },
+  "mamba_config": {
+    "d_model": 256,
+    "d_inner": 512,
+    "dt_rank": 16,
+    "d_state": 16
+  },
+  "problems": []
+}

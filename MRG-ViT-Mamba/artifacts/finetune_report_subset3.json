@@ -1,0 +1,830 @@
+{
+  "run_name": "subset3",
+  "regime": "end-to-end fine-tuning of ViT-B/16 + Mamba head",
+  "num_frames": 16,
+  "best_epoch": 5,
+  "selection_metric": "val_balanced_accuracy (test never used for selection)",
+  "num_classes": 3,
+  "class_names": [
+    "Low",
+    "High",
+    "Very High"
+  ],
+  "class_merge": {
+    "merge": {
+      "groups": [
+        [
+          0,
+          1
+        ],
+        [
+          2
+        ],
+        [
+          3
+        ]
+      ],
+      "names": [
+        "Low",
+        "High",
+        "Very High"
+      ],
+      "mapping": {
+        "0": 0,
+        "1": 0,
+        "2": 1,
+        "3": 2
+      },
+      "source_classes": 4,
+      "num_classes": 3
+    },
+    "counts": {
+      "test": {
+        "0": 88,
+        "1": 882,
+        "2": 814
+      },
+      "train": {
+        "0": 69,
+        "1": 733,
+        "2": 698
+      },
+      "val": {
+        "0": 166,
+        "1": 813,
+        "2": 450
+      }
+    }
+  },
+  "effective_train_counts": {
+    "0": 69,
+    "1": 733,
+    "2": 698
+  },
+  "tta": [
+    {
+      "view": "center_crop",
+      "scale": 1.0
+    },
+    {
+      "view": "center_crop",
+      "scale": 0.9
+    },
+    {
+      "view": "center_crop",
+      "scale": 0.8
+    }
+  ],
+  "splits": {
+    "train": {
+      "accuracy": 0.61,
+      "balanced_accuracy": 0.6129155977460412,
+      "weighted_f1": 0.6090084775360507,
+      "macro_f1": 0.5870753104942902,
+      "per_class": {
+        "Low": {
+          "index": 0,
+          "precision": 0.4725274725274725,
+          "recall": 0.6231884057971014,
+          "f1": 0.5375,
+          "support": 69
+        },
+        "High": {
+          "index": 1,
+          "precision": 0.6034271725826194,
+          "recall": 0.6725784447476125,
+          "f1": 0.6361290322580645,
+          "support": 733
+        },
+        "Very High": {
+          "index": 2,
+          "precision": 0.6402027027027027,
+          "recall": 0.5429799426934098,
+          "f1": 0.5875968992248062,
+          "support": 698
+        }
+      },
+      "confusion_matrix": [
+        [
+          43,
+          19,
+          7
+        ],
+        [
+          34,
+          493,
+          206
+        ],
+        [
+          14,
+          305,
+          379
+        ]
+      ],
+      "num_samples": 1500,
+      "class_prior": [
+        0.046,
+        0.488667,
+        0.465333
+      ],
+      "majority_class_accuracy": 0.4886666666666667,
+      "classes_absent_from_split": [],
+      "classes_present_but_never_predicted": [],
+      "balanced_accuracy_note": "mean per-class recall over the classes present in this split; equals the accuracy a class-balanced version of this split would give, without discarding any clips",
+      "macro_f1_note": "all 3 classes have support in this split",
+      "loss": 1.0182309103012084,
+      "tta": {
+        "views": [
+          {
+            "view": "center_crop",
+            "scale": 1.0
+          },
+          {
+            "view": "center_crop",
+            "scale": 0.9
+          },
+          {
+            "view": "center_crop",
+            "scale": 0.8
+          }
+        ],
+        "num_passes": 3,
+        "note": "probabilities averaged over deterministic centre-crop views; the reported loss is the mean of the per-view losses, not the loss of the averaged distribution"
+      },
+      "baselines": {
+        "train_prior": [
+          0.046,
+          0.488667,
+          0.465333
+        ],
+        "majority_class": {
+          "index": 1,
+          "accuracy": 0.4886666666666667,
+          "balanced_accuracy": 0.3333333333333333,
+          "macro_f1": 0.21883863263173609,
+          "weighted_f1": 0.3208174354381251
+        },
+        "stratified_random_mean": {
+          "accuracy": 0.4567366666666667,
+          "balanced_accuracy": 0.3328227528910452,
+          "macro_f1": 0.3327187934325825,
+          "weighted_f1": 0.456614714673344
+        },
+        "stratified_random_std": {
+          "accuracy": 0.0129536605722947,
+          "balanced_accuracy": 0.011981272521622453,
+          "macro_f1": 0.012058298976634324,
+          "weighted_f1": 0.012806260322522701
+        },
+        "uniform_chance_accuracy": 0.3333333333333333,
+        "balanced_accuracy_chance": 0.3333333333333333
+      },
+      "logit_adjusted": {
+        "accuracy": 0.61,
+        "balanced_accuracy": 0.6129155977460412,
+        "macro_f1": 0.5870753104942902,
+        "weighted_f1": 0.6090084775360507,
+        "per_class": {
+          "Low": {
+            "index": 0,
+            "precision": 0.4725274725274725,
+            "recall": 0.6231884057971014,
+            "f1": 0.5375,
+            "support": 69
+          },
+          "High": {
+            "index": 1,
+            "precision": 0.6034271725826194,
+            "recall": 0.6725784447476125,
+            "f1": 0.6361290322580645,
+            "support": 733
+          },
+          "Very High": {
+            "index": 2,
+            "precision": 0.6402027027027027,
+            "recall": 0.5429799426934098,
+            "f1": 0.5875968992248062,
+            "support": 698
+          }
+        },
+        "confusion_matrix": [
+          [
+            43,
+            19,
+            7
+          ],
+          [
+            34,
+            493,
+            206
+          ],
+          [
+            14,
+            305,
+            379
+          ]
+        ],
+        "correct": 915,
+        "p_vs_majority_baseline": 2.6299252888531135e-21,
+        "applied": true,
+        "tau": 1.0,
+        "effective_train_prior": [
+          0.046,
+          0.488667,
+          0.465333
+        ],
+        "target_prior": [
+          0.046,
+          0.488667,
+          0.465333
+        ],
+        "applied_to": "natural class distribution of the training split",
+        "logit_shift": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "note": "post-hoc logit adjustment (Menon et al. 2021); corrects the prior distortion introduced by weighted sampling and class-weighted loss. No weights were changed and the test labels were not used to derive the shift."
+      },
+      "significance": {
+        "correct": 915,
+        "n": 1500,
+        "p_vs_majority_baseline": 2.6299252888531135e-21,
+        "majority_baseline_accuracy": 0.4886666666666667,
+        "p_vs_uniform_chance": 3.651355487466044e-106,
+        "note": "one-sided binomial; the primary test is against the accuracy of always predicting the training-majority class. On an imbalanced split, compare macro-F1 against the baselines as well - accuracy alone rewards predicting the majority class."
+      },
+      "num_unique_subjects": 69
+    },
+    "val": {
+      "accuracy": 0.47585724282715186,
+      "balanced_accuracy": 0.43520927498431616,
+      "weighted_f1": 0.4871635904935422,
+      "macro_f1": 0.4183778670223823,
+      "per_class": {
+        "Low": {
+          "index": 0,
+          "precision": 0.21739130434782608,
+          "recall": 0.3614457831325301,
+          "f1": 0.27149321266968324,
+          "support": 166
+        },
+        "High": {
+          "index": 1,
+          "precision": 0.616361071932299,
+          "recall": 0.5375153751537516,
+          "f1": 0.5742444152431012,
+          "support": 813
+        },
+        "Very High": {
+          "index": 2,
+          "precision": 0.41216216216216217,
+          "recall": 0.4066666666666667,
+          "f1": 0.40939597315436244,
+          "support": 450
+        }
+      },
+      "confusion_matrix": [
+        [
+          60,
+          82,
+          24
+        ],
+        [
+          139,
+          437,
+          237
+        ],
+        [
+          77,
+          190,
+          183
+        ]
+      ],
+      "num_samples": 1429,
+      "class_prior": [
+        0.116165,
+        0.568929,
+        0.314906
+      ],
+      "majority_class_accuracy": 0.5689293212036389,
+      "classes_absent_from_split": [],
+      "classes_present_but_never_predicted": [],
+      "balanced_accuracy_note": "mean per-class recall over the classes present in this split; equals the accuracy a class-balanced version of this split would give, without discarding any clips",
+      "macro_f1_note": "all 3 classes have support in this split",
+      "loss": 1.2144367974563683,
+      "tta": {
+        "views": [
+          {
+            "view": "center_crop",
+            "scale": 1.0
+          },
+          {
+            "view": "center_crop",
+            "scale": 0.9
+          },
+          {
+            "view": "center_crop",
+            "scale": 0.8
+          }
+        ],
+        "num_passes": 3,
+        "note": "probabilities averaged over deterministic centre-crop views; the reported loss is the mean of the per-view losses, not the loss of the averaged distribution"
+      },
+      "baselines": {
+        "train_prior": [
+          0.046,
+          0.488667,
+          0.465333
+        ],
+        "majority_class": {
+          "index": 1,
+          "accuracy": 0.5689293212036389,
+          "balanced_accuracy": 0.3333333333333333,
+          "macro_f1": 0.24174843889384479,
+          "weighted_f1": 0.4126133257257435
+        },
+        "stratified_random_mean": {
+          "accuracy": 0.4300559832050385,
+          "balanced_accuracy": 0.33323377906871443,
+          "macro_f1": 0.3219491637979629,
+          "weighted_f1": 0.425016842923737
+        },
+        "stratified_random_std": {
+          "accuracy": 0.013576783896556659,
+          "balanced_accuracy": 0.011370175884535526,
+          "macro_f1": 0.011984972686266885,
+          "weighted_f1": 0.012825556002973908
+        },
+        "uniform_chance_accuracy": 0.3333333333333333,
+        "balanced_accuracy_chance": 0.3333333333333333
+      },
+      "logit_adjusted": {
+        "accuracy": 0.47585724282715186,
+        "balanced_accuracy": 0.43520927498431616,
+        "macro_f1": 0.4183778670223823,
+        "weighted_f1": 0.4871635904935422,
+        "per_class": {
+          "Low": {
+            "index": 0,
+            "precision": 0.21739130434782608,
+            "recall": 0.3614457831325301,
+            "f1": 0.27149321266968324,
+            "support": 166
+          },
+          "High": {
+            "index": 1,
+            "precision": 0.616361071932299,
+            "recall": 0.5375153751537516,
+            "f1": 0.5742444152431012,
+            "support": 813
+          },
+          "Very High": {
+            "index": 2,
+            "precision": 0.41216216216216217,
+            "recall": 0.4066666666666667,
+            "f1": 0.40939597315436244,
+            "support": 450
+          }
+        },
+        "confusion_matrix": [
+          [
+            60,
+            82,
+            24
+          ],
+          [
+            139,
+            437,
+            237
+          ],
+          [
+            77,
+            190,
+            183
+          ]
+        ],
+        "correct": 680,
+        "p_vs_majority_baseline": 0.9999999999993353,
+        "applied": true,
+        "tau": 1.0,
+        "effective_train_prior": [
+          0.046,
+          0.488667,
+          0.465333
+        ],
+        "target_prior": [
+          0.046,
+          0.488667,
+          0.465333
+        ],
+        "applied_to": "natural class distribution of the training split",
+        "logit_shift": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "note": "post-hoc logit adjustment (Menon et al. 2021); corrects the prior distortion introduced by weighted sampling and class-weighted loss. No weights were changed and the test labels were not used to derive the shift."
+      },
+      "significance": {
+        "correct": 680,
+        "n": 1429,
+        "p_vs_majority_baseline": 0.9999999999993353,
+        "majority_baseline_accuracy": 0.5689293212036389,
+        "p_vs_uniform_chance": 6.068749654304696e-29,
+        "note": "one-sided binomial; the primary test is against the accuracy of always predicting the training-majority class. On an imbalanced split, compare macro-F1 against the baselines as well - accuracy alone rewards predicting the majority class."
+      },
+      "num_unique_subjects": 19
+    },
+    "test": {
+      "accuracy": 0.45964125560538116,
+      "balanced_accuracy": 0.4185458649744364,
+      "weighted_f1": 0.46609755213969234,
+      "macro_f1": 0.3832756465633178,
+      "per_class": {
+        "Low": {
+          "index": 0,
+          "precision": 0.13679245283018868,
+          "recall": 0.32954545454545453,
+          "f1": 0.19333333333333333,
+          "support": 88
+        },
+        "High": {
+          "index": 1,
+          "precision": 0.5111346765641569,
+          "recall": 0.546485260770975,
+          "f1": 0.5282191780821918,
+          "support": 882
+        },
+        "Very High": {
+          "index": 2,
+          "precision": 0.4912559618441971,
+          "recall": 0.3796068796068796,
+          "f1": 0.4282744282744283,
+          "support": 814
+        }
+      },
+      "confusion_matrix": [
+        [
+          29,
+          47,
+          12
+        ],
+        [
+          92,
+          482,
+          308
+        ],
+        [
+          91,
+          414,
+          309
+        ]
+      ],
+      "num_samples": 1784,
+      "class_prior": [
+        0.049327,
+        0.494395,
+        0.456278
+      ],
+      "majority_class_accuracy": 0.4943946188340807,
+      "classes_absent_from_split": [],
+      "classes_present_but_never_predicted": [],
+      "balanced_accuracy_note": "mean per-class recall over the classes present in this split; equals the accuracy a class-balanced version of this split would give, without discarding any clips",
+      "macro_f1_note": "all 3 classes have support in this split",
+      "loss": 1.206885077359965,
+      "tta": {
+        "views": [
+          {
+            "view": "center_crop",
+            "scale": 1.0
+          },
+          {
+            "view": "center_crop",
+            "scale": 0.9
+          },
+          {
+            "view": "center_crop",
+            "scale": 0.8
+          }
+        ],
+        "num_passes": 3,
+        "note": "probabilities averaged over deterministic centre-crop views; the reported loss is the mean of the per-view losses, not the loss of the averaged distribution"
+      },
+      "baselines": {
+        "train_prior": [
+          0.046,
+          0.488667,
+          0.465333
+        ],
+        "majority_class": {
+          "index": 1,
+          "accuracy": 0.4943946188340807,
+          "balanced_accuracy": 0.3333333333333333,
+          "macro_f1": 0.22055513878469615,
+          "weighted_f1": 0.3271238213140729
+        },
+        "stratified_random_mean": {
+          "accuracy": 0.4572057174887892,
+          "balanced_accuracy": 0.3342360078074364,
+          "macro_f1": 0.33409819000671553,
+          "weighted_f1": 0.4565093291283882
+        },
+        "stratified_random_std": {
+          "accuracy": 0.012307558330736828,
+          "balanced_accuracy": 0.011410888781288746,
+          "macro_f1": 0.011525431292234928,
+          "weighted_f1": 0.012195363908670775
+        },
+        "uniform_chance_accuracy": 0.3333333333333333,
+        "balanced_accuracy_chance": 0.3333333333333333
+      },
+      "logit_adjusted": {
+        "accuracy": 0.45964125560538116,
+        "balanced_accuracy": 0.4185458649744364,
+        "macro_f1": 0.3832756465633178,
+        "weighted_f1": 0.46609755213969234,
+        "per_class": {
+          "Low": {
+            "index": 0,
+            "precision": 0.13679245283018868,
+            "recall": 0.32954545454545453,
+            "f1": 0.19333333333333333,
+            "support": 88
+          },
+          "High": {
+            "index": 1,
+            "precision": 0.5111346765641569,
+            "recall": 0.546485260770975,
+            "f1": 0.5282191780821918,
+            "support": 882
+          },
+          "Very High": {
+            "index": 2,
+            "precision": 0.4912559618441971,
+            "recall": 0.3796068796068796,
+            "f1": 0.4282744282744283,
+            "support": 814
+          }
+        },
+        "confusion_matrix": [
+          [
+            29,
+            47,
+            12
+          ],
+          [
+            92,
+            482,
+            308
+          ],
+          [
+            91,
+            414,
+            309
+          ]
+        ],
+        "correct": 820,
+        "p_vs_majority_baseline": 0.998468831401846,
+        "applied": true,
+        "tau": 1.0,
+        "effective_train_prior": [
+          0.046,
+          0.488667,
+          0.465333
+        ],
+        "target_prior": [
+          0.046,
+          0.488667,
+          0.465333
+        ],
+        "applied_to": "natural class distribution of the training split",
+        "logit_shift": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "note": "post-hoc logit adjustment (Menon et al. 2021); corrects the prior distortion introduced by weighted sampling and class-weighted loss. No weights were changed and the test labels were not used to derive the shift."
+      },
+      "significance": {
+        "correct": 820,
+        "n": 1784,
+        "p_vs_majority_baseline": 0.998468831401846,
+        "majority_baseline_accuracy": 0.4943946188340807,
+        "p_vs_uniform_chance": 1.5107654581424673e-28,
+        "note": "one-sided binomial; the primary test is against the accuracy of always predicting the training-majority class. On an imbalanced split, compare macro-F1 against the baselines as well - accuracy alone rewards predicting the majority class."
+      },
+      "num_unique_subjects": 21
+    }
+  },
+  "learned_mrs_weights": {
+    "blur": 0.167331,
+    "face_visibility": 0.17946,
+    "head_pose": 0.228725,
+    "eye_visibility": 0.230219,
+    "motion_consistency": 0.194264
+  },
+  "learned_mrs_weights_last_epoch": {
+    "blur": 0.196773,
+    "face_visibility": 0.210576,
+    "head_pose": 0.20175,
+    "eye_visibility": 0.202199,
+    "motion_consistency": 0.188701
+  },
+  "mrs_weight_note": "learned_mrs_weights are those stored in the selected checkpoint (epoch 5). learned_mrs_weights_last_epoch are where they had drifted to by the final epoch, in a model that is not the one evaluated here.",
+  "mrs_weight_start": {
+    "blur": 0.2,
+    "face_visibility": 0.2,
+    "head_pose": 0.2,
+    "eye_visibility": 0.2,
+    "motion_consistency": 0.2
+  },
+  "training": {
+    "epochs_run": 32,
+    "batch_size": 4,
+    "grad_accum_steps": 4,
+    "effective_batch": 16,
+    "head_lr": 0.000424,
+    "backbone_lr": 1.41e-05,
+    "backbone": {
+      "frozen": false,
+      "total_blocks": 12,
+      "unfreeze_blocks": 4,
+      "grad_checkpointing": false,
+      "backbone_params_total": 85798656,
+      "backbone_params_trainable": 28353024
+    },
+    "clips": {
+      "train": 1500,
+      "val": 1429,
+      "test": 1784
+    },
+    "label_counts": {
+      "train": {
+        "1": 733,
+        "2": 698,
+        "0": 69
+      },
+      "val": {
+        "1": 813,
+        "2": 450,
+        "0": 166
+      },
+      "test": {
+        "1": 882,
+        "2": 814,
+        "0": 88
+      }
+    },
+    "subjects": {
+      "train": [
+        "110001",
+        "110002",
+        "110004",
+        "110005",
+        "110006",
+        "110007",
+        "110008",
+        "110010",
+        "110011",
+        "110012",
+        "110013",
+        "110014",
+        "110015",
+        "110016",
+        "110017",
+        "110041",
+        "111003",
+        "181374",
+        "200048",
+        "200049",
+        "200050",
+        "200054",
+        "202614",
+        "205601",
+        "210051",
+        "210052",
+        "210053",
+        "210055",
+        "210056",
+        "210057",
+        "210058",
+        "210059",
+        "210060",
+        "210061",
+        "226051",
+        "240846",
+        "248510",
+        "290428",
+        "303830",
+        "310062",
+        "310063",
+        "310064",
+        "310066",
+        "310068",
+        "310069",
+        "310070",
+        "310071",
+        "310072",
+        "310073",
+        "310074",
+        "310075",
+        "310076",
+        "310077",
+        "310078",
+        "310079",
+        "310080",
+        "310081",
+        "310082",
+        "310083",
+        "334463",
+        "337021",
+        "342227",
+        "350361",
+        "400018",
+        "401835",
+        "411021",
+        "411031",
+        "414081",
+        "459999"
+      ],
+      "val": [
+        "400022",
+        "400023",
+        "400030",
+        "400033",
+        "410019",
+        "410020",
+        "410024",
+        "410025",
+        "410026",
+        "410027",
+        "410028",
+        "410029",
+        "410030",
+        "410032",
+        "500039",
+        "500043",
+        "556463",
+        "567496",
+        "591292"
+      ],
+      "test": [
+        "500044",
+        "500067",
+        "500095",
+        "510009",
+        "510034",
+        "510035",
+        "510036",
+        "510037",
+        "510038",
+        "510040",
+        "510042",
+        "510045",
+        "510046",
+        "510047",
+        "826412",
+        "882654",
+        "907001",
+        "928901",
+        "940328",
+        "987736",
+        "998826"
+      ]
+    }
+  },
+  "extend_decision": null,
+  "history_csv": "C:\\Users\\ashok\\OneDrive\\Desktop\\Adhvaith\\VIT\\MINI PROJECT\\MRG-ViT-Mamba\\logs\\training_history_subset3.csv",
+  "checkpoint_dir": "C:\\Users\\ashok\\mrg_run\\checkpoints\\subset3",
+  "environment": {
+    "python": "3.13.3 (tags/v3.13.3:6280bb5, Apr  8 2025, 14:47:33) [MSC v.1943 64 bit (AMD64)]",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "machine": "AMD64",
+    "timestamp": "2026-10-15T15:05:10",
+    "git_commit": "ddad6fca08b2bf61025cc59f36be4bec3bb6dca6",
+    "packages": {
+      "torch": "2.11.0+cu128",
+      "torchvision": "0.26.0+cu128",
+      "timm": "1.0.29",
+      "cv2": "5.0.0",
+      "mediapipe": "1.0.1",
+      "numpy": "2.5.2",
+      "sklearn": "1.9.0",
+      "shap": "0.52.0",
+      "pandas": "3.0.5",
+      "matplotlib": "3.11.1",
+      "einops": "0.8.2",
+      "yaml": "6.0.3"
+    },
+    "device": {
+      "device": "cuda",
+      "name": "NVIDIA GeForce RTX 3060 Laptop GPU",
+      "total_memory_bytes": 6441926656,
+      "total_memory_gb": 6.0,
+      "cuda_available": true,
+      "torch_version": "2.11.0+cu128",
+      "torch_cuda_version": "12.8"
+    }
+  }
+}

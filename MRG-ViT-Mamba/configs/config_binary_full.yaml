@@ -530,5 +530,10 @@ evaluation:
   # reference_prior: [0.049, 0.494, 0.456]
 
 explain:
-  shap_background_size: 64
-  shap_eval_size: 64
+  # Raised from 64. GradientExplainer cost scales with background x eval, and
+  # 512 of each takes about ten minutes on this hardware, which is worth it for
+  # a claim that goes in the report: at 64 the group shares move by a couple of
+  # points between seeds, which is the same order as the difference being
+  # described.
+  shap_background_size: 512
+  shap_eval_size: 512

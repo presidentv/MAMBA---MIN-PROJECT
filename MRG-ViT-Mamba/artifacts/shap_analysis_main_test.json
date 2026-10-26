@@ -1,0 +1,227 @@
+{
+  "method": "shap.GradientExplainer (expected gradients)",
+  "attribution_input": "[Mamba temporal embedding (d_model) || landmark clip features (3L)]",
+  "attribution_model": "deep/landmark branch projections -> fusion -> MLP -> logits",
+  "background_samples": 36,
+  "evaluated_samples": 36,
+  "num_classes_in_output": 4,
+  "deep_dim": 256,
+  "landmark_dim": 240,
+  "group_sizes": {
+    "deep_temporal": 256,
+    "eye_openness": 36,
+    "iris_gaze": 45,
+    "mouth_jaw": 90,
+    "brow": 27,
+    "head_pose": 15,
+    "face_scale": 9,
+    "neutral": 3,
+    "cheek_nose": 15
+  },
+  "group_total_mean_abs_shap": {
+    "deep_temporal": 0.6628600142884523,
+    "eye_openness": 0.06722576277755318,
+    "iris_gaze": 0.11425757462933535,
+    "mouth_jaw": 0.4329810228741194,
+    "brow": 0.09979205787639958,
+    "head_pose": 0.058348421620407015,
+    "face_scale": 0.04162793132615754,
+    "neutral": 6.885573627118898e-09,
+    "cheek_nose": 0.0135971230403707
+  },
+  "group_share_of_total": {
+    "deep_temporal": 0.44466659865132613,
+    "eye_openness": 0.045097080275877284,
+    "iris_gaze": 0.07664744589416049,
+    "mouth_jaw": 0.2904568001868095,
+    "brow": 0.06694353859305935,
+    "head_pose": 0.03914189062448005,
+    "face_scale": 0.02792527869034856,
+    "neutral": 4.619051592395282e-09,
+    "cheek_nose": 0.009121362464887102
+  },
+  "group_share_per_class": {
+    "Very Low": {
+      "deep_temporal": 0.4170031424072835,
+      "eye_openness": 0.04841742208398076,
+      "iris_gaze": 0.08778402304551225,
+      "mouth_jaw": 0.3141869974816524,
+      "brow": 0.059334593284500255,
+      "head_pose": 0.036313728020372936,
+      "face_scale": 0.030779282994988853,
+      "neutral": 3.9686824293787144e-09,
+      "cheek_nose": 0.006180806713026663
+    },
+    "Low": {
+      "deep_temporal": 0.4704578946638732,
+      "eye_openness": 0.039796642021066295,
+      "iris_gaze": 0.07114926682902604,
+      "mouth_jaw": 0.2774625423076068,
+      "brow": 0.07244763976990874,
+      "head_pose": 0.03552418538754938,
+      "face_scale": 0.020929514921629196,
+      "neutral": 5.313136835645929e-09,
+      "cheek_nose": 0.01223230878620345
+    },
+    "High": {
+      "deep_temporal": 0.4173137476877203,
+      "eye_openness": 0.04387691263865758,
+      "iris_gaze": 0.07738940827327977,
+      "mouth_jaw": 0.3087876648617889,
+      "brow": 0.07442671302339376,
+      "head_pose": 0.042979691957273004,
+      "face_scale": 0.02602273207692586,
+      "neutral": 4.643814543223765e-09,
+      "cheek_nose": 0.009203124837146389
+    },
+    "Very High": {
+      "deep_temporal": 0.47653438800841524,
+      "eye_openness": 0.04769446133049493,
+      "iris_gaze": 0.06876499849496633,
+      "mouth_jaw": 0.25904790156810936,
+      "brow": 0.06305179913659974,
+      "head_pose": 0.04223651700052727,
+      "face_scale": 0.03335370758580076,
+      "neutral": 4.649922471335873e-09,
+      "cheek_nose": 0.009316222225163897
+    }
+  },
+  "top_landmark_features": [
+    {
+      "feature": "mean_blendshape_mouthRollLower",
+      "mean_abs_shap": 0.051806070877777666
+    },
+    {
+      "feature": "mean_blendshape_mouthDimpleLeft",
+      "mean_abs_shap": 0.029324629911111278
+    },
+    {
+      "feature": "mean_blendshape_browInnerUp",
+      "mean_abs_shap": 0.020672340644302557
+    },
+    {
+      "feature": "delta_blendshape_mouthClose",
+      "mean_abs_shap": 0.020047453665503843
+    },
+    {
+      "feature": "std_blendshape_mouthClose",
+      "mean_abs_shap": 0.01964889437837298
+    },
+    {
+      "feature": "mean_blendshape_mouthLeft",
+      "mean_abs_shap": 0.015464037418636162
+    },
+    {
+      "feature": "mean_blendshape_mouthClose",
+      "mean_abs_shap": 0.015357439201502048
+    },
+    {
+      "feature": "mean_blendshape_mouthPressLeft",
+      "mean_abs_shap": 0.014350608871093587
+    },
+    {
+      "feature": "std_blendshape_mouthRollUpper",
+      "mean_abs_shap": 0.014227644438086983
+    },
+    {
+      "feature": "std_blendshape_mouthRollLower",
+      "mean_abs_shap": 0.011343659407444221
+    },
+    {
+      "feature": "delta_blendshape_mouthLeft",
+      "mean_abs_shap": 0.010587071749077897
+    },
+    {
+      "feature": "delta_inter_ocular_norm",
+      "mean_abs_shap": 0.01052487872437563
+    },
+    {
+      "feature": "delta_blendshape_mouthRollUpper",
+      "mean_abs_shap": 0.010026821972760981
+    },
+    {
+      "feature": "std_head_roll_norm",
+      "mean_abs_shap": 0.009318387211986712
+    },
+    {
+      "feature": "std_blendshape_mouthPressRight",
+      "mean_abs_shap": 0.008240038190817514
+    },
+    {
+      "feature": "mean_mouth_corner_lift",
+      "mean_abs_shap": 0.008197010600926794
+    },
+    {
+      "feature": "std_blendshape_mouthPressLeft",
+      "mean_abs_shap": 0.008088999600721312
+    },
+    {
+      "feature": "delta_blendshape_mouthRollLower",
+      "mean_abs_shap": 0.008051703602877741
+    },
+    {
+      "feature": "mean_blendshape_mouthRollUpper",
+      "mean_abs_shap": 0.007922689736555912
+    },
+    {
+      "feature": "mean_brow_eye_right",
+      "mean_abs_shap": 0.007364938803362247
+    },
+    {
+      "feature": "mean_blendshape_browOuterUpLeft",
+      "mean_abs_shap": 0.007012016924961898
+    },
+    {
+      "feature": "std_head_yaw_norm",
+      "mean_abs_shap": 0.006956354004656537
+    },
+    {
+      "feature": "mean_nose_offset_y",
+      "mean_abs_shap": 0.00669312388428287
+    },
+    {
+      "feature": "mean_head_yaw_norm",
+      "mean_abs_shap": 0.006537361069720981
+    },
+    {
+      "feature": "std_blendshape_browInnerUp",
+      "mean_abs_shap": 0.006487739415069303
+    },
+    {
+      "feature": "std_inter_ocular_norm",
+      "mean_abs_shap": 0.006458442871310192
+    },
+    {
+      "feature": "delta_blendshape_eyeLookOutRight",
+      "mean_abs_shap": 0.006323323963927744
+    },
+    {
+      "feature": "std_nose_offset_x",
+      "mean_abs_shap": 0.006218123524400893
+    },
+    {
+      "feature": "mean_iris_dx_left",
+      "mean_abs_shap": 0.006139697430719307
+    },
+    {
+      "feature": "std_blendshape_mouthLeft",
+      "mean_abs_shap": 0.006099358834450822
+    }
+  ],
+  "plots": {
+    "groups": "C:\\Users\\ashok\\OneDrive\\Desktop\\Adhvaith\\VIT\\MINI PROJECT\\MRG-ViT-Mamba\\artifacts\\shap_group_contributions_main_test.png",
+    "top_features": "C:\\Users\\ashok\\OneDrive\\Desktop\\Adhvaith\\VIT\\MINI PROJECT\\MRG-ViT-Mamba\\artifacts\\shap_top_landmark_features_main_test.png"
+  },
+  "caveat": "SHAP reports what this model attended to, not causal structure. Group totals are sums over differently sized groups: the deep block has d_model dimensions and the landmark groups have far fewer, so a larger total partly reflects a larger group. group_share_per_dimension is given for a size-normalised view.",
+  "group_share_per_dimension": {
+    "deep_temporal": 0.002589296930814267,
+    "eye_openness": 0.0018673822993764773,
+    "iris_gaze": 0.00253905721398523,
+    "mouth_jaw": 0.004810900254156882,
+    "brow": 0.0036960021435703547,
+    "head_pose": 0.003889894774693801,
+    "face_scale": 0.004625325702906393,
+    "neutral": 2.2951912090396326e-09,
+    "cheek_nose": 0.0009064748693580467
+  }
+}

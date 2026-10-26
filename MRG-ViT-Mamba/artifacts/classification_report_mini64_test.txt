@@ -1,0 +1,18 @@
+Split: test
+Checkpoint: C:\Users\ashok\OneDrive\Desktop\Adhvaith\VIT\MINI PROJECT\MRG-ViT-Mamba\checkpoints\mini64\best.pt
+Selected on: validation macro-F1 (epoch 11)
+Clips: 16   Unique subjects: 11
+MRS weighting: real
+Mamba backend: pytorch_reference
+
+              precision    recall  f1-score   support
+
+    Very Low     0.2500    0.2500    0.2500         4
+         Low     0.3333    0.2500    0.2857         4
+        High     0.2857    0.5000    0.3636         4
+   Very High     1.0000    0.5000    0.6667         4
+
+    accuracy                         0.3750        16
+   macro avg     0.4673    0.3750    0.3915        16
+weighted avg     0.4673    0.3750    0.3915        16
+

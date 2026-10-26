@@ -1,0 +1,45 @@
+{
+  "backbone": {
+    "name": "timm:vit_base_patch16_224.augreg2_in21k_ft_in1k",
+    "family": "timm",
+    "embed_dim": 768,
+    "input_size": 224,
+    "mean": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "std": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "num_params": 85798656
+  },
+  "batch": 2,
+  "num_frames": 16,
+  "input_shape": [
+    2,
+    16,
+    3,
+    224,
+    224
+  ],
+  "flattened_shape": [
+    32,
+    3,
+    224,
+    224
+  ],
+  "output_shape": [
+    2,
+    16,
+    768
+  ],
+  "actual_embed_dim": 768,
+  "device": "cuda:0",
+  "dtype": "torch.float32",
+  "mrs_weighting_preserves_shape": true,
+  "mrs_scale_max_deviation": 0.0,
+  "problems": []
+}

@@ -59,6 +59,15 @@ artifacts/per_clip_predictions_*.json
 # machine that ran the model.
 artifacts/examples_*/
 
+# The same worked examples, written into the report figure directory rather
+# than examples_*/: fig7 draws landmarks over a frame of an identifiable
+# participant, fig8 shows that frame's decision, and the JSON pairs each clip
+# id and subject id with its ground-truth engagement label. Every other figure
+# in artifacts/report/ is an aggregate plot or a generated diagram and is kept.
+artifacts/report/fig7_example_*
+artifacts/report/fig8_example_*
+artifacts/report/example_explanations.json
+
 # Per-run sweep reports; the aggregated JSON in ablation_results.json /
 # sampling_experiment.json already contains every number they hold.
 artifacts/classification_report_T*_test.txt

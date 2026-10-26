@@ -1,0 +1,18 @@
+Split: test
+Checkpoint: checkpoints/main/best.pt
+Selected on: validation macro-F1 (epoch 8)
+Clips: 36   Unique subjects: 8
+MRS weighting: real
+Mamba backend: pytorch_reference
+
+              precision    recall  f1-score   support
+
+    Very Low     0.1667    0.6667    0.2667         3
+         Low     0.0000    0.0000    0.0000         5
+        High     0.7143    0.2632    0.3846        19
+   Very High     0.2353    0.4444    0.3077         9
+
+    accuracy                         0.3056        36
+   macro avg     0.2791    0.3436    0.2397        36
+weighted avg     0.4497    0.3056    0.3021        36
+

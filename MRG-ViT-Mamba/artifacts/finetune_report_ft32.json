@@ -1,0 +1,482 @@
+{
+  "run_name": "ft32",
+  "regime": "end-to-end fine-tuning of ViT-B/16 + Mamba head",
+  "num_frames": 32,
+  "best_epoch": 2,
+  "selection_metric": "val_macro_f1 (test never used for selection)",
+  "splits": {
+    "train": {
+      "accuracy": 0.6833333333333333,
+      "weighted_f1": 0.6717551854538156,
+      "macro_f1": 0.6717551854538156,
+      "per_class": {
+        "Very Low": {
+          "index": 0,
+          "precision": 0.7222222222222222,
+          "recall": 0.8666666666666667,
+          "f1": 0.7878787878787878,
+          "support": 30
+        },
+        "Low": {
+          "index": 1,
+          "precision": 0.7368421052631579,
+          "recall": 0.4666666666666667,
+          "f1": 0.5714285714285714,
+          "support": 30
+        },
+        "High": {
+          "index": 2,
+          "precision": 0.6046511627906976,
+          "recall": 0.8666666666666667,
+          "f1": 0.7123287671232876,
+          "support": 30
+        },
+        "Very High": {
+          "index": 3,
+          "precision": 0.7272727272727273,
+          "recall": 0.5333333333333333,
+          "f1": 0.6153846153846154,
+          "support": 30
+        }
+      },
+      "confusion_matrix": [
+        [
+          26,
+          1,
+          1,
+          2
+        ],
+        [
+          8,
+          14,
+          5,
+          3
+        ],
+        [
+          1,
+          2,
+          26,
+          1
+        ],
+        [
+          1,
+          2,
+          11,
+          16
+        ]
+      ],
+      "num_samples": 120,
+      "classes_absent_from_split": [],
+      "classes_present_but_never_predicted": [],
+      "macro_f1_note": "all 4 classes have support in this split",
+      "loss": 1.121965612967809,
+      "baselines": {
+        "train_prior": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "majority_class": {
+          "index": 0,
+          "accuracy": 0.25,
+          "macro_f1": 0.1,
+          "weighted_f1": 0.1
+        },
+        "stratified_random_mean": {
+          "accuracy": 0.2484583333333333,
+          "macro_f1": 0.246510543124396,
+          "weighted_f1": 0.246510543124396
+        },
+        "stratified_random_std": {
+          "accuracy": 0.03945881731487766,
+          "macro_f1": 0.03947166426263406,
+          "weighted_f1": 0.03947166426263406
+        },
+        "uniform_chance_accuracy": 0.25
+      },
+      "significance": {
+        "correct": 82,
+        "n": 120,
+        "p_vs_uniform_chance": 2.424650547568908e-23,
+        "note": "one-sided binomial against uniform chance; the splits are balanced"
+      },
+      "num_unique_subjects": 48
+    },
+    "val": {
+      "accuracy": 0.4375,
+      "weighted_f1": 0.425958128750682,
+      "macro_f1": 0.42595812875068195,
+      "per_class": {
+        "Very Low": {
+          "index": 0,
+          "precision": 0.39285714285714285,
+          "recall": 0.55,
+          "f1": 0.4583333333333333,
+          "support": 20
+        },
+        "Low": {
+          "index": 1,
+          "precision": 0.3157894736842105,
+          "recall": 0.3,
+          "f1": 0.3076923076923077,
+          "support": 20
+        },
+        "High": {
+          "index": 2,
+          "precision": 0.48148148148148145,
+          "recall": 0.65,
+          "f1": 0.5531914893617021,
+          "support": 20
+        },
+        "Very High": {
+          "index": 3,
+          "precision": 0.8333333333333334,
+          "recall": 0.25,
+          "f1": 0.38461538461538464,
+          "support": 20
+        }
+      },
+      "confusion_matrix": [
+        [
+          11,
+          8,
+          0,
+          1
+        ],
+        [
+          6,
+          6,
+          8,
+          0
+        ],
+        [
+          3,
+          4,
+          13,
+          0
+        ],
+        [
+          8,
+          1,
+          6,
+          5
+        ]
+      ],
+      "num_samples": 80,
+      "classes_absent_from_split": [],
+      "classes_present_but_never_predicted": [],
+      "macro_f1_note": "all 4 classes have support in this split",
+      "loss": 1.3276794970035553,
+      "baselines": {
+        "train_prior": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "majority_class": {
+          "index": 0,
+          "accuracy": 0.25,
+          "macro_f1": 0.1,
+          "weighted_f1": 0.1
+        },
+        "stratified_random_mean": {
+          "accuracy": 0.248125,
+          "macro_f1": 0.24569827826537138,
+          "weighted_f1": 0.24569827826537136
+        },
+        "stratified_random_std": {
+          "accuracy": 0.054367815617330076,
+          "macro_f1": 0.054122547618799755,
+          "weighted_f1": 0.054122547618799755
+        },
+        "uniform_chance_accuracy": 0.25
+      },
+      "significance": {
+        "correct": 35,
+        "n": 80,
+        "p_vs_uniform_chance": 0.00019636102242279917,
+        "note": "one-sided binomial against uniform chance; the splits are balanced"
+      },
+      "num_unique_subjects": 17
+    },
+    "test": {
+      "accuracy": 0.5,
+      "weighted_f1": 0.48928571428571427,
+      "macro_f1": 0.48928571428571427,
+      "per_class": {
+        "Very Low": {
+          "index": 0,
+          "precision": 0.5,
+          "recall": 0.5,
+          "f1": 0.5,
+          "support": 4
+        },
+        "Low": {
+          "index": 1,
+          "precision": 0.3333333333333333,
+          "recall": 0.25,
+          "f1": 0.2857142857142857,
+          "support": 4
+        },
+        "High": {
+          "index": 2,
+          "precision": 0.5,
+          "recall": 0.75,
+          "f1": 0.6,
+          "support": 4
+        },
+        "Very High": {
+          "index": 3,
+          "precision": 0.6666666666666666,
+          "recall": 0.5,
+          "f1": 0.5714285714285714,
+          "support": 4
+        }
+      },
+      "confusion_matrix": [
+        [
+          2,
+          1,
+          1,
+          0
+        ],
+        [
+          2,
+          1,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          3,
+          1
+        ],
+        [
+          0,
+          1,
+          1,
+          2
+        ]
+      ],
+      "num_samples": 16,
+      "classes_absent_from_split": [],
+      "classes_present_but_never_predicted": [],
+      "macro_f1_note": "all 4 classes have support in this split",
+      "loss": 1.2803181111812592,
+      "baselines": {
+        "train_prior": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "majority_class": {
+          "index": 0,
+          "accuracy": 0.25,
+          "macro_f1": 0.1,
+          "weighted_f1": 0.1
+        },
+        "stratified_random_mean": {
+          "accuracy": 0.25125,
+          "macro_f1": 0.23815749528249527,
+          "weighted_f1": 0.23815749528249527
+        },
+        "stratified_random_std": {
+          "accuracy": 0.10770329614269007,
+          "macro_f1": 0.10663636174057861,
+          "weighted_f1": 0.10663636174057861
+        },
+        "uniform_chance_accuracy": 0.25
+      },
+      "significance": {
+        "correct": 8,
+        "n": 16,
+        "p_vs_uniform_chance": 0.0271299562882632,
+        "note": "one-sided binomial against uniform chance; the splits are balanced"
+      },
+      "num_unique_subjects": 11
+    }
+  },
+  "learned_mrs_weights": {
+    "blur": 0.24527,
+    "face_visibility": 0.252786,
+    "head_pose": 0.134748,
+    "eye_visibility": 0.129986,
+    "motion_consistency": 0.23721
+  },
+  "learned_mrs_weights_last_epoch": {
+    "blur": 0.125209,
+    "face_visibility": 0.34826,
+    "head_pose": 0.081477,
+    "eye_visibility": 0.071821,
+    "motion_consistency": 0.373234
+  },
+  "mrs_weight_note": "learned_mrs_weights are those stored in the selected checkpoint (epoch 2). learned_mrs_weights_last_epoch are where they had drifted to by the final epoch, in a model that is not the one evaluated here.",
+  "mrs_weight_start": {
+    "blur": 0.2,
+    "face_visibility": 0.2,
+    "head_pose": 0.2,
+    "eye_visibility": 0.2,
+    "motion_consistency": 0.2
+  },
+  "training": {
+    "epochs_run": 64,
+    "batch_size": 4,
+    "grad_accum_steps": 2,
+    "effective_batch": 8,
+    "head_lr": 0.0003,
+    "backbone_lr": 1e-05,
+    "backbone": {
+      "frozen": false,
+      "total_blocks": 12,
+      "unfreeze_blocks": null,
+      "grad_checkpointing": true,
+      "backbone_params_total": 85798656,
+      "backbone_params_trainable": 85798656
+    },
+    "clips": {
+      "train": 120,
+      "val": 80,
+      "test": 16
+    },
+    "label_counts": {
+      "train": {
+        "3": 30,
+        "1": 30,
+        "2": 30,
+        "0": 30
+      },
+      "val": {
+        "2": 20,
+        "0": 20,
+        "1": 20,
+        "3": 20
+      },
+      "test": {
+        "1": 4,
+        "2": 4,
+        "0": 4,
+        "3": 4
+      }
+    },
+    "subjects": {
+      "train": [
+        "110001",
+        "110002",
+        "110005",
+        "110006",
+        "110007",
+        "110011",
+        "110012",
+        "110013",
+        "110014",
+        "110015",
+        "110016",
+        "110017",
+        "110041",
+        "111003",
+        "181374",
+        "200054",
+        "202614",
+        "205601",
+        "210053",
+        "210055",
+        "210056",
+        "210057",
+        "210058",
+        "210060",
+        "210061",
+        "226051",
+        "240846",
+        "290428",
+        "303830",
+        "310063",
+        "310064",
+        "310066",
+        "310072",
+        "310074",
+        "310075",
+        "310076",
+        "310077",
+        "310078",
+        "310079",
+        "310082",
+        "310083",
+        "337021",
+        "342227",
+        "350361",
+        "400018",
+        "401835",
+        "411021",
+        "414081"
+      ],
+      "val": [
+        "400022",
+        "400023",
+        "400030",
+        "400033",
+        "410019",
+        "410020",
+        "410024",
+        "410025",
+        "410026",
+        "410027",
+        "410028",
+        "410029",
+        "410030",
+        "410032",
+        "556463",
+        "567496",
+        "591292"
+      ],
+      "test": [
+        "500044",
+        "500067",
+        "510034",
+        "510035",
+        "510040",
+        "510042",
+        "510047",
+        "826412",
+        "882654",
+        "928901",
+        "987736"
+      ]
+    }
+  },
+  "history_csv": "C:\\Users\\ashok\\OneDrive\\Desktop\\Adhvaith\\VIT\\MINI PROJECT\\MRG-ViT-Mamba\\logs\\training_history_ft32.csv",
+  "checkpoint_dir": "C:\\Users\\ashok\\OneDrive\\Desktop\\Adhvaith\\VIT\\MINI PROJECT\\MRG-ViT-Mamba\\checkpoints\\ft32",
+  "environment": {
+    "python": "3.13.3 (tags/v3.13.3:6280bb5, Apr  8 2025, 14:47:33) [MSC v.1943 64 bit (AMD64)]",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "machine": "AMD64",
+    "timestamp": "2026-09-10T22:47:33",
+    "git_commit": "HEAD",
+    "packages": {
+      "torch": "2.11.0+cu128",
+      "torchvision": "0.26.0+cu128",
+      "timm": "1.0.29",
+      "cv2": "5.0.0",
+      "mediapipe": "1.0.1",
+      "numpy": "2.5.2",
+      "sklearn": "1.9.0",
+      "shap": "0.52.0",
+      "pandas": "3.0.5",
+      "matplotlib": "3.11.1",
+      "einops": "0.8.2",
+      "yaml": "6.0.3"
+    },
+    "device": {
+      "device": "cuda",
+      "name": "NVIDIA GeForce RTX 3060 Laptop GPU",
+      "total_memory_bytes": 6441926656,
+      "total_memory_gb": 6.0,
+      "cuda_available": true,
+      "torch_version": "2.11.0+cu128",
+      "torch_cuda_version": "12.8"
+    }
+  }
+}

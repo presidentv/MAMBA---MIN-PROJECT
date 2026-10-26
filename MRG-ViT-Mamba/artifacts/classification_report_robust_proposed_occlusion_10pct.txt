@@ -1,0 +1,18 @@
+Split: test
+Checkpoint: checkpoints/abl_full_s42/best.pt
+Selected on: validation macro-F1 (epoch 42)
+Clips: 36   Unique subjects: 8
+MRS weighting: real
+Mamba backend: pytorch_reference
+
+              precision    recall  f1-score   support
+
+    Very Low     0.2143    1.0000    0.3529         3
+         Low     0.0000    0.0000    0.0000         5
+        High     0.5000    0.2632    0.3448        19
+   Very High     0.2500    0.3333    0.2857         9
+
+    accuracy                         0.3056        36
+   macro avg     0.2411    0.3991    0.2459        36
+weighted avg     0.3442    0.3056    0.2828        36
+

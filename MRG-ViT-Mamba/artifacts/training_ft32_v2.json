@@ -1,0 +1,481 @@
+{
+  "run_name": "ft32_v2",
+  "regime": "end-to-end fine-tuning (ViT trained, Stage 2 cache unused)",
+  "device": "cuda",
+  "mixed_precision": true,
+  "epochs_run": 64,
+  "epochs_configured": 64,
+  "early_stopping_patience": 64,
+  "resumed_from_epoch": 52,
+  "num_workers": 0,
+  "save_every_epoch": true,
+  "num_frames": 32,
+  "batch_size": 4,
+  "grad_accum_steps": 2,
+  "effective_batch": 8,
+  "head_lr": 0.0003,
+  "backbone_lr": 3e-05,
+  "layer_decay": 0.75,
+  "drop_path_rate": 0.1,
+  "param_groups": {
+    "layer_decay": 0.75,
+    "n_backbone_blocks": 12,
+    "groups": [
+      {
+        "name": "backbone/0/False",
+        "lr": 7.127179205417633e-07,
+        "weight_decay": 0.0,
+        "n_params": 152832
+      },
+      {
+        "name": "backbone/0/True",
+        "lr": 7.127179205417633e-07,
+        "weight_decay": 0.05,
+        "n_params": 589824
+      },
+      {
+        "name": "backbone/1/False",
+        "lr": 9.502905607223511e-07,
+        "weight_decay": 0.0,
+        "n_params": 9984
+      },
+      {
+        "name": "backbone/1/True",
+        "lr": 9.502905607223511e-07,
+        "weight_decay": 0.05,
+        "n_params": 7077888
+      },
+      {
+        "name": "backbone/2/False",
+        "lr": 1.2670540809631349e-06,
+        "weight_decay": 0.0,
+        "n_params": 9984
+      },
+      {
+        "name": "backbone/2/True",
+        "lr": 1.2670540809631349e-06,
+        "weight_decay": 0.05,
+        "n_params": 7077888
+      },
+      {
+        "name": "backbone/3/False",
+        "lr": 1.6894054412841798e-06,
+        "weight_decay": 0.0,
+        "n_params": 9984
+      },
+      {
+        "name": "backbone/3/True",
+        "lr": 1.6894054412841798e-06,
+        "weight_decay": 0.05,
+        "n_params": 7077888
+      },
+      {
+        "name": "backbone/4/False",
+        "lr": 2.2525405883789065e-06,
+        "weight_decay": 0.0,
+        "n_params": 9984
+      },
+      {
+        "name": "backbone/4/True",
+        "lr": 2.2525405883789065e-06,
+        "weight_decay": 0.05,
+        "n_params": 7077888
+      },
+      {
+        "name": "backbone/5/False",
+        "lr": 3.003387451171875e-06,
+        "weight_decay": 0.0,
+        "n_params": 9984
+      },
+      {
+        "name": "backbone/5/True",
+        "lr": 3.003387451171875e-06,
+        "weight_decay": 0.05,
+        "n_params": 7077888
+      },
+      {
+        "name": "backbone/6/False",
+        "lr": 4.0045166015625e-06,
+        "weight_decay": 0.0,
+        "n_params": 9984
+      },
+      {
+        "name": "backbone/6/True",
+        "lr": 4.0045166015625e-06,
+        "weight_decay": 0.05,
+        "n_params": 7077888
+      },
+      {
+        "name": "backbone/7/False",
+        "lr": 5.33935546875e-06,
+        "weight_decay": 0.0,
+        "n_params": 9984
+      },
+      {
+        "name": "backbone/7/True",
+        "lr": 5.33935546875e-06,
+        "weight_decay": 0.05,
+        "n_params": 7077888
+      },
+      {
+        "name": "backbone/8/False",
+        "lr": 7.1191406250000005e-06,
+        "weight_decay": 0.0,
+        "n_params": 9984
+      },
+      {
+        "name": "backbone/8/True",
+        "lr": 7.1191406250000005e-06,
+        "weight_decay": 0.05,
+        "n_params": 7077888
+      },
+      {
+        "name": "backbone/9/False",
+        "lr": 9.4921875e-06,
+        "weight_decay": 0.0,
+        "n_params": 9984
+      },
+      {
+        "name": "backbone/9/True",
+        "lr": 9.4921875e-06,
+        "weight_decay": 0.05,
+        "n_params": 7077888
+      },
+      {
+        "name": "backbone/10/False",
+        "lr": 1.2656250000000001e-05,
+        "weight_decay": 0.0,
+        "n_params": 9984
+      },
+      {
+        "name": "backbone/10/True",
+        "lr": 1.2656250000000001e-05,
+        "weight_decay": 0.05,
+        "n_params": 7077888
+      },
+      {
+        "name": "backbone/11/False",
+        "lr": 1.6875e-05,
+        "weight_decay": 0.0,
+        "n_params": 9984
+      },
+      {
+        "name": "backbone/11/True",
+        "lr": 1.6875e-05,
+        "weight_decay": 0.05,
+        "n_params": 7077888
+      },
+      {
+        "name": "backbone/12/False",
+        "lr": 2.25e-05,
+        "weight_decay": 0.0,
+        "n_params": 9984
+      },
+      {
+        "name": "backbone/12/True",
+        "lr": 2.25e-05,
+        "weight_decay": 0.05,
+        "n_params": 7077888
+      },
+      {
+        "name": "backbone/13/False",
+        "lr": 3e-05,
+        "weight_decay": 0.0,
+        "n_params": 1536
+      },
+      {
+        "name": "head/False",
+        "lr": 0.0003,
+        "weight_decay": 0.0,
+        "n_params": 5508
+      },
+      {
+        "name": "head/True",
+        "lr": 0.0003,
+        "weight_decay": 0.05,
+        "n_params": 1360384
+      },
+      {
+        "name": "mrs/0",
+        "lr": 0.02,
+        "weight_decay": 0.0,
+        "n_params": 5
+      }
+    ],
+    "n_groups": 30
+  },
+  "augmentation": {
+    "scale": [
+      0.8,
+      1.0
+    ],
+    "ratio": [
+      0.9,
+      1.11
+    ],
+    "brightness": 0.2,
+    "contrast": 0.2,
+    "erase_prob": 0.25,
+    "erase_scale": [
+      0.02,
+      0.12
+    ],
+    "applies_to": "training split only",
+    "granularity": "one sampled transform per clip, identical across its frames",
+    "horizontal_flip": false
+  },
+  "backbone": {
+    "frozen": false,
+    "total_blocks": 12,
+    "unfreeze_blocks": null,
+    "grad_checkpointing": true,
+    "backbone_params_total": 85798656,
+    "backbone_params_trainable": 85798656
+  },
+  "backbone_spec": {
+    "name": "timm:vit_base_patch16_224.augreg2_in21k_ft_in1k",
+    "family": "timm",
+    "embed_dim": 768,
+    "input_size": 224,
+    "mean": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "std": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "num_params": 85798656
+  },
+  "model": {
+    "architecture": "ViT spatial encoder + Mamba temporal encoder (MRG-ViT--Mamba); not Vim/Vision Mamba",
+    "vit_dim": 768,
+    "landmark_dim": 240,
+    "mrs_weighting_mode": "multiply",
+    "learnable_mrs_weights": [
+      0.150624,
+      0.383549,
+      0.071084,
+      0.060477,
+      0.334265
+    ],
+    "mamba": {
+      "d_model": 256,
+      "n_layers": 2,
+      "bidirectional": false,
+      "pooling": "mrs_weighted",
+      "backend": "pytorch_reference",
+      "version": null,
+      "source": "vendored reference implementation from state-spaces/mamba (selective_scan_ref + mamba_simple.Mamba slow path)",
+      "mamba_ssm_import_error": "ModuleNotFoundError: No module named 'mamba_ssm'"
+    },
+    "fusion": {
+      "mode": "concat",
+      "output_dim": 512
+    },
+    "classifier_input_dim": 512,
+    "num_classes": 4,
+    "parameters": {
+      "total": 87164553,
+      "trainable": 87164553,
+      "frozen": 0,
+      "per_module": {
+        "temporal": 1073152,
+        "deep_branch": 66304,
+        "landmark_branch": 61696,
+        "fusion": 0,
+        "classifier": 164740,
+        "vit_encoder": 85798656
+      }
+    }
+  },
+  "loss": {
+    "scheme": "inverse_frequency",
+    "weights": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "train_counts": {
+      "0": 30,
+      "1": 30,
+      "2": 30,
+      "3": 30
+    },
+    "classes_absent_from_train": [],
+    "label_smoothing": 0.05
+  },
+  "landmark_scaler": {
+    "fitted": true,
+    "n_train_clips": 120,
+    "dim": 240
+  },
+  "s1_key": "faces_T32_066493f654",
+  "clips": {
+    "train": 120,
+    "val": 80,
+    "test": 16
+  },
+  "missing_clips": {
+    "train": [],
+    "val": [],
+    "test": []
+  },
+  "dataset_root": "../Datasets/DAiSEE_mini",
+  "path_overrides": {},
+  "label_counts": {
+    "train": {
+      "3": 30,
+      "1": 30,
+      "2": 30,
+      "0": 30
+    },
+    "val": {
+      "2": 20,
+      "0": 20,
+      "1": 20,
+      "3": 20
+    },
+    "test": {
+      "1": 4,
+      "2": 4,
+      "0": 4,
+      "3": 4
+    }
+  },
+  "subjects": {
+    "train": [
+      "110001",
+      "110002",
+      "110005",
+      "110006",
+      "110007",
+      "110011",
+      "110012",
+      "110013",
+      "110014",
+      "110015",
+      "110016",
+      "110017",
+      "110041",
+      "111003",
+      "181374",
+      "200054",
+      "202614",
+      "205601",
+      "210053",
+      "210055",
+      "210056",
+      "210057",
+      "210058",
+      "210060",
+      "210061",
+      "226051",
+      "240846",
+      "290428",
+      "303830",
+      "310063",
+      "310064",
+      "310066",
+      "310072",
+      "310074",
+      "310075",
+      "310076",
+      "310077",
+      "310078",
+      "310079",
+      "310082",
+      "310083",
+      "337021",
+      "342227",
+      "350361",
+      "400018",
+      "401835",
+      "411021",
+      "414081"
+    ],
+    "val": [
+      "400022",
+      "400023",
+      "400030",
+      "400033",
+      "410019",
+      "410020",
+      "410024",
+      "410025",
+      "410026",
+      "410027",
+      "410028",
+      "410029",
+      "410030",
+      "410032",
+      "556463",
+      "567496",
+      "591292"
+    ],
+    "test": [
+      "500044",
+      "500067",
+      "510034",
+      "510035",
+      "510040",
+      "510042",
+      "510047",
+      "826412",
+      "882654",
+      "928901",
+      "987736"
+    ]
+  },
+  "learnable_mrs_weights_final": {
+    "blur": 0.150624,
+    "face_visibility": 0.383549,
+    "head_pose": 0.071084,
+    "eye_visibility": 0.060477,
+    "motion_consistency": 0.334265
+  },
+  "best": {
+    "macro_f1": 0.38990225403268886,
+    "epoch": 7,
+    "accuracy": 0.3875,
+    "weighted_f1": 0.3899022540326888,
+    "loss": 1.6017882838845252
+  },
+  "selection_metric": "val_macro_f1",
+  "history_csv": "C:\\Users\\ashok\\OneDrive\\Desktop\\Adhvaith\\VIT\\MINI PROJECT\\MRG-ViT-Mamba\\logs\\training_history_ft32_v2.csv",
+  "checkpoint": "C:\\Users\\ashok\\OneDrive\\Desktop\\Adhvaith\\VIT\\MINI PROJECT\\MRG-ViT-Mamba\\checkpoints\\ft32_v2\\best.pt",
+  "checkpoint_dir": "C:\\Users\\ashok\\OneDrive\\Desktop\\Adhvaith\\VIT\\MINI PROJECT\\MRG-ViT-Mamba\\checkpoints\\ft32_v2",
+  "environment": {
+    "python": "3.13.3 (tags/v3.13.3:6280bb5, Apr  8 2025, 14:47:33) [MSC v.1943 64 bit (AMD64)]",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "machine": "AMD64",
+    "timestamp": "2026-10-11T22:07:39",
+    "git_commit": "b6e4792c280954b4a95434378459a47209926edf",
+    "packages": {
+      "torch": "2.11.0+cu128",
+      "torchvision": "0.26.0+cu128",
+      "timm": "1.0.29",
+      "cv2": "5.0.0",
+      "mediapipe": "1.0.1",
+      "numpy": "2.5.2",
+      "sklearn": "1.9.0",
+      "shap": "0.52.0",
+      "pandas": "3.0.5",
+      "matplotlib": "3.11.1",
+      "einops": "0.8.2",
+      "yaml": "6.0.3"
+    },
+    "device": {
+      "device": "cuda",
+      "name": "NVIDIA GeForce RTX 3060 Laptop GPU",
+      "total_memory_bytes": 6441926656,
+      "total_memory_gb": 6.0,
+      "cuda_available": true,
+      "torch_version": "2.11.0+cu128",
+      "torch_cuda_version": "12.8"
+    }
+  }
+}

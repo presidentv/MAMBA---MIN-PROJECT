@@ -1,34 +1,34 @@
 {
   "device": {
     "device": "cuda",
-    "name": "NVIDIA RTX A4000",
-    "total_memory_bytes": 16741236736,
-    "total_memory_gb": 15.59,
+    "name": "NVIDIA GeForce RTX 3060 Laptop GPU",
+    "total_memory_bytes": 6441926656,
+    "total_memory_gb": 6.0,
     "cuda_available": true,
     "torch_version": "2.11.0+cu128",
     "torch_cuda_version": "12.8"
   },
   "stage1": {
-    "cache_key": "faces_T32_066493f654",
-    "cache_dir": "/home/dongeorge/MAMBA---MIN-PROJECT/MRG-ViT-Mamba/cache/faces_T32_066493f654",
+    "cache_key": "faces_T16_7b2356cf6f",
+    "cache_dir": "C:\\Users\\ashok\\mrg_run\\cache\\faces_T16_7b2356cf6f",
     "counts": {
       "total": 1430,
-      "cached": 1430,
-      "processed": 0,
+      "cached": 778,
+      "processed": 652,
       "failed": 0
     },
     "failure_percentage": 0.0,
     "failures": [],
     "settings": {
       "stage1_version": "1.3.0",
-      "cache_key": "faces_T32_066493f654",
-      "num_frames": 32,
+      "cache_key": "faces_T16_7b2356cf6f",
+      "num_frames": 16,
       "crop_store_size": 256,
       "corruption": null,
       "face": {
         "detector": "mediapipe.tasks.vision.FaceDetector (blaze_face_short_range)",
         "mediapipe_version": "1.0.1",
-        "model_path": "/home/dongeorge/MAMBA---MIN-PROJECT/MRG-ViT-Mamba/models/blaze_face_short_range.tflite",
+        "model_path": "C:\\Users\\ashok\\OneDrive\\Desktop\\Adhvaith\\VIT\\MINI PROJECT\\MRG-ViT-Mamba\\models\\blaze_face_short_range.tflite",
         "min_detection_confidence": 0.3,
         "crop_padding": 0.25,
         "align": true,
@@ -37,17 +37,5234 @@
       "landmarks": {
         "landmarker": "mediapipe.tasks.vision.FaceLandmarker",
         "mediapipe_version": "1.0.1",
-        "model_path": "/home/dongeorge/MAMBA---MIN-PROJECT/MRG-ViT-Mamba/models/face_landmarker.task",
+        "model_path": "C:\\Users\\ashok\\OneDrive\\Desktop\\Adhvaith\\VIT\\MINI PROJECT\\MRG-ViT-Mamba\\models\\face_landmarker.task",
         "num_landmarks_expected": 478,
         "num_blendshapes": 52,
         "feature_dim": 80
       }
     },
-    "per_clip": [],
+    "per_clip": [
+      {
+        "clip_id": "1100011002.avi",
+        "split": "train",
+        "subject_id": "110001",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100011008.avi",
+        "split": "train",
+        "subject_id": "110001",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100011014.avi",
+        "split": "train",
+        "subject_id": "110001",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100011020.avi",
+        "split": "train",
+        "subject_id": "110001",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100011027.avi",
+        "split": "train",
+        "subject_id": "110001",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100011054.avi",
+        "split": "train",
+        "subject_id": "110001",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100011060.avi",
+        "split": "train",
+        "subject_id": "110001",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100011068.avi",
+        "split": "train",
+        "subject_id": "110001",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100011075.avi",
+        "split": "train",
+        "subject_id": "110001",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100011082.avi",
+        "split": "train",
+        "subject_id": "110001",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100012009.avi",
+        "split": "train",
+        "subject_id": "110001",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100012016.avi",
+        "split": "train",
+        "subject_id": "110001",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100012025.avi",
+        "split": "train",
+        "subject_id": "110001",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100012032.avi",
+        "split": "train",
+        "subject_id": "110001",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100012051.avi",
+        "split": "train",
+        "subject_id": "110001",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100012062.avi",
+        "split": "train",
+        "subject_id": "110001",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100021001.avi",
+        "split": "train",
+        "subject_id": "110002",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100022046.avi",
+        "split": "train",
+        "subject_id": "110002",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100022053.avi",
+        "split": "train",
+        "subject_id": "110002",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100041023.avi",
+        "split": "train",
+        "subject_id": "110004",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100041052.avi",
+        "split": "train",
+        "subject_id": "110004",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100051007.avi",
+        "split": "train",
+        "subject_id": "110005",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100051014.avi",
+        "split": "train",
+        "subject_id": "110005",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100051022.avi",
+        "split": "train",
+        "subject_id": "110005",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100051029.avi",
+        "split": "train",
+        "subject_id": "110005",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100051035.avi",
+        "split": "train",
+        "subject_id": "110005",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100051044.avi",
+        "split": "train",
+        "subject_id": "110005",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100051051.avi",
+        "split": "train",
+        "subject_id": "110005",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100052009.avi",
+        "split": "train",
+        "subject_id": "110005",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100052036.avi",
+        "split": "train",
+        "subject_id": "110005",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100052047.avi",
+        "split": "train",
+        "subject_id": "110005",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100052060.avi",
+        "split": "train",
+        "subject_id": "110005",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100061016.avi",
+        "split": "train",
+        "subject_id": "110006",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100061027.avi",
+        "split": "train",
+        "subject_id": "110006",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100061034.avi",
+        "split": "train",
+        "subject_id": "110006",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100061049.avi",
+        "split": "train",
+        "subject_id": "110006",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100061061.avi",
+        "split": "train",
+        "subject_id": "110006",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100061073.avi",
+        "split": "train",
+        "subject_id": "110006",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100062028.avi",
+        "split": "train",
+        "subject_id": "110006",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100062046.avi",
+        "split": "train",
+        "subject_id": "110006",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100062060.avi",
+        "split": "train",
+        "subject_id": "110006",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100062066.avi",
+        "split": "train",
+        "subject_id": "110006",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100062072.avi",
+        "split": "train",
+        "subject_id": "110006",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100071010.avi",
+        "split": "train",
+        "subject_id": "110007",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100071016.avi",
+        "split": "train",
+        "subject_id": "110007",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100071029.avi",
+        "split": "train",
+        "subject_id": "110007",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100071035.avi",
+        "split": "train",
+        "subject_id": "110007",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100071043.avi",
+        "split": "train",
+        "subject_id": "110007",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100071050.avi",
+        "split": "train",
+        "subject_id": "110007",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100071058.avi",
+        "split": "train",
+        "subject_id": "110007",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100071071.avi",
+        "split": "train",
+        "subject_id": "110007",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100072002.avi",
+        "split": "train",
+        "subject_id": "110007",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100072009.avi",
+        "split": "train",
+        "subject_id": "110007",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100072015.avi",
+        "split": "train",
+        "subject_id": "110007",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100072027.avi",
+        "split": "train",
+        "subject_id": "110007",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100072033.avi",
+        "split": "train",
+        "subject_id": "110007",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100072040.avi",
+        "split": "train",
+        "subject_id": "110007",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100072049.avi",
+        "split": "train",
+        "subject_id": "110007",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100072056.avi",
+        "split": "train",
+        "subject_id": "110007",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100072062.avi",
+        "split": "train",
+        "subject_id": "110007",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100072069.avi",
+        "split": "train",
+        "subject_id": "110007",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100072075.avi",
+        "split": "train",
+        "subject_id": "110007",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100111008.avi",
+        "split": "train",
+        "subject_id": "110011",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100111014.avi",
+        "split": "train",
+        "subject_id": "110011",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100111032.avi",
+        "split": "train",
+        "subject_id": "110011",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100112007.avi",
+        "split": "train",
+        "subject_id": "110011",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100112013.avi",
+        "split": "train",
+        "subject_id": "110011",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100112021.avi",
+        "split": "train",
+        "subject_id": "110011",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100112030.avi",
+        "split": "train",
+        "subject_id": "110011",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100112045.avi",
+        "split": "train",
+        "subject_id": "110011",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100112056.avi",
+        "split": "train",
+        "subject_id": "110011",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100112062.avi",
+        "split": "train",
+        "subject_id": "110011",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100121002.avi",
+        "split": "train",
+        "subject_id": "110012",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100121008.avi",
+        "split": "train",
+        "subject_id": "110012",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100121016.avi",
+        "split": "train",
+        "subject_id": "110012",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100121035.avi",
+        "split": "train",
+        "subject_id": "110012",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100121053.avi",
+        "split": "train",
+        "subject_id": "110012",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100121061.avi",
+        "split": "train",
+        "subject_id": "110012",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100122006.avi",
+        "split": "train",
+        "subject_id": "110012",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100122012.avi",
+        "split": "train",
+        "subject_id": "110012",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100122019.avi",
+        "split": "train",
+        "subject_id": "110012",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100122026.avi",
+        "split": "train",
+        "subject_id": "110012",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100122036.avi",
+        "split": "train",
+        "subject_id": "110012",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100122053.avi",
+        "split": "train",
+        "subject_id": "110012",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100141002.avi",
+        "split": "train",
+        "subject_id": "110014",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100141008.avi",
+        "split": "train",
+        "subject_id": "110014",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100141014.avi",
+        "split": "train",
+        "subject_id": "110014",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100141021.avi",
+        "split": "train",
+        "subject_id": "110014",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100141031.avi",
+        "split": "train",
+        "subject_id": "110014",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100141039.avi",
+        "split": "train",
+        "subject_id": "110014",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100141049.avi",
+        "split": "train",
+        "subject_id": "110014",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100142008.avi",
+        "split": "train",
+        "subject_id": "110014",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100142015.avi",
+        "split": "train",
+        "subject_id": "110014",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100142023.avi",
+        "split": "train",
+        "subject_id": "110014",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100142031.avi",
+        "split": "train",
+        "subject_id": "110014",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100142041.avi",
+        "split": "train",
+        "subject_id": "110014",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100142049.avi",
+        "split": "train",
+        "subject_id": "110014",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100142057.avi",
+        "split": "train",
+        "subject_id": "110014",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100151014.avi",
+        "split": "train",
+        "subject_id": "110015",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100151020.avi",
+        "split": "train",
+        "subject_id": "110015",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100152005.avi",
+        "split": "train",
+        "subject_id": "110015",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100152014.avi",
+        "split": "train",
+        "subject_id": "110015",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100152024.avi",
+        "split": "train",
+        "subject_id": "110015",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100152039.avi",
+        "split": "train",
+        "subject_id": "110015",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100152062.avi",
+        "split": "train",
+        "subject_id": "110015",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100161032.avi",
+        "split": "train",
+        "subject_id": "110016",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100171002.avi",
+        "split": "train",
+        "subject_id": "110017",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100171010.avi",
+        "split": "train",
+        "subject_id": "110017",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100171017.avi",
+        "split": "train",
+        "subject_id": "110017",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100171035.avi",
+        "split": "train",
+        "subject_id": "110017",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100171043.avi",
+        "split": "train",
+        "subject_id": "110017",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100171059.avi",
+        "split": "train",
+        "subject_id": "110017",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100171075.avi",
+        "split": "train",
+        "subject_id": "110017",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100172003.avi",
+        "split": "train",
+        "subject_id": "110017",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100172015.avi",
+        "split": "train",
+        "subject_id": "110017",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100172022.avi",
+        "split": "train",
+        "subject_id": "110017",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100172034.avi",
+        "split": "train",
+        "subject_id": "110017",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1100172047.avi",
+        "split": "train",
+        "subject_id": "110017",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1110031010.avi",
+        "split": "train",
+        "subject_id": "111003",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1110031021.avi",
+        "split": "train",
+        "subject_id": "111003",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1110031038.avi",
+        "split": "train",
+        "subject_id": "111003",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1110031050.avi",
+        "split": "train",
+        "subject_id": "111003",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1110031065.avi",
+        "split": "train",
+        "subject_id": "111003",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1110032014.avi",
+        "split": "train",
+        "subject_id": "111003",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1110032022.avi",
+        "split": "train",
+        "subject_id": "111003",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1110032031.avi",
+        "split": "train",
+        "subject_id": "111003",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1110032042.avi",
+        "split": "train",
+        "subject_id": "111003",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1110032050.avi",
+        "split": "train",
+        "subject_id": "111003",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1110032058.avi",
+        "split": "train",
+        "subject_id": "111003",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1813740111.avi",
+        "split": "train",
+        "subject_id": "181374",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1813740122.avi",
+        "split": "train",
+        "subject_id": "181374",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1813740131.avi",
+        "split": "train",
+        "subject_id": "181374",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1813740144.avi",
+        "split": "train",
+        "subject_id": "181374",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1813740157.avi",
+        "split": "train",
+        "subject_id": "181374",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1813740167.avi",
+        "split": "train",
+        "subject_id": "181374",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1813740173.avi",
+        "split": "train",
+        "subject_id": "181374",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1813740181.avi",
+        "split": "train",
+        "subject_id": "181374",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1813740210.avi",
+        "split": "train",
+        "subject_id": "181374",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1813740219.avi",
+        "split": "train",
+        "subject_id": "181374",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1813740234.avi",
+        "split": "train",
+        "subject_id": "181374",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1813740240.avi",
+        "split": "train",
+        "subject_id": "181374",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "181374025.avi",
+        "split": "train",
+        "subject_id": "181374",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1813740256.avi",
+        "split": "train",
+        "subject_id": "181374",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1813740261.avi",
+        "split": "train",
+        "subject_id": "181374",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1813740267.avi",
+        "split": "train",
+        "subject_id": "181374",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1813740272.avi",
+        "split": "train",
+        "subject_id": "181374",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "1813740278.avi",
+        "split": "train",
+        "subject_id": "181374",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2000481048.avi",
+        "split": "train",
+        "subject_id": "200048",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2000482034.avi",
+        "split": "train",
+        "subject_id": "200048",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2000501009.avi",
+        "split": "train",
+        "subject_id": "200050",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2000501016.avi",
+        "split": "train",
+        "subject_id": "200050",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2000501027.avi",
+        "split": "train",
+        "subject_id": "200050",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2000501035.avi",
+        "split": "train",
+        "subject_id": "200050",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2000501065.avi",
+        "split": "train",
+        "subject_id": "200050",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2000501076.avi",
+        "split": "train",
+        "subject_id": "200050",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2000502037.avi",
+        "split": "train",
+        "subject_id": "200050",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2000502045.avi",
+        "split": "train",
+        "subject_id": "200050",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2000502053.avi",
+        "split": "train",
+        "subject_id": "200050",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2000502059.avi",
+        "split": "train",
+        "subject_id": "200050",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2000502067.avi",
+        "split": "train",
+        "subject_id": "200050",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2000502076.avi",
+        "split": "train",
+        "subject_id": "200050",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2000502088.avi",
+        "split": "train",
+        "subject_id": "200050",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2000541007.avi",
+        "split": "train",
+        "subject_id": "200054",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2000541031.avi",
+        "split": "train",
+        "subject_id": "200054",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2000541040.avi",
+        "split": "train",
+        "subject_id": "200054",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2000541055.avi",
+        "split": "train",
+        "subject_id": "200054",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2000541066.avi",
+        "split": "train",
+        "subject_id": "200054",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2000541072.avi",
+        "split": "train",
+        "subject_id": "200054",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2000541079.avi",
+        "split": "train",
+        "subject_id": "200054",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2000542008.avi",
+        "split": "train",
+        "subject_id": "200054",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2000542021.avi",
+        "split": "train",
+        "subject_id": "200054",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2026140119.mp4",
+        "split": "train",
+        "subject_id": "202614",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2026140135.mp4",
+        "split": "train",
+        "subject_id": "202614",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "202614015.mp4",
+        "split": "train",
+        "subject_id": "202614",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2026140172.mp4",
+        "split": "train",
+        "subject_id": "202614",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2026140225.mp4",
+        "split": "train",
+        "subject_id": "202614",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "202614025.mp4",
+        "split": "train",
+        "subject_id": "202614",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2026140259.mp4",
+        "split": "train",
+        "subject_id": "202614",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2026140275.mp4",
+        "split": "train",
+        "subject_id": "202614",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "205601011.avi",
+        "split": "train",
+        "subject_id": "205601",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2056010119.avi",
+        "split": "train",
+        "subject_id": "205601",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2056010126.avi",
+        "split": "train",
+        "subject_id": "205601",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2056010139.avi",
+        "split": "train",
+        "subject_id": "205601",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2056010164.avi",
+        "split": "train",
+        "subject_id": "205601",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2056010212.avi",
+        "split": "train",
+        "subject_id": "205601",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2056010222.avi",
+        "split": "train",
+        "subject_id": "205601",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2056010230.avi",
+        "split": "train",
+        "subject_id": "205601",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2056010238.avi",
+        "split": "train",
+        "subject_id": "205601",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2056010244.avi",
+        "split": "train",
+        "subject_id": "205601",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2056010252.avi",
+        "split": "train",
+        "subject_id": "205601",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2056010261.avi",
+        "split": "train",
+        "subject_id": "205601",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "205601027.avi",
+        "split": "train",
+        "subject_id": "205601",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2056010279.avi",
+        "split": "train",
+        "subject_id": "205601",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100511005.avi",
+        "split": "train",
+        "subject_id": "210051",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100511016.avi",
+        "split": "train",
+        "subject_id": "210051",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100511028.avi",
+        "split": "train",
+        "subject_id": "210051",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100511038.avi",
+        "split": "train",
+        "subject_id": "210051",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100511058.avi",
+        "split": "train",
+        "subject_id": "210051",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100511072.avi",
+        "split": "train",
+        "subject_id": "210051",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100512003.avi",
+        "split": "train",
+        "subject_id": "210051",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100512020.avi",
+        "split": "train",
+        "subject_id": "210051",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100512032.avi",
+        "split": "train",
+        "subject_id": "210051",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100512039.avi",
+        "split": "train",
+        "subject_id": "210051",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100512052.avi",
+        "split": "train",
+        "subject_id": "210051",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100512062.avi",
+        "split": "train",
+        "subject_id": "210051",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100521023.avi",
+        "split": "train",
+        "subject_id": "210052",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100521035.avi",
+        "split": "train",
+        "subject_id": "210052",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100521042.avi",
+        "split": "train",
+        "subject_id": "210052",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100521056.avi",
+        "split": "train",
+        "subject_id": "210052",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100522009.avi",
+        "split": "train",
+        "subject_id": "210052",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100522019.avi",
+        "split": "train",
+        "subject_id": "210052",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100522028.avi",
+        "split": "train",
+        "subject_id": "210052",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100522047.avi",
+        "split": "train",
+        "subject_id": "210052",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100522053.avi",
+        "split": "train",
+        "subject_id": "210052",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100522061.avi",
+        "split": "train",
+        "subject_id": "210052",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100522070.avi",
+        "split": "train",
+        "subject_id": "210052",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100531007.avi",
+        "split": "train",
+        "subject_id": "210053",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100531021.avi",
+        "split": "train",
+        "subject_id": "210053",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100531027.avi",
+        "split": "train",
+        "subject_id": "210053",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100531035.avi",
+        "split": "train",
+        "subject_id": "210053",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100531043.avi",
+        "split": "train",
+        "subject_id": "210053",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100531050.avi",
+        "split": "train",
+        "subject_id": "210053",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100531056.avi",
+        "split": "train",
+        "subject_id": "210053",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100531063.avi",
+        "split": "train",
+        "subject_id": "210053",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100531070.avi",
+        "split": "train",
+        "subject_id": "210053",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100531084.avi",
+        "split": "train",
+        "subject_id": "210053",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100532008.avi",
+        "split": "train",
+        "subject_id": "210053",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100532017.avi",
+        "split": "train",
+        "subject_id": "210053",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100532025.avi",
+        "split": "train",
+        "subject_id": "210053",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100532043.avi",
+        "split": "train",
+        "subject_id": "210053",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100532050.avi",
+        "split": "train",
+        "subject_id": "210053",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100532063.avi",
+        "split": "train",
+        "subject_id": "210053",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100532071.avi",
+        "split": "train",
+        "subject_id": "210053",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100551010.avi",
+        "split": "train",
+        "subject_id": "210055",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100551023.avi",
+        "split": "train",
+        "subject_id": "210055",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100551032.avi",
+        "split": "train",
+        "subject_id": "210055",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100551039.avi",
+        "split": "train",
+        "subject_id": "210055",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100551046.avi",
+        "split": "train",
+        "subject_id": "210055",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100551054.avi",
+        "split": "train",
+        "subject_id": "210055",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100551061.avi",
+        "split": "train",
+        "subject_id": "210055",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100551067.avi",
+        "split": "train",
+        "subject_id": "210055",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100551074.avi",
+        "split": "train",
+        "subject_id": "210055",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100551081.avi",
+        "split": "train",
+        "subject_id": "210055",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100552007.avi",
+        "split": "train",
+        "subject_id": "210055",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100552013.avi",
+        "split": "train",
+        "subject_id": "210055",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100552019.avi",
+        "split": "train",
+        "subject_id": "210055",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100552068.avi",
+        "split": "train",
+        "subject_id": "210055",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100561014.avi",
+        "split": "train",
+        "subject_id": "210056",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100561021.avi",
+        "split": "train",
+        "subject_id": "210056",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100561032.avi",
+        "split": "train",
+        "subject_id": "210056",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100561071.avi",
+        "split": "train",
+        "subject_id": "210056",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100562004.avi",
+        "split": "train",
+        "subject_id": "210056",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100562011.avi",
+        "split": "train",
+        "subject_id": "210056",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100562018.avi",
+        "split": "train",
+        "subject_id": "210056",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100562029.avi",
+        "split": "train",
+        "subject_id": "210056",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100562037.avi",
+        "split": "train",
+        "subject_id": "210056",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100562044.avi",
+        "split": "train",
+        "subject_id": "210056",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100562051.avi",
+        "split": "train",
+        "subject_id": "210056",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100562059.avi",
+        "split": "train",
+        "subject_id": "210056",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100571007.avi",
+        "split": "train",
+        "subject_id": "210057",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100571015.avi",
+        "split": "train",
+        "subject_id": "210057",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100571022.avi",
+        "split": "train",
+        "subject_id": "210057",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100571039.avi",
+        "split": "train",
+        "subject_id": "210057",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100571052.avi",
+        "split": "train",
+        "subject_id": "210057",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100571067.avi",
+        "split": "train",
+        "subject_id": "210057",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100571074.avi",
+        "split": "train",
+        "subject_id": "210057",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100571082.avi",
+        "split": "train",
+        "subject_id": "210057",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100572010.avi",
+        "split": "train",
+        "subject_id": "210057",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100572032.avi",
+        "split": "train",
+        "subject_id": "210057",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100572040.avi",
+        "split": "train",
+        "subject_id": "210057",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100572055.avi",
+        "split": "train",
+        "subject_id": "210057",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100572061.avi",
+        "split": "train",
+        "subject_id": "210057",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100572069.avi",
+        "split": "train",
+        "subject_id": "210057",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100581006.avi",
+        "split": "train",
+        "subject_id": "210058",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100581013.avi",
+        "split": "train",
+        "subject_id": "210058",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100581029.avi",
+        "split": "train",
+        "subject_id": "210058",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100581038.avi",
+        "split": "train",
+        "subject_id": "210058",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100581045.avi",
+        "split": "train",
+        "subject_id": "210058",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100581068.avi",
+        "split": "train",
+        "subject_id": "210058",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100581074.avi",
+        "split": "train",
+        "subject_id": "210058",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100582028.avi",
+        "split": "train",
+        "subject_id": "210058",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100582048.avi",
+        "split": "train",
+        "subject_id": "210058",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100582055.avi",
+        "split": "train",
+        "subject_id": "210058",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100582062.avi",
+        "split": "train",
+        "subject_id": "210058",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100591004.avi",
+        "split": "train",
+        "subject_id": "210059",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100591013.avi",
+        "split": "train",
+        "subject_id": "210059",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100591021.avi",
+        "split": "train",
+        "subject_id": "210059",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100591028.avi",
+        "split": "train",
+        "subject_id": "210059",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100591038.avi",
+        "split": "train",
+        "subject_id": "210059",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100591050.avi",
+        "split": "train",
+        "subject_id": "210059",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100591059.avi",
+        "split": "train",
+        "subject_id": "210059",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100591066.avi",
+        "split": "train",
+        "subject_id": "210059",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100591073.avi",
+        "split": "train",
+        "subject_id": "210059",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100591080.avi",
+        "split": "train",
+        "subject_id": "210059",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100592005.avi",
+        "split": "train",
+        "subject_id": "210059",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100592013.avi",
+        "split": "train",
+        "subject_id": "210059",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100592019.avi",
+        "split": "train",
+        "subject_id": "210059",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100592040.avi",
+        "split": "train",
+        "subject_id": "210059",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100592047.avi",
+        "split": "train",
+        "subject_id": "210059",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100592056.avi",
+        "split": "train",
+        "subject_id": "210059",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100592071.avi",
+        "split": "train",
+        "subject_id": "210059",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100601018.avi",
+        "split": "train",
+        "subject_id": "210060",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100601027.avi",
+        "split": "train",
+        "subject_id": "210060",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100601033.avi",
+        "split": "train",
+        "subject_id": "210060",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100601046.avi",
+        "split": "train",
+        "subject_id": "210060",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100601055.avi",
+        "split": "train",
+        "subject_id": "210060",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100601064.avi",
+        "split": "train",
+        "subject_id": "210060",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100601071.avi",
+        "split": "train",
+        "subject_id": "210060",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100602001.avi",
+        "split": "train",
+        "subject_id": "210060",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100602015.avi",
+        "split": "train",
+        "subject_id": "210060",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100602023.avi",
+        "split": "train",
+        "subject_id": "210060",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100602036.avi",
+        "split": "train",
+        "subject_id": "210060",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100602044.avi",
+        "split": "train",
+        "subject_id": "210060",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100602052.avi",
+        "split": "train",
+        "subject_id": "210060",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100602060.avi",
+        "split": "train",
+        "subject_id": "210060",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100611005.avi",
+        "split": "train",
+        "subject_id": "210061",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100611014.avi",
+        "split": "train",
+        "subject_id": "210061",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100611021.avi",
+        "split": "train",
+        "subject_id": "210061",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100611028.avi",
+        "split": "train",
+        "subject_id": "210061",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100611036.avi",
+        "split": "train",
+        "subject_id": "210061",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100611042.avi",
+        "split": "train",
+        "subject_id": "210061",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100611048.avi",
+        "split": "train",
+        "subject_id": "210061",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100611062.avi",
+        "split": "train",
+        "subject_id": "210061",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100611069.avi",
+        "split": "train",
+        "subject_id": "210061",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100611078.avi",
+        "split": "train",
+        "subject_id": "210061",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100612003.avi",
+        "split": "train",
+        "subject_id": "210061",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100612010.avi",
+        "split": "train",
+        "subject_id": "210061",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100612022.avi",
+        "split": "train",
+        "subject_id": "210061",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100612029.avi",
+        "split": "train",
+        "subject_id": "210061",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100612037.avi",
+        "split": "train",
+        "subject_id": "210061",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100612044.avi",
+        "split": "train",
+        "subject_id": "210061",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100612053.avi",
+        "split": "train",
+        "subject_id": "210061",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2100612067.avi",
+        "split": "train",
+        "subject_id": "210061",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2260510110.avi",
+        "split": "train",
+        "subject_id": "226051",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2260510122.avi",
+        "split": "train",
+        "subject_id": "226051",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "226051014.avi",
+        "split": "train",
+        "subject_id": "226051",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2260510147.avi",
+        "split": "train",
+        "subject_id": "226051",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2260510158.avi",
+        "split": "train",
+        "subject_id": "226051",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2260510167.avi",
+        "split": "train",
+        "subject_id": "226051",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2260510177.avi",
+        "split": "train",
+        "subject_id": "226051",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2260510229.avi",
+        "split": "train",
+        "subject_id": "226051",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2260510244.avi",
+        "split": "train",
+        "subject_id": "226051",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2260510253.avi",
+        "split": "train",
+        "subject_id": "226051",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2260510271.avi",
+        "split": "train",
+        "subject_id": "226051",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "240846011.avi",
+        "split": "train",
+        "subject_id": "240846",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2408460130.avi",
+        "split": "train",
+        "subject_id": "240846",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2408460155.avi",
+        "split": "train",
+        "subject_id": "240846",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2408460166.avi",
+        "split": "train",
+        "subject_id": "240846",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2408460221.avi",
+        "split": "train",
+        "subject_id": "240846",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2408460229.avi",
+        "split": "train",
+        "subject_id": "240846",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2408460247.avi",
+        "split": "train",
+        "subject_id": "240846",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2408460260.avi",
+        "split": "train",
+        "subject_id": "240846",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "240846027.avi",
+        "split": "train",
+        "subject_id": "240846",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2408460278.avi",
+        "split": "train",
+        "subject_id": "240846",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "248510112.mp4",
+        "split": "train",
+        "subject_id": "248510",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "248510120.mp4",
+        "split": "train",
+        "subject_id": "248510",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "248510148.mp4",
+        "split": "train",
+        "subject_id": "248510",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "248510213.mp4",
+        "split": "train",
+        "subject_id": "248510",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "248510223.mp4",
+        "split": "train",
+        "subject_id": "248510",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "248510233.mp4",
+        "split": "train",
+        "subject_id": "248510",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "248510253.mp4",
+        "split": "train",
+        "subject_id": "248510",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "248510262.mp4",
+        "split": "train",
+        "subject_id": "248510",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "248510271.mp4",
+        "split": "train",
+        "subject_id": "248510",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "2904280110.mp4",
+        "split": "train",
+        "subject_id": "290428",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "29042801340.mp4",
+        "split": "train",
+        "subject_id": "290428",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "29042801750.mp4",
+        "split": "train",
+        "subject_id": "290428",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "29042802240.mp4",
+        "split": "train",
+        "subject_id": "290428",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "29042802430.mp4",
+        "split": "train",
+        "subject_id": "290428",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "29042802680.mp4",
+        "split": "train",
+        "subject_id": "290428",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "29042802750.mp4",
+        "split": "train",
+        "subject_id": "290428",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "29042802830.mp4",
+        "split": "train",
+        "subject_id": "290428",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "303830138.mp4",
+        "split": "train",
+        "subject_id": "303830",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "303830146.mp4",
+        "split": "train",
+        "subject_id": "303830",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "303830160.mp4",
+        "split": "train",
+        "subject_id": "303830",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "303830171.mp4",
+        "split": "train",
+        "subject_id": "303830",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "303830184.mp4",
+        "split": "train",
+        "subject_id": "303830",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "303830218.mp4",
+        "split": "train",
+        "subject_id": "303830",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "303830247.mp4",
+        "split": "train",
+        "subject_id": "303830",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "303830259.mp4",
+        "split": "train",
+        "subject_id": "303830",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100621005.avi",
+        "split": "train",
+        "subject_id": "310062",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100621013.avi",
+        "split": "train",
+        "subject_id": "310062",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100621022.avi",
+        "split": "train",
+        "subject_id": "310062",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100621028.avi",
+        "split": "train",
+        "subject_id": "310062",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100621035.avi",
+        "split": "train",
+        "subject_id": "310062",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100621051.avi",
+        "split": "train",
+        "subject_id": "310062",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100621059.avi",
+        "split": "train",
+        "subject_id": "310062",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100622002.avi",
+        "split": "train",
+        "subject_id": "310062",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100622011.avi",
+        "split": "train",
+        "subject_id": "310062",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100622023.avi",
+        "split": "train",
+        "subject_id": "310062",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100622036.avi",
+        "split": "train",
+        "subject_id": "310062",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100622043.avi",
+        "split": "train",
+        "subject_id": "310062",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100622051.avi",
+        "split": "train",
+        "subject_id": "310062",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100631003.avi",
+        "split": "train",
+        "subject_id": "310063",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100631010.avi",
+        "split": "train",
+        "subject_id": "310063",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100631018.avi",
+        "split": "train",
+        "subject_id": "310063",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100631043.avi",
+        "split": "train",
+        "subject_id": "310063",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100631049.avi",
+        "split": "train",
+        "subject_id": "310063",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100631056.avi",
+        "split": "train",
+        "subject_id": "310063",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100632002.avi",
+        "split": "train",
+        "subject_id": "310063",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100632012.avi",
+        "split": "train",
+        "subject_id": "310063",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100632021.avi",
+        "split": "train",
+        "subject_id": "310063",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100632030.avi",
+        "split": "train",
+        "subject_id": "310063",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100632044.avi",
+        "split": "train",
+        "subject_id": "310063",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100642006.avi",
+        "split": "train",
+        "subject_id": "310064",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100642022.avi",
+        "split": "train",
+        "subject_id": "310064",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100642030.avi",
+        "split": "train",
+        "subject_id": "310064",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100642036.avi",
+        "split": "train",
+        "subject_id": "310064",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100642052.avi",
+        "split": "train",
+        "subject_id": "310064",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100642060.avi",
+        "split": "train",
+        "subject_id": "310064",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100642070.avi",
+        "split": "train",
+        "subject_id": "310064",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100661022.avi",
+        "split": "train",
+        "subject_id": "310066",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100661038.avi",
+        "split": "train",
+        "subject_id": "310066",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100661050.avi",
+        "split": "train",
+        "subject_id": "310066",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100662050.avi",
+        "split": "train",
+        "subject_id": "310066",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100691042.avi",
+        "split": "train",
+        "subject_id": "310069",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100692007.avi",
+        "split": "train",
+        "subject_id": "310069",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100692025.avi",
+        "split": "train",
+        "subject_id": "310069",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100692038.avi",
+        "split": "train",
+        "subject_id": "310069",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100692056.avi",
+        "split": "train",
+        "subject_id": "310069",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100701015.avi",
+        "split": "train",
+        "subject_id": "310070",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100701024.avi",
+        "split": "train",
+        "subject_id": "310070",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100701044.avi",
+        "split": "train",
+        "subject_id": "310070",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100701061.avi",
+        "split": "train",
+        "subject_id": "310070",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100702006.avi",
+        "split": "train",
+        "subject_id": "310070",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100702019.avi",
+        "split": "train",
+        "subject_id": "310070",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100702031.avi",
+        "split": "train",
+        "subject_id": "310070",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100702054.avi",
+        "split": "train",
+        "subject_id": "310070",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100702063.avi",
+        "split": "train",
+        "subject_id": "310070",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100721013.avi",
+        "split": "train",
+        "subject_id": "310072",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100721029.avi",
+        "split": "train",
+        "subject_id": "310072",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100721036.avi",
+        "split": "train",
+        "subject_id": "310072",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100721044.avi",
+        "split": "train",
+        "subject_id": "310072",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100721050.avi",
+        "split": "train",
+        "subject_id": "310072",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100721056.avi",
+        "split": "train",
+        "subject_id": "310072",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100721063.avi",
+        "split": "train",
+        "subject_id": "310072",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100722007.avi",
+        "split": "train",
+        "subject_id": "310072",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100722020.avi",
+        "split": "train",
+        "subject_id": "310072",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100722026.avi",
+        "split": "train",
+        "subject_id": "310072",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100722034.avi",
+        "split": "train",
+        "subject_id": "310072",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100722064.avi",
+        "split": "train",
+        "subject_id": "310072",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100722070.avi",
+        "split": "train",
+        "subject_id": "310072",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100722078.avi",
+        "split": "train",
+        "subject_id": "310072",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100731026.avi",
+        "split": "train",
+        "subject_id": "310073",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100732022.avi",
+        "split": "train",
+        "subject_id": "310073",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100732031.avi",
+        "split": "train",
+        "subject_id": "310073",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100741001.avi",
+        "split": "train",
+        "subject_id": "310074",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100741020.avi",
+        "split": "train",
+        "subject_id": "310074",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100741035.avi",
+        "split": "train",
+        "subject_id": "310074",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100741054.avi",
+        "split": "train",
+        "subject_id": "310074",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100741061.avi",
+        "split": "train",
+        "subject_id": "310074",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100741069.avi",
+        "split": "train",
+        "subject_id": "310074",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100741075.avi",
+        "split": "train",
+        "subject_id": "310074",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100742004.avi",
+        "split": "train",
+        "subject_id": "310074",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100742021.avi",
+        "split": "train",
+        "subject_id": "310074",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100742028.avi",
+        "split": "train",
+        "subject_id": "310074",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100742056.avi",
+        "split": "train",
+        "subject_id": "310074",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100742062.avi",
+        "split": "train",
+        "subject_id": "310074",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100751004.avi",
+        "split": "train",
+        "subject_id": "310075",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100751010.avi",
+        "split": "train",
+        "subject_id": "310075",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100751017.avi",
+        "split": "train",
+        "subject_id": "310075",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100751024.avi",
+        "split": "train",
+        "subject_id": "310075",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100751034.avi",
+        "split": "train",
+        "subject_id": "310075",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100751056.avi",
+        "split": "train",
+        "subject_id": "310075",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100751065.avi",
+        "split": "train",
+        "subject_id": "310075",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100752001.avi",
+        "split": "train",
+        "subject_id": "310075",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100752008.avi",
+        "split": "train",
+        "subject_id": "310075",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100752022.avi",
+        "split": "train",
+        "subject_id": "310075",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100752032.avi",
+        "split": "train",
+        "subject_id": "310075",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100752039.avi",
+        "split": "train",
+        "subject_id": "310075",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100752045.avi",
+        "split": "train",
+        "subject_id": "310075",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100752051.avi",
+        "split": "train",
+        "subject_id": "310075",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100752058.avi",
+        "split": "train",
+        "subject_id": "310075",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100761003.avi",
+        "split": "train",
+        "subject_id": "310076",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100761014.avi",
+        "split": "train",
+        "subject_id": "310076",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100761031.avi",
+        "split": "train",
+        "subject_id": "310076",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100762003.avi",
+        "split": "train",
+        "subject_id": "310076",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100762016.avi",
+        "split": "train",
+        "subject_id": "310076",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100762055.avi",
+        "split": "train",
+        "subject_id": "310076",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100771008.avi",
+        "split": "train",
+        "subject_id": "310077",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100771019.avi",
+        "split": "train",
+        "subject_id": "310077",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100771028.avi",
+        "split": "train",
+        "subject_id": "310077",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100771034.avi",
+        "split": "train",
+        "subject_id": "310077",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100771042.avi",
+        "split": "train",
+        "subject_id": "310077",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100771050.avi",
+        "split": "train",
+        "subject_id": "310077",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100771066.avi",
+        "split": "train",
+        "subject_id": "310077",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100771073.avi",
+        "split": "train",
+        "subject_id": "310077",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100772008.avi",
+        "split": "train",
+        "subject_id": "310077",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100772015.avi",
+        "split": "train",
+        "subject_id": "310077",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100772023.avi",
+        "split": "train",
+        "subject_id": "310077",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100772036.avi",
+        "split": "train",
+        "subject_id": "310077",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100772043.avi",
+        "split": "train",
+        "subject_id": "310077",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100772059.avi",
+        "split": "train",
+        "subject_id": "310077",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100772069.avi",
+        "split": "train",
+        "subject_id": "310077",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100781008.avi",
+        "split": "train",
+        "subject_id": "310078",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100781016.avi",
+        "split": "train",
+        "subject_id": "310078",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100781024.avi",
+        "split": "train",
+        "subject_id": "310078",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100781052.avi",
+        "split": "train",
+        "subject_id": "310078",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100781058.avi",
+        "split": "train",
+        "subject_id": "310078",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100781074.avi",
+        "split": "train",
+        "subject_id": "310078",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100781081.avi",
+        "split": "train",
+        "subject_id": "310078",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100782008.avi",
+        "split": "train",
+        "subject_id": "310078",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100782015.avi",
+        "split": "train",
+        "subject_id": "310078",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100782022.avi",
+        "split": "train",
+        "subject_id": "310078",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100782028.avi",
+        "split": "train",
+        "subject_id": "310078",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100782037.avi",
+        "split": "train",
+        "subject_id": "310078",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100782046.avi",
+        "split": "train",
+        "subject_id": "310078",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100782055.avi",
+        "split": "train",
+        "subject_id": "310078",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100782069.avi",
+        "split": "train",
+        "subject_id": "310078",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100791008.avi",
+        "split": "train",
+        "subject_id": "310079",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100791028.avi",
+        "split": "train",
+        "subject_id": "310079",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100791044.avi",
+        "split": "train",
+        "subject_id": "310079",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100791052.avi",
+        "split": "train",
+        "subject_id": "310079",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100791061.avi",
+        "split": "train",
+        "subject_id": "310079",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100791067.avi",
+        "split": "train",
+        "subject_id": "310079",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100792002.avi",
+        "split": "train",
+        "subject_id": "310079",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100792008.avi",
+        "split": "train",
+        "subject_id": "310079",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100792015.avi",
+        "split": "train",
+        "subject_id": "310079",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100792023.avi",
+        "split": "train",
+        "subject_id": "310079",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100792031.avi",
+        "split": "train",
+        "subject_id": "310079",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100792038.avi",
+        "split": "train",
+        "subject_id": "310079",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100792044.avi",
+        "split": "train",
+        "subject_id": "310079",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100792052.avi",
+        "split": "train",
+        "subject_id": "310079",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100811034.avi",
+        "split": "train",
+        "subject_id": "310081",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100811047.avi",
+        "split": "train",
+        "subject_id": "310081",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100812040.avi",
+        "split": "train",
+        "subject_id": "310081",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100821021.avi",
+        "split": "train",
+        "subject_id": "310082",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100821034.avi",
+        "split": "train",
+        "subject_id": "310082",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100821048.avi",
+        "split": "train",
+        "subject_id": "310082",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100821057.avi",
+        "split": "train",
+        "subject_id": "310082",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100822011.avi",
+        "split": "train",
+        "subject_id": "310082",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100822050.avi",
+        "split": "train",
+        "subject_id": "310082",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3100822065.avi",
+        "split": "train",
+        "subject_id": "310082",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "33446301107.avi",
+        "split": "train",
+        "subject_id": "334463",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3344630119.avi",
+        "split": "train",
+        "subject_id": "334463",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3344630131.avi",
+        "split": "train",
+        "subject_id": "334463",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3344630140.avi",
+        "split": "train",
+        "subject_id": "334463",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3344630148.avi",
+        "split": "train",
+        "subject_id": "334463",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3344630171.avi",
+        "split": "train",
+        "subject_id": "334463",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3344630181.avi",
+        "split": "train",
+        "subject_id": "334463",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3344630189.avi",
+        "split": "train",
+        "subject_id": "334463",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3344630199.avi",
+        "split": "train",
+        "subject_id": "334463",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3344630216.avi",
+        "split": "train",
+        "subject_id": "334463",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3344630225.avi",
+        "split": "train",
+        "subject_id": "334463",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3344630238.avi",
+        "split": "train",
+        "subject_id": "334463",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3344630247.avi",
+        "split": "train",
+        "subject_id": "334463",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3344630257.avi",
+        "split": "train",
+        "subject_id": "334463",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3344630276.avi",
+        "split": "train",
+        "subject_id": "334463",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "334463029.avi",
+        "split": "train",
+        "subject_id": "334463",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "33702101180.mp4",
+        "split": "train",
+        "subject_id": "337021",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "33702101280.mp4",
+        "split": "train",
+        "subject_id": "337021",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "33702101370.mp4",
+        "split": "train",
+        "subject_id": "337021",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "33702101480.mp4",
+        "split": "train",
+        "subject_id": "337021",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "33702101550.mp4",
+        "split": "train",
+        "subject_id": "337021",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "33702101640.mp4",
+        "split": "train",
+        "subject_id": "337021",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "33702101740.mp4",
+        "split": "train",
+        "subject_id": "337021",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "33702102200.mp4",
+        "split": "train",
+        "subject_id": "337021",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3370210240.mp4",
+        "split": "train",
+        "subject_id": "337021",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "33702102530.mp4",
+        "split": "train",
+        "subject_id": "337021",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "33702102740.mp4",
+        "split": "train",
+        "subject_id": "337021",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3422270116.avi",
+        "split": "train",
+        "subject_id": "342227",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3422270126.avi",
+        "split": "train",
+        "subject_id": "342227",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3422270131.avi",
+        "split": "train",
+        "subject_id": "342227",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3422270140.avi",
+        "split": "train",
+        "subject_id": "342227",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3422270151.avi",
+        "split": "train",
+        "subject_id": "342227",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3422270158.avi",
+        "split": "train",
+        "subject_id": "342227",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3422270211.avi",
+        "split": "train",
+        "subject_id": "342227",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3422270219.avi",
+        "split": "train",
+        "subject_id": "342227",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3422270225.avi",
+        "split": "train",
+        "subject_id": "342227",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "342227024.avi",
+        "split": "train",
+        "subject_id": "342227",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3422270246.avi",
+        "split": "train",
+        "subject_id": "342227",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3422270252.avi",
+        "split": "train",
+        "subject_id": "342227",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3422270261.avi",
+        "split": "train",
+        "subject_id": "342227",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3422270269.avi",
+        "split": "train",
+        "subject_id": "342227",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3422270281.avi",
+        "split": "train",
+        "subject_id": "342227",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3503610119.avi",
+        "split": "train",
+        "subject_id": "350361",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3503610124.avi",
+        "split": "train",
+        "subject_id": "350361",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "350361013.avi",
+        "split": "train",
+        "subject_id": "350361",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3503610135.avi",
+        "split": "train",
+        "subject_id": "350361",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3503610140.avi",
+        "split": "train",
+        "subject_id": "350361",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3503610151.avi",
+        "split": "train",
+        "subject_id": "350361",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "350361016.avi",
+        "split": "train",
+        "subject_id": "350361",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3503610210.avi",
+        "split": "train",
+        "subject_id": "350361",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3503610223.avi",
+        "split": "train",
+        "subject_id": "350361",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3503610236.avi",
+        "split": "train",
+        "subject_id": "350361",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3503610242.avi",
+        "split": "train",
+        "subject_id": "350361",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3503610252.avi",
+        "split": "train",
+        "subject_id": "350361",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "350361026.avi",
+        "split": "train",
+        "subject_id": "350361",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "3503610267.avi",
+        "split": "train",
+        "subject_id": "350361",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4000181008.avi",
+        "split": "train",
+        "subject_id": "400018",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4000181023.avi",
+        "split": "train",
+        "subject_id": "400018",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4000181045.avi",
+        "split": "train",
+        "subject_id": "400018",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4000181054.avi",
+        "split": "train",
+        "subject_id": "400018",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4000181062.avi",
+        "split": "train",
+        "subject_id": "400018",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4000181068.avi",
+        "split": "train",
+        "subject_id": "400018",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4000181075.avi",
+        "split": "train",
+        "subject_id": "400018",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4000182009.avi",
+        "split": "train",
+        "subject_id": "400018",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4000182016.avi",
+        "split": "train",
+        "subject_id": "400018",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4000182025.avi",
+        "split": "train",
+        "subject_id": "400018",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4000182031.avi",
+        "split": "train",
+        "subject_id": "400018",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4000182038.avi",
+        "split": "train",
+        "subject_id": "400018",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4000182046.avi",
+        "split": "train",
+        "subject_id": "400018",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4000182054.avi",
+        "split": "train",
+        "subject_id": "400018",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4000182063.avi",
+        "split": "train",
+        "subject_id": "400018",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4018350140.mp4",
+        "split": "train",
+        "subject_id": "401835",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4018350147.mp4",
+        "split": "train",
+        "subject_id": "401835",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4018350157.mp4",
+        "split": "train",
+        "subject_id": "401835",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4018350166.mp4",
+        "split": "train",
+        "subject_id": "401835",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4018350215.mp4",
+        "split": "train",
+        "subject_id": "401835",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4018350232.mp4",
+        "split": "train",
+        "subject_id": "401835",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4018350256.mp4",
+        "split": "train",
+        "subject_id": "401835",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4018350263.mp4",
+        "split": "train",
+        "subject_id": "401835",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4110211005.avi",
+        "split": "train",
+        "subject_id": "411021",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4110211013.avi",
+        "split": "train",
+        "subject_id": "411021",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4110211020.avi",
+        "split": "train",
+        "subject_id": "411021",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4110211026.avi",
+        "split": "train",
+        "subject_id": "411021",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4110211034.avi",
+        "split": "train",
+        "subject_id": "411021",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4110211040.avi",
+        "split": "train",
+        "subject_id": "411021",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4110211053.avi",
+        "split": "train",
+        "subject_id": "411021",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4110211060.avi",
+        "split": "train",
+        "subject_id": "411021",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4110211067.avi",
+        "split": "train",
+        "subject_id": "411021",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4110211078.avi",
+        "split": "train",
+        "subject_id": "411021",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4110212008.avi",
+        "split": "train",
+        "subject_id": "411021",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4110212015.avi",
+        "split": "train",
+        "subject_id": "411021",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4110212023.avi",
+        "split": "train",
+        "subject_id": "411021",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4110212033.avi",
+        "split": "train",
+        "subject_id": "411021",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4110212041.avi",
+        "split": "train",
+        "subject_id": "411021",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4110212049.avi",
+        "split": "train",
+        "subject_id": "411021",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4110212055.avi",
+        "split": "train",
+        "subject_id": "411021",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4110212064.avi",
+        "split": "train",
+        "subject_id": "411021",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4110311020.avi",
+        "split": "train",
+        "subject_id": "411031",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4110311033.avi",
+        "split": "train",
+        "subject_id": "411031",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4110311050.avi",
+        "split": "train",
+        "subject_id": "411031",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4140810122.avi",
+        "split": "train",
+        "subject_id": "414081",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4140810129.avi",
+        "split": "train",
+        "subject_id": "414081",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4140810138.avi",
+        "split": "train",
+        "subject_id": "414081",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4140810145.avi",
+        "split": "train",
+        "subject_id": "414081",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4140810162.avi",
+        "split": "train",
+        "subject_id": "414081",
+        "face_detected_frames": 16,
+        "landmark_frames": 14,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4140810173.avi",
+        "split": "train",
+        "subject_id": "414081",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4140810181.avi",
+        "split": "train",
+        "subject_id": "414081",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "414081021.avi",
+        "split": "train",
+        "subject_id": "414081",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4140810219.avi",
+        "split": "train",
+        "subject_id": "414081",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4140810225.avi",
+        "split": "train",
+        "subject_id": "414081",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4140810233.avi",
+        "split": "train",
+        "subject_id": "414081",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4140810251.avi",
+        "split": "train",
+        "subject_id": "414081",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4140810266.avi",
+        "split": "train",
+        "subject_id": "414081",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4140810272.avi",
+        "split": "train",
+        "subject_id": "414081",
+        "face_detected_frames": 16,
+        "landmark_frames": 10,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4599990119.avi",
+        "split": "train",
+        "subject_id": "459999",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4599990134.avi",
+        "split": "train",
+        "subject_id": "459999",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4599990146.avi",
+        "split": "train",
+        "subject_id": "459999",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4599990171.avi",
+        "split": "train",
+        "subject_id": "459999",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "459999024.avi",
+        "split": "train",
+        "subject_id": "459999",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      },
+      {
+        "clip_id": "4599990246.avi",
+        "split": "train",
+        "subject_id": "459999",
+        "face_detected_frames": 16,
+        "landmark_frames": 16,
+        "num_frames": 16
+      }
+    ],
     "shard": [
       0,
       6
     ],
-    "elapsed_seconds": 2.53
+    "elapsed_seconds": 533.91
   }
 }

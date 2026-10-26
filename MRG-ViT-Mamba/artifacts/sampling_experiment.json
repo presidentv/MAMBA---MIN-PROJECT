@@ -1,0 +1,289 @@
+{
+  "backbone": {
+    "name": "timm:vit_base_patch16_224.augreg2_in21k_ft_in1k",
+    "family": "timm",
+    "embed_dim": 768,
+    "input_size": 224,
+    "mean": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "std": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "num_params": 85798656
+  },
+  "device": {
+    "device": "cuda",
+    "name": "NVIDIA GeForce RTX 3060 Laptop GPU",
+    "total_memory_bytes": 6441926656,
+    "total_memory_gb": 6.0,
+    "cuda_available": true,
+    "torch_version": "2.11.0+cu128",
+    "torch_cuda_version": "12.8"
+  },
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "timing_scope": "cached-feature head only; preprocessing time is reported separately as preprocess_stage1/2_seconds for the whole 108-clip corpus across all three splits",
+  "results": [
+    {
+      "frames": 8,
+      "stage1_key": "faces_T8_e87ebf30c0",
+      "stage2_key": "vit_timm_vit_base_patch16_224.augreg2_in21k_ft_in1k_063859d4f6",
+      "preprocess_stage1_seconds": 79.6,
+      "preprocess_stage2_seconds": 14.0,
+      "stage1_failures": 0,
+      "stage2_failures": 0,
+      "metrics": {
+        "val_macro_f1": {
+          "mean": 0.29605098605098606,
+          "std": 0.02315916268748283
+        },
+        "test_accuracy": {
+          "mean": 0.2222222222222222,
+          "std": 0.0
+        },
+        "test_macro_f1": {
+          "mean": 0.18402688436795223,
+          "std": 0.0025269158124303945
+        },
+        "test_weighted_f1": {
+          "mean": 0.20013469346177604,
+          "std": 0.007869945739965575
+        }
+      },
+      "runs": [
+        {
+          "seed": 42,
+          "val_macro_f1": 0.3137085137085137,
+          "test_accuracy": 0.2222222222222222,
+          "test_macro_f1": 0.18759426847662142,
+          "test_weighted_f1": 0.19287330316742082
+        },
+        {
+          "seed": 43,
+          "val_macro_f1": 0.3111111111111111,
+          "test_accuracy": 0.2222222222222222,
+          "test_macro_f1": 0.18242562929061784,
+          "test_weighted_f1": 0.19646071700991607
+        },
+        {
+          "seed": 44,
+          "val_macro_f1": 0.2633333333333333,
+          "test_accuracy": 0.2222222222222222,
+          "test_macro_f1": 0.1820607553366174,
+          "test_weighted_f1": 0.21107006020799124
+        }
+      ],
+      "efficiency": {
+        "hardware": "NVIDIA GeForce RTX 3060 Laptop GPU",
+        "device": "cuda",
+        "batch_size": 1,
+        "warmup_iterations": 5,
+        "repetitions": 20,
+        "scope": "cached-feature head only (MRS weighting + Mamba + fusion + MLP); excludes video decode, MediaPipe and the frozen ViT",
+        "seconds_per_video_mean": 0.008801600005244836,
+        "seconds_per_video_std": 0.0008816385554222787,
+        "seconds_per_video_median": 0.008450700028333813,
+        "videos_per_second": 113.61570616752685,
+        "peak_gpu_memory_mb": 377.37109375
+      }
+    },
+    {
+      "frames": 16,
+      "stage1_key": "faces_T16_d54f87dc2c",
+      "stage2_key": "vit_timm_vit_base_patch16_224.augreg2_in21k_ft_in1k_13756dcdd4",
+      "preprocess_stage1_seconds": 0.5,
+      "preprocess_stage2_seconds": 0.1,
+      "stage1_failures": 0,
+      "stage2_failures": 0,
+      "metrics": {
+        "val_macro_f1": {
+          "mean": 0.2684208704039988,
+          "std": 0.03843220760784091
+        },
+        "test_accuracy": {
+          "mean": 0.25925925925925924,
+          "std": 0.03464497580346244
+        },
+        "test_macro_f1": {
+          "mean": 0.202483470420913,
+          "std": 0.022801564414107668
+        },
+        "test_weighted_f1": {
+          "mean": 0.24400594395117295,
+          "std": 0.028441656775022278
+        }
+      },
+      "runs": [
+        {
+          "seed": 42,
+          "val_macro_f1": 0.3127154708037061,
+          "test_accuracy": 0.2222222222222222,
+          "test_macro_f1": 0.1791104447776112,
+          "test_weighted_f1": 0.2112943528235882
+        },
+        {
+          "seed": 43,
+          "val_macro_f1": 0.27355072463768115,
+          "test_accuracy": 0.25,
+          "test_macro_f1": 0.19493087557603686,
+          "test_weighted_f1": 0.2400921658986175
+        },
+        {
+          "seed": 44,
+          "val_macro_f1": 0.2189964157706093,
+          "test_accuracy": 0.3055555555555556,
+          "test_macro_f1": 0.23340909090909093,
+          "test_weighted_f1": 0.2806313131313132
+        }
+      ],
+      "efficiency": {
+        "hardware": "NVIDIA GeForce RTX 3060 Laptop GPU",
+        "device": "cuda",
+        "batch_size": 1,
+        "warmup_iterations": 5,
+        "repetitions": 20,
+        "scope": "cached-feature head only (MRS weighting + Mamba + fusion + MLP); excludes video decode, MediaPipe and the frozen ViT",
+        "seconds_per_video_mean": 0.015159594989381731,
+        "seconds_per_video_std": 0.0032294293846853914,
+        "seconds_per_video_median": 0.014537199982441962,
+        "videos_per_second": 65.96482298507527,
+        "peak_gpu_memory_mb": 378.26416015625
+      }
+    },
+    {
+      "frames": 32,
+      "stage1_key": "faces_T32_94b93938dc",
+      "stage2_key": "vit_timm_vit_base_patch16_224.augreg2_in21k_ft_in1k_ab39c6bacf",
+      "preprocess_stage1_seconds": 191.6,
+      "preprocess_stage2_seconds": 63.2,
+      "stage1_failures": 0,
+      "stage2_failures": 0,
+      "metrics": {
+        "val_macro_f1": {
+          "mean": 0.2800948778889955,
+          "std": 0.04485265169852958
+        },
+        "test_accuracy": {
+          "mean": 0.2222222222222222,
+          "std": 0.03928371006591931
+        },
+        "test_macro_f1": {
+          "mean": 0.16439271171302863,
+          "std": 0.006292168436175395
+        },
+        "test_weighted_f1": {
+          "mean": 0.2048757891796941,
+          "std": 0.04125473571298345
+        }
+      },
+      "runs": [
+        {
+          "seed": 42,
+          "val_macro_f1": 0.3333333333333333,
+          "test_accuracy": 0.2777777777777778,
+          "test_macro_f1": 0.17323775388291518,
+          "test_weighted_f1": 0.2628434886499402
+        },
+        {
+          "seed": 43,
+          "val_macro_f1": 0.28334018922254217,
+          "test_accuracy": 0.19444444444444445,
+          "test_macro_f1": 0.1608133971291866,
+          "test_weighted_f1": 0.17017012227538542
+        },
+        {
+          "seed": 44,
+          "val_macro_f1": 0.2236111111111111,
+          "test_accuracy": 0.19444444444444445,
+          "test_macro_f1": 0.15912698412698412,
+          "test_weighted_f1": 0.18161375661375662
+        }
+      ],
+      "efficiency": {
+        "hardware": "NVIDIA GeForce RTX 3060 Laptop GPU",
+        "device": "cuda",
+        "batch_size": 1,
+        "warmup_iterations": 5,
+        "repetitions": 20,
+        "scope": "cached-feature head only (MRS weighting + Mamba + fusion + MLP); excludes video decode, MediaPipe and the frozen ViT",
+        "seconds_per_video_mean": 0.021728814987000078,
+        "seconds_per_video_std": 0.005104486719810323,
+        "seconds_per_video_median": 0.0191771499812603,
+        "videos_per_second": 46.021837849799,
+        "peak_gpu_memory_mb": 380.05029296875
+      }
+    },
+    {
+      "frames": 64,
+      "stage1_key": "faces_T64_e26ce7c0e9",
+      "stage2_key": "vit_timm_vit_base_patch16_224.augreg2_in21k_ft_in1k_543c08e187",
+      "preprocess_stage1_seconds": 338.0,
+      "preprocess_stage2_seconds": 127.0,
+      "stage1_failures": 0,
+      "stage2_failures": 0,
+      "metrics": {
+        "val_macro_f1": {
+          "mean": 0.32622407866973085,
+          "std": 0.09078504146212804
+        },
+        "test_accuracy": {
+          "mean": 0.28703703703703703,
+          "std": 0.06928995160692485
+        },
+        "test_macro_f1": {
+          "mean": 0.2129063066563067,
+          "std": 0.06542456560939042
+        },
+        "test_weighted_f1": {
+          "mean": 0.2761185573685574,
+          "std": 0.060074524645855255
+        }
+      },
+      "runs": [
+        {
+          "seed": 42,
+          "val_macro_f1": 0.4503787878787879,
+          "test_accuracy": 0.3055555555555556,
+          "test_macro_f1": 0.18990384615384615,
+          "test_weighted_f1": 0.29407051282051283
+        },
+        {
+          "seed": 43,
+          "val_macro_f1": 0.29246794871794873,
+          "test_accuracy": 0.19444444444444445,
+          "test_macro_f1": 0.1467948717948718,
+          "test_weighted_f1": 0.19522792022792024
+        },
+        {
+          "seed": 44,
+          "val_macro_f1": 0.23582549941245595,
+          "test_accuracy": 0.3611111111111111,
+          "test_macro_f1": 0.302020202020202,
+          "test_weighted_f1": 0.33905723905723906
+        }
+      ],
+      "efficiency": {
+        "hardware": "NVIDIA GeForce RTX 3060 Laptop GPU",
+        "device": "cuda",
+        "batch_size": 1,
+        "warmup_iterations": 5,
+        "repetitions": 20,
+        "scope": "cached-feature head only (MRS weighting + Mamba + fusion + MLP); excludes video decode, MediaPipe and the frozen ViT",
+        "seconds_per_video_mean": 0.07862402001046576,
+        "seconds_per_video_std": 0.01491926679585513,
+        "seconds_per_video_median": 0.073697549989447,
+        "videos_per_second": 12.718759481732027,
+        "peak_gpu_memory_mb": 383.62255859375
+      }
+    }
+  ],
+  "caveat": "36 test clips from 8 subjects. The differences between frame counts here are smaller than the seed-to-seed spread, so this table shows the cost curve reliably and the accuracy curve only weakly."
+}

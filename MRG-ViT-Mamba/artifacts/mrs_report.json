@@ -1,0 +1,96 @@
+{
+  "cache_key": "faces_T16_7b2356cf6f",
+  "frames_examined": 3456,
+  "calibration": {
+    "blur_log_low": 3.335939630780093,
+    "blur_log_high": 4.993846663195728,
+    "area_low": 0.0325520820915699,
+    "area_high": 0.15905972942709917,
+    "calibrated": true,
+    "percentiles": [
+      5.0,
+      95.0
+    ],
+    "n_frames": 1920
+  },
+  "weights": {
+    "blur": 0.2,
+    "face_visibility": 0.2,
+    "head_pose": 0.2,
+    "eye_visibility": 0.2,
+    "motion_consistency": 0.2
+  },
+  "components": {
+    "blur": {
+      "min": 0.0,
+      "mean": 0.42770447936949263,
+      "max": 1.0,
+      "std": 0.2755737729954193
+    },
+    "face_visibility": {
+      "min": 0.0,
+      "mean": 0.29751966242288064,
+      "max": 0.9913562536239624,
+      "std": 0.28487665947245616
+    },
+    "head_pose": {
+      "min": 0.37567248874240455,
+      "mean": 0.9740615898383007,
+      "max": 1.0,
+      "std": 0.08265161360093788
+    },
+    "eye_visibility": {
+      "min": 0.0,
+      "mean": 0.9988425925925926,
+      "max": 1.0,
+      "std": 0.03400099727214904
+    },
+    "motion_consistency": {
+      "min": 0.0,
+      "mean": 0.4707919151416583,
+      "max": 1.0,
+      "std": 0.3516661371435716
+    }
+  },
+  "mrs": {
+    "min": 0.14174792170524597,
+    "mean": 0.6337839961051941,
+    "max": 0.9920069575309753,
+    "std": 0.12791986763477325,
+    "percentiles": {
+      "1": 0.4005439579486847,
+      "5": 0.43584877252578735,
+      "25": 0.5419347286224365,
+      "50": 0.6281329393386841,
+      "75": 0.7150347232818604,
+      "95": 0.8778784275054932,
+      "99": 0.9532687067985535
+    }
+  },
+  "per_split": {
+    "train": {
+      "n": 1920,
+      "mean": 0.6361263394355774,
+      "std": 0.1250591278076172
+    },
+    "val": {
+      "n": 1280,
+      "mean": 0.6362495422363281,
+      "std": 0.13362659513950348
+    },
+    "test": {
+      "n": 256,
+      "mean": 0.6038890480995178,
+      "std": 0.1155993714928627
+    }
+  },
+  "motion_sources": {
+    "first_frame": 216,
+    "landmark_displacement": 3236,
+    "zncc_face_crop": 4
+  },
+  "nearly_constant_components": [],
+  "problems": [],
+  "histograms": "C:\\Users\\ashok\\OneDrive\\Desktop\\Adhvaith\\VIT\\MINI PROJECT\\MRG-ViT-Mamba\\artifacts\\mrs_histograms.png",
+  "extremes_image": "C:\\Users\\ashok\\OneDrive\\Desktop\\Adhvaith\\VIT\\MINI PROJECT\\MRG-ViT-Mamba\\artifacts\\mrs_extremes.png"
+}

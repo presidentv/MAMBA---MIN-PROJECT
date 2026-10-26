@@ -1,0 +1,58 @@
+{
+  "calibration": {
+    "blur_log_low": 3.3778792421522343,
+    "blur_log_high": 4.8748496351788075,
+    "area_low": 0.035208333283662796,
+    "area_high": 0.14630208909511566,
+    "calibrated": true,
+    "percentiles": [
+      5.0,
+      95.0
+    ],
+    "n_frames": 24000
+  },
+  "fitted_on": {
+    "split": "train",
+    "cache_key": "faces_T16_7b2356cf6f",
+    "clips": 1500,
+    "frames": 24000
+  },
+  "raw_statistics": {
+    "blur_raw": {
+      "name": "blur_raw",
+      "min": 6.004225254058838,
+      "p5": 28.308547973632812,
+      "median": 56.61725997924805,
+      "p95": 129.9544677734375,
+      "max": 353.19842529296875,
+      "mean": 65.7934341430664,
+      "std": 33.896881103515625
+    },
+    "face_area_fraction": {
+      "name": "face_area_fraction",
+      "min": 0.02083333395421505,
+      "p5": 0.035208333283662796,
+      "median": 0.06289388239383698,
+      "p95": 0.14630208909511566,
+      "max": 0.35777994990348816,
+      "mean": 0.07247588783502579,
+      "std": 0.036193959414958954
+    }
+  },
+  "mapped_statistics": {
+    "blur": {
+      "min": 0.0,
+      "mean": 0.47834645985038365,
+      "max": 1.0,
+      "std": 0.2807908100347692
+    },
+    "area_term": {
+      "min": 0.0,
+      "mean": 0.3245507905724381,
+      "max": 1.0,
+      "std": 0.2847981434912912
+    }
+  },
+  "warnings": [],
+  "note": "Percentiles are fitted on training frames only; validation and test clips are never read by this script."
+}

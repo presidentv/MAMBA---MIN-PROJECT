@@ -1,0 +1,41 @@
+====================================================================================================
+TEMPORAL SAMPLING EXPERIMENT
+====================================================================================================
+device   : cuda (NVIDIA GeForce RTX 3060 Laptop GPU)
+backbone : timm:vit_base_patch16_224.augreg2_in21k_ft_in1k (D=768)
+frames   : [8, 16, 32, 64]
+seeds    : [42, 43, 44]
+
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+WARNING: Logging before InitGoogle() is written to STDERR
+W0000 00:00:1788375031.459647   33588 inference_feedback_manager.cc:121] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+W0000 00:00:1788375031.476261   19228 face_landmarker_graph.cc:180] Sets FaceBlendshapesGraph acceleration to xnnpack by default.
+W0000 00:00:1788375031.496500   19916 inference_feedback_manager.cc:121] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+W0000 00:00:1788375031.525485   19916 inference_feedback_manager.cc:121] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+T=8   stage1   79.6s  stage2   14.0s  test acc 0.2222+-0.0000  mF1 0.1840+-0.0025  head 8.80 ms/video  peak 377 MB
+W0000 00:00:1788375227.019848    7372 inference_feedback_manager.cc:121] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+W0000 00:00:1788375227.032654     504 face_landmarker_graph.cc:180] Sets FaceBlendshapesGraph acceleration to xnnpack by default.
+W0000 00:00:1788375227.053272   27388 inference_feedback_manager.cc:121] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+W0000 00:00:1788375227.082839   27388 inference_feedback_manager.cc:121] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+T=16  stage1    0.5s  stage2    0.1s  test acc 0.2593+-0.0346  mF1 0.2025+-0.0228  head 15.16 ms/video  peak 378 MB
+W0000 00:00:1788375327.405043   27500 inference_feedback_manager.cc:121] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+W0000 00:00:1788375327.410534    1624 face_landmarker_graph.cc:180] Sets FaceBlendshapesGraph acceleration to xnnpack by default.
+W0000 00:00:1788375327.418101   15604 inference_feedback_manager.cc:121] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+W0000 00:00:1788375327.437568   24000 inference_feedback_manager.cc:121] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+T=32  stage1  191.6s  stage2   63.2s  test acc 0.2222+-0.0393  mF1 0.1644+-0.0063  head 21.73 ms/video  peak 380 MB
+W0000 00:00:1788375684.687467    4496 inference_feedback_manager.cc:121] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+W0000 00:00:1788375684.696519   21788 face_landmarker_graph.cc:180] Sets FaceBlendshapesGraph acceleration to xnnpack by default.
+W0000 00:00:1788375684.702457   15564 inference_feedback_manager.cc:121] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+W0000 00:00:1788375684.713599   16188 inference_feedback_manager.cc:121] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+T=64  stage1  338.0s  stage2  127.0s  test acc 0.2870+-0.0693  mF1 0.2129+-0.0654  head 78.62 ms/video  peak 384 MB
+
+====================================================================================================
+SUMMARY (mean +- std over seeds)
+====================================================================================================
+   T          test acc         weighted F1          macro F1    ms/video   peak MB   prep s
+   8     0.2222+-0.0000       0.2001+-0.0079     0.1840+-0.0025        8.80       377     93.6
+  16     0.2593+-0.0346       0.2440+-0.0284     0.2025+-0.0228       15.16       378      0.6
+  32     0.2222+-0.0393       0.2049+-0.0413     0.1644+-0.0063       21.73       380    254.8
+  64     0.2870+-0.0693       0.2761+-0.0601     0.2129+-0.0654       78.62       384    465.0
+
+wrote artifacts/sampling_experiment.json

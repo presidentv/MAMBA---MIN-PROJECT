@@ -1,0 +1,295 @@
+{
+  "protocol": "Degradations applied in memory to decoded frames during Stage 1; the DAiSEE files on disk are unmodified. Both arms were trained on CLEAN data only and are evaluated unchanged under each degradation.",
+  "backbone": {
+    "name": "timm:vit_base_patch16_224.augreg2_in21k_ft_in1k",
+    "family": "timm",
+    "embed_dim": 768,
+    "input_size": 224,
+    "mean": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "std": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "num_params": 85798656
+  },
+  "baseline_checkpoint": "checkpoints/abl_no_mrs_s42/best.pt",
+  "proposed_checkpoint": "checkpoints/abl_full_s42/best.pt",
+  "results": [
+    {
+      "corruption": "clean",
+      "description": "no degradation (reference)",
+      "stage1_key": "faces_T16_d54f87dc2c",
+      "stage2_key": "vit_timm_vit_base_patch16_224.augreg2_in21k_ft_in1k_13756dcdd4",
+      "stage1_seconds": 3.3,
+      "stage2_seconds": 0.0,
+      "stage1_failures": 0,
+      "stage2_failures": 0,
+      "mrs": {
+        "mrs_mean": 0.6573746204376221,
+        "mrs_std": 0.12013418227434158,
+        "mrs_min": 0.2975562512874603,
+        "mrs_max": 0.933281660079956,
+        "face_detection_rate": 1.0
+      },
+      "baseline": {
+        "accuracy": 0.2222222222222222,
+        "macro_f1": 0.1791104447776112,
+        "weighted_f1": 0.2112943528235882
+      },
+      "proposed": {
+        "accuracy": 0.2222222222222222,
+        "macro_f1": 0.1791104447776112,
+        "weighted_f1": 0.2112943528235882
+      }
+    },
+    {
+      "corruption": "blur_s2",
+      "description": "Gaussian blur, sigma=2",
+      "stage1_key": "faces_T16_blur_s2_8a7e783bf5",
+      "stage2_key": "vit_timm_vit_base_patch16_224.augreg2_in21k_ft_in1k_50737fd525",
+      "stage1_seconds": 39.2,
+      "stage2_seconds": 10.7,
+      "stage1_failures": 0,
+      "stage2_failures": 0,
+      "mrs": {
+        "mrs_mean": 0.5372368097305298,
+        "mrs_std": 0.09487203508615494,
+        "mrs_min": 0.18025881052017212,
+        "mrs_max": 0.7916548848152161,
+        "face_detection_rate": 1.0
+      },
+      "baseline": {
+        "accuracy": 0.25,
+        "macro_f1": 0.2010464990829647,
+        "weighted_f1": 0.23937018256793852
+      },
+      "proposed": {
+        "accuracy": 0.2222222222222222,
+        "macro_f1": 0.18525641025641024,
+        "weighted_f1": 0.20804843304843304
+      }
+    },
+    {
+      "corruption": "blur_s4",
+      "description": "Gaussian blur, sigma=4",
+      "stage1_key": "faces_T16_blur_s4_e053613f9c",
+      "stage2_key": "vit_timm_vit_base_patch16_224.augreg2_in21k_ft_in1k_3056345d3c",
+      "stage1_seconds": 40.8,
+      "stage2_seconds": 10.2,
+      "stage1_failures": 0,
+      "stage2_failures": 0,
+      "mrs": {
+        "mrs_mean": 0.5216343998908997,
+        "mrs_std": 0.09578226506710052,
+        "mrs_min": 0.15518997609615326,
+        "mrs_max": 0.7880616784095764,
+        "face_detection_rate": 1.0
+      },
+      "baseline": {
+        "accuracy": 0.16666666666666666,
+        "macro_f1": 0.11088709677419355,
+        "weighted_f1": 0.14807347670250895
+      },
+      "proposed": {
+        "accuracy": 0.25,
+        "macro_f1": 0.15886699507389163,
+        "weighted_f1": 0.24343185550082103
+      }
+    },
+    {
+      "corruption": "downscale_4x",
+      "description": "resolution reduced 4x then restored",
+      "stage1_key": "faces_T16_downscale_4x_1f6bee8227",
+      "stage2_key": "vit_timm_vit_base_patch16_224.augreg2_in21k_ft_in1k_3ba1e18b61",
+      "stage1_seconds": 41.2,
+      "stage2_seconds": 10.5,
+      "stage1_failures": 0,
+      "stage2_failures": 0,
+      "mrs": {
+        "mrs_mean": 0.5358759760856628,
+        "mrs_std": 0.09551799297332764,
+        "mrs_min": 0.18029163777828217,
+        "mrs_max": 0.791840672492981,
+        "face_detection_rate": 1.0
+      },
+      "baseline": {
+        "accuracy": 0.3055555555555556,
+        "macro_f1": 0.22828282828282828,
+        "weighted_f1": 0.3016835016835017
+      },
+      "proposed": {
+        "accuracy": 0.4444444444444444,
+        "macro_f1": 0.2967032967032967,
+        "weighted_f1": 0.4200244200244201
+      }
+    },
+    {
+      "corruption": "downscale_8x",
+      "description": "resolution reduced 8x then restored",
+      "stage1_key": "faces_T16_downscale_8x_a69a2e5e5d",
+      "stage2_key": "vit_timm_vit_base_patch16_224.augreg2_in21k_ft_in1k_0a9508ddd8",
+      "stage1_seconds": 38.5,
+      "stage2_seconds": 10.4,
+      "stage1_failures": 0,
+      "stage2_failures": 0,
+      "mrs": {
+        "mrs_mean": 0.5149471759796143,
+        "mrs_std": 0.09629999846220016,
+        "mrs_min": 0.17023319005966187,
+        "mrs_max": 0.7874951958656311,
+        "face_detection_rate": 1.0
+      },
+      "baseline": {
+        "accuracy": 0.19444444444444445,
+        "macro_f1": 0.12142857142857143,
+        "weighted_f1": 0.16746031746031745
+      },
+      "proposed": {
+        "accuracy": 0.2222222222222222,
+        "macro_f1": 0.13793103448275862,
+        "weighted_f1": 0.1992337164750958
+      }
+    },
+    {
+      "corruption": "occlusion_10pct",
+      "description": "grey box over 10% of the frame",
+      "stage1_key": "faces_T16_occlusion_10pct_4ae5369513",
+      "stage2_key": "vit_timm_vit_base_patch16_224.augreg2_in21k_ft_in1k_7a19efe630",
+      "stage1_seconds": 35.1,
+      "stage2_seconds": 10.7,
+      "stage1_failures": 0,
+      "stage2_failures": 0,
+      "mrs": {
+        "mrs_mean": 0.6338013410568237,
+        "mrs_std": 0.12131336331367493,
+        "mrs_min": 0.2806244492530823,
+        "mrs_max": 0.9337618350982666,
+        "face_detection_rate": 0.9809027777777778
+      },
+      "baseline": {
+        "accuracy": 0.3055555555555556,
+        "macro_f1": 0.25142428785607196,
+        "weighted_f1": 0.2805430618024321
+      },
+      "proposed": {
+        "accuracy": 0.3055555555555556,
+        "macro_f1": 0.24587076209794265,
+        "weighted_f1": 0.2828326732992047
+      }
+    },
+    {
+      "corruption": "occlusion_25pct",
+      "description": "grey box over 25% of the frame",
+      "stage1_key": "faces_T16_occlusion_25pct_8deffea3f6",
+      "stage2_key": "vit_timm_vit_base_patch16_224.augreg2_in21k_ft_in1k_2eb3240d08",
+      "stage1_seconds": 27.1,
+      "stage2_seconds": 10.5,
+      "stage1_failures": 0,
+      "stage2_failures": 0,
+      "mrs": {
+        "mrs_mean": 0.4840749204158783,
+        "mrs_std": 0.09561029076576233,
+        "mrs_min": 0.19649863243103027,
+        "mrs_max": 0.9196211099624634,
+        "face_detection_rate": 0.3229166666666667
+      },
+      "baseline": {
+        "accuracy": 0.2222222222222222,
+        "macro_f1": 0.2314285714285714,
+        "weighted_f1": 0.17746031746031746
+      },
+      "proposed": {
+        "accuracy": 0.2222222222222222,
+        "macro_f1": 0.22982778091473743,
+        "weighted_f1": 0.180404981491938
+      }
+    },
+    {
+      "corruption": "dark",
+      "description": "halved contrast, darkened",
+      "stage1_key": "faces_T16_dark_457ded92cd",
+      "stage2_key": "vit_timm_vit_base_patch16_224.augreg2_in21k_ft_in1k_84b5be4360",
+      "stage1_seconds": 37.6,
+      "stage2_seconds": 10.4,
+      "stage1_failures": 0,
+      "stage2_failures": 0,
+      "mrs": {
+        "mrs_mean": 0.49192237854003906,
+        "mrs_std": 0.10209096968173981,
+        "mrs_min": 0.15859201550483704,
+        "mrs_max": 0.7836717963218689,
+        "face_detection_rate": 1.0
+      },
+      "baseline": {
+        "accuracy": 0.2222222222222222,
+        "macro_f1": 0.1763157894736842,
+        "weighted_f1": 0.19483430799220272
+      },
+      "proposed": {
+        "accuracy": 0.25,
+        "macro_f1": 0.20817006269592475,
+        "weighted_f1": 0.22229841518634622
+      }
+    },
+    {
+      "corruption": "bright",
+      "description": "raised contrast, brightened",
+      "stage1_key": "faces_T16_bright_5d4a3868f3",
+      "stage2_key": "vit_timm_vit_base_patch16_224.augreg2_in21k_ft_in1k_adab4651ed",
+      "stage1_seconds": 39.0,
+      "stage2_seconds": 10.5,
+      "stage1_failures": 0,
+      "stage2_failures": 0,
+      "mrs": {
+        "mrs_mean": 0.6911089420318604,
+        "mrs_std": 0.11464978009462357,
+        "mrs_min": 0.22725407779216766,
+        "mrs_max": 0.9706359505653381,
+        "face_detection_rate": 1.0
+      },
+      "baseline": {
+        "accuracy": 0.25,
+        "macro_f1": 0.19545454545454544,
+        "weighted_f1": 0.2436026936026936
+      },
+      "proposed": {
+        "accuracy": 0.25,
+        "macro_f1": 0.19545454545454544,
+        "weighted_f1": 0.2436026936026936
+      }
+    },
+    {
+      "corruption": "jpeg_q15",
+      "description": "heavy JPEG compression, quality 15",
+      "stage1_key": "faces_T16_jpeg_q15_7259b350a1",
+      "stage2_key": "vit_timm_vit_base_patch16_224.augreg2_in21k_ft_in1k_639c405be6",
+      "stage1_seconds": 41.1,
+      "stage2_seconds": 10.4,
+      "stage1_failures": 0,
+      "stage2_failures": 0,
+      "mrs": {
+        "mrs_mean": 0.6342782974243164,
+        "mrs_std": 0.11299322545528412,
+        "mrs_min": 0.3000602424144745,
+        "mrs_max": 0.9353240132331848,
+        "face_detection_rate": 1.0
+      },
+      "baseline": {
+        "accuracy": 0.2222222222222222,
+        "macro_f1": 0.17976190476190476,
+        "weighted_f1": 0.21468253968253967
+      },
+      "proposed": {
+        "accuracy": 0.2222222222222222,
+        "macro_f1": 0.17976190476190476,
+        "weighted_f1": 0.21468253968253967
+      }
+    }
+  ],
+  "caveat": "A single test split of 36 clips from 8 subjects. Differences of a few hundredths of macro-F1 are not distinguishable from noise at this size."
+}

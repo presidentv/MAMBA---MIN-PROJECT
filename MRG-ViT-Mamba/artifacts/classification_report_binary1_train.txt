@@ -1,0 +1,8 @@
+              precision    recall  f1-score   support
+
+ Not engaged     0.3491    0.5362    0.4229        69
+     Engaged     0.9770    0.9518    0.9642      1431
+
+    accuracy                         0.9327      1500
+   macro avg     0.6631    0.7440    0.6936      1500
+weighted avg     0.9482    0.9327    0.9393      1500

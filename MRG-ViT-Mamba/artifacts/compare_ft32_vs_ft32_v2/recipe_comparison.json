@@ -1,0 +1,76 @@
+{
+  "baseline": {
+    "run": "ft32",
+    "epochs_run": 64,
+    "best_epoch": 2,
+    "train": {
+      "accuracy": 0.6833333333333333,
+      "macro_f1": 0.6717551854538156,
+      "loss": 1.121965612967809
+    },
+    "val": {
+      "accuracy": 0.4375,
+      "macro_f1": 0.42595812875068195,
+      "loss": 1.3276794970035553
+    },
+    "test": {
+      "accuracy": 0.5,
+      "macro_f1": 0.48928571428571427,
+      "loss": 1.2803181111812592
+    },
+    "val_macro_f1_best": 0.425958,
+    "val_macro_f1_final": 0.209586,
+    "val_macro_f1_last10_mean": 0.2096518,
+    "val_loss_min": 1.327679,
+    "val_loss_final": 2.685912,
+    "first_epoch_at_train_acc_1": 16,
+    "generalisation_gap_at_best": 0.24583333333333335,
+    "learned_mrs_weights": {
+      "blur": 0.24527,
+      "face_visibility": 0.252786,
+      "head_pose": 0.134748,
+      "eye_visibility": 0.129986,
+      "motion_consistency": 0.23721
+    }
+  },
+  "candidate": {
+    "run": "ft32_v2",
+    "epochs_run": 64,
+    "best_epoch": 7,
+    "train": {
+      "accuracy": 0.8666666666666667,
+      "macro_f1": 0.8653237387612388,
+      "loss": 0.5370365237196286
+    },
+    "val": {
+      "accuracy": 0.3875,
+      "macro_f1": 0.38990225403268886,
+      "loss": 1.6017882838845252
+    },
+    "test": {
+      "accuracy": 0.25,
+      "macro_f1": 0.22698412698412698,
+      "loss": 1.6057943999767303
+    },
+    "val_macro_f1_best": 0.389902,
+    "val_macro_f1_final": 0.32246,
+    "val_macro_f1_last10_mean": 0.30903200000000003,
+    "val_loss_min": 1.344836,
+    "val_loss_final": 2.34079,
+    "first_epoch_at_train_acc_1": 46,
+    "generalisation_gap_at_best": 0.4791666666666667,
+    "learned_mrs_weights": {
+      "blur": 0.228613,
+      "face_visibility": 0.332305,
+      "head_pose": 0.086971,
+      "eye_visibility": 0.082794,
+      "motion_consistency": 0.269317
+    }
+  },
+  "labels": {
+    "a": "v1 (no augmentation, flat LR)",
+    "b": "v2 (augment + layer decay + drop-path)"
+  },
+  "figure": "C:\\Users\\ashok\\OneDrive\\Desktop\\Adhvaith\\VIT\\MINI PROJECT\\MRG-ViT-Mamba\\artifacts\\compare_ft32_vs_ft32_v2\\recipe_comparison.png",
+  "note": "Single seed each, 80 validation and 16 test clips. Differences of a few hundredths are not separable from run-to-run noise at this size; the shape of the validation curve is the more reliable signal."
+}

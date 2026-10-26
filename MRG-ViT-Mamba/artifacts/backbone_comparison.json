@@ -1,0 +1,425 @@
+{
+  "protocol": "Linear probe (multinomial logistic regression, class_weight=balanced) on MRS-weighted mean-pooled frozen ViT features. Scaler and probe fitted on TRAIN only; scored on VALIDATION. The test split is not read by this script. These are probe scores for backbone selection, NOT model results.",
+  "device": {
+    "device": "cuda",
+    "name": "NVIDIA GeForce RTX 3060 Laptop GPU",
+    "total_memory_bytes": 6441926656,
+    "total_memory_gb": 6.0,
+    "cuda_available": true,
+    "torch_version": "2.11.0+cu128",
+    "torch_cuda_version": "12.8"
+  },
+  "stage1_key": "faces_T16_d54f87dc2c",
+  "calibration": {
+    "blur_log_low": 2.5434030509976493,
+    "blur_log_high": 4.541769610789849,
+    "area_low": 0.041565753519535065,
+    "area_high": 0.13948242366313934,
+    "calibrated": true,
+    "percentiles": [
+      5.0,
+      95.0
+    ],
+    "n_frames": 576
+  },
+  "num_candidates": 5,
+  "results": [
+    {
+      "backbone": "timm:vit_base_patch16_224.augreg2_in21k_ft_in1k",
+      "rationale": "ImageNet-21k -> 1k supervised ViT-B/16. The conventional default; included as the reference point, not because faces are an ImageNet class.",
+      "loaded": true,
+      "load_seconds": 4.0,
+      "name": "timm:vit_base_patch16_224.augreg2_in21k_ft_in1k",
+      "family": "timm",
+      "embed_dim": 768,
+      "input_size": 224,
+      "mean": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "std": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "num_params": 85798656,
+      "chunk_size": 32,
+      "stage2": {
+        "cache_key": "vit_timm_vit_base_patch16_224.augreg2_in21k_ft_in1k_13756dcdd4",
+        "counts": {
+          "total": 108,
+          "cached": 0,
+          "processed": 108,
+          "failed": 0,
+          "missing_stage1": 0
+        },
+        "seconds": 27.3
+      },
+      "probe": {
+        "train": {
+          "accuracy": 1.0,
+          "macro_f1": 1.0,
+          "weighted_f1": 1.0
+        },
+        "val": {
+          "accuracy": 0.3611111111111111,
+          "macro_f1": 0.2785714285714286,
+          "weighted_f1": 0.3515873015873016
+        },
+        "val_confusion_matrix": [
+          [
+            2,
+            0,
+            0,
+            2
+          ],
+          [
+            2,
+            0,
+            1,
+            1
+          ],
+          [
+            3,
+            1,
+            5,
+            8
+          ],
+          [
+            3,
+            0,
+            2,
+            6
+          ]
+        ],
+        "n_train": 36,
+        "n_val": 36
+      }
+    },
+    {
+      "backbone": "timm:vit_base_patch16_clip_224.openai",
+      "rationale": "CLIP ViT-B/16 image tower. Trained on web image-text pairs, so it has seen enormous numbers of people and expressions.",
+      "loaded": true,
+      "load_seconds": 2.1,
+      "name": "timm:vit_base_patch16_clip_224.openai",
+      "family": "timm",
+      "embed_dim": 768,
+      "input_size": 224,
+      "mean": [
+        0.48145466,
+        0.4578275,
+        0.40821073
+      ],
+      "std": [
+        0.26862954,
+        0.26130258,
+        0.27577711
+      ],
+      "num_params": 85799424,
+      "chunk_size": 32,
+      "stage2": {
+        "cache_key": "vit_timm_vit_base_patch16_clip_224.openai_8a5b6d9e5a",
+        "counts": {
+          "total": 108,
+          "cached": 0,
+          "processed": 108,
+          "failed": 0,
+          "missing_stage1": 0
+        },
+        "seconds": 26.7
+      },
+      "probe": {
+        "train": {
+          "accuracy": 1.0,
+          "macro_f1": 1.0,
+          "weighted_f1": 1.0
+        },
+        "val": {
+          "accuracy": 0.3333333333333333,
+          "macro_f1": 0.2275371687136393,
+          "weighted_f1": 0.32661782661782657
+        },
+        "val_confusion_matrix": [
+          [
+            1,
+            0,
+            1,
+            2
+          ],
+          [
+            1,
+            0,
+            3,
+            0
+          ],
+          [
+            4,
+            0,
+            8,
+            5
+          ],
+          [
+            3,
+            0,
+            5,
+            3
+          ]
+        ],
+        "n_train": 36,
+        "n_val": 36
+      }
+    },
+    {
+      "backbone": "timm:vit_small_patch14_dinov2.lvd142m",
+      "rationale": "DINOv2 ViT-S/14, self-supervised. Strong dense/part-aware features; small variant chosen so the 518px input stays affordable.",
+      "loaded": true,
+      "load_seconds": 0.6,
+      "name": "timm:vit_small_patch14_dinov2.lvd142m",
+      "family": "timm",
+      "embed_dim": 384,
+      "input_size": 518,
+      "mean": [
+        0.485,
+        0.456,
+        0.406
+      ],
+      "std": [
+        0.229,
+        0.224,
+        0.225
+      ],
+      "num_params": 22056192,
+      "chunk_size": 5,
+      "stage2": {
+        "cache_key": "vit_timm_vit_small_patch14_dinov2.lvd142m_1b5dd93ad5",
+        "counts": {
+          "total": 108,
+          "cached": 0,
+          "processed": 108,
+          "failed": 0,
+          "missing_stage1": 0
+        },
+        "seconds": 84.4
+      },
+      "probe": {
+        "train": {
+          "accuracy": 1.0,
+          "macro_f1": 1.0,
+          "weighted_f1": 1.0
+        },
+        "val": {
+          "accuracy": 0.2222222222222222,
+          "macro_f1": 0.13636363636363635,
+          "weighted_f1": 0.19191919191919193
+        },
+        "val_confusion_matrix": [
+          [
+            2,
+            1,
+            1,
+            0
+          ],
+          [
+            2,
+            0,
+            2,
+            0
+          ],
+          [
+            10,
+            1,
+            6,
+            0
+          ],
+          [
+            4,
+            0,
+            7,
+            0
+          ]
+        ],
+        "n_train": 36,
+        "n_val": 36
+      }
+    },
+    {
+      "backbone": "hf:trpakov/vit-face-expression",
+      "rationale": "ViT-B/16 fine-tuned for facial expression recognition. Closest in domain to engagement, which is an affective read-out of the face.",
+      "loaded": true,
+      "load_seconds": 3.6,
+      "name": "hf:trpakov/vit-face-expression",
+      "family": "hf",
+      "embed_dim": 768,
+      "input_size": 224,
+      "mean": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "std": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "num_params": 85798656,
+      "chunk_size": 32,
+      "stage2": {
+        "cache_key": "vit_hf_trpakov_vit-face-expression_e7a4149e32",
+        "counts": {
+          "total": 108,
+          "cached": 0,
+          "processed": 108,
+          "failed": 0,
+          "missing_stage1": 0
+        },
+        "seconds": 27.0
+      },
+      "probe": {
+        "train": {
+          "accuracy": 1.0,
+          "macro_f1": 1.0,
+          "weighted_f1": 1.0
+        },
+        "val": {
+          "accuracy": 0.3333333333333333,
+          "macro_f1": 0.23171082949308755,
+          "weighted_f1": 0.3449180747567844
+        },
+        "val_confusion_matrix": [
+          [
+            0,
+            2,
+            0,
+            2
+          ],
+          [
+            0,
+            1,
+            1,
+            2
+          ],
+          [
+            0,
+            6,
+            8,
+            3
+          ],
+          [
+            0,
+            3,
+            5,
+            3
+          ]
+        ],
+        "n_train": 36,
+        "n_val": 36
+      }
+    },
+    {
+      "backbone": "hf:dima806/facial_emotions_image_detection",
+      "rationale": "ViT fine-tuned on facial emotion data; a second in-domain candidate so the comparison does not rest on one fine-tune.",
+      "loaded": true,
+      "load_seconds": 1.5,
+      "name": "hf:dima806/facial_emotions_image_detection",
+      "family": "hf",
+      "embed_dim": 768,
+      "input_size": 224,
+      "mean": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "std": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "num_params": 85798656,
+      "chunk_size": 32,
+      "stage2": {
+        "cache_key": "vit_hf_dima806_facial_emotions_image_detection_072208565d",
+        "counts": {
+          "total": 108,
+          "cached": 0,
+          "processed": 108,
+          "failed": 0,
+          "missing_stage1": 0
+        },
+        "seconds": 27.2
+      },
+      "probe": {
+        "train": {
+          "accuracy": 1.0,
+          "macro_f1": 1.0,
+          "weighted_f1": 1.0
+        },
+        "val": {
+          "accuracy": 0.25,
+          "macro_f1": 0.1567741935483871,
+          "weighted_f1": 0.20946236559139783
+        },
+        "val_confusion_matrix": [
+          [
+            0,
+            2,
+            1,
+            1
+          ],
+          [
+            0,
+            3,
+            1,
+            0
+          ],
+          [
+            0,
+            11,
+            6,
+            0
+          ],
+          [
+            0,
+            5,
+            6,
+            0
+          ]
+        ],
+        "n_train": 36,
+        "n_val": 36
+      }
+    }
+  ],
+  "ranking_by_val_macro_f1": [
+    {
+      "backbone": "timm:vit_base_patch16_224.augreg2_in21k_ft_in1k",
+      "embed_dim": 768,
+      "val_macro_f1": 0.2785714285714286,
+      "val_accuracy": 0.3611111111111111
+    },
+    {
+      "backbone": "hf:trpakov/vit-face-expression",
+      "embed_dim": 768,
+      "val_macro_f1": 0.23171082949308755,
+      "val_accuracy": 0.3333333333333333
+    },
+    {
+      "backbone": "timm:vit_base_patch16_clip_224.openai",
+      "embed_dim": 768,
+      "val_macro_f1": 0.2275371687136393,
+      "val_accuracy": 0.3333333333333333
+    },
+    {
+      "backbone": "hf:dima806/facial_emotions_image_detection",
+      "embed_dim": 768,
+      "val_macro_f1": 0.1567741935483871,
+      "val_accuracy": 0.25
+    },
+    {
+      "backbone": "timm:vit_small_patch14_dinov2.lvd142m",
+      "embed_dim": 384,
+      "val_macro_f1": 0.13636363636363635,
+      "val_accuracy": 0.2222222222222222
+    }
+  ]
+}
