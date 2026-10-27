@@ -160,6 +160,16 @@ function render(card, r) {
     : r.probabilities[r.predicted_class];
   const flagged = r.predicted_class.toLowerCase().includes('not');
 
+  // The plain-language verdict, stated once and unambiguously, with the
+  // number it came from kept beside it rather than hidden.
+  const banner = $('.banner', card);
+  banner.className = `banner ${flagged ? 'flag' : 'ok'}`;
+  $('.banner-label', banner).textContent =
+    flagged ? 'Disengaged' : 'Engaged';
+  $('.banner-sub', banner).textContent =
+    `the model scores this clip ${score.toFixed(3)} on P(disengaged), ` +
+    `against a 0.500 decision threshold`;
+
   $('.gauge-fill', card).style.width = `${Math.max(2, score * 100)}%`;
   const lab = $('.label', card);
   lab.textContent = r.predicted_class;
@@ -167,9 +177,88 @@ function render(card, r) {
   $('.score', card).textContent =
     `P(disengaged) ${score.toFixed(3)} · ${r.elapsed_s}s`;
 
+  renderFilmstrip(card, r);
   renderStrip(card, r);
   renderGroups(card, r);
   renderQuality(card, r, classes);
+}
+
+/* ------------------------------------------------------------- filmstrip */
+function renderFilmstrip(card, r) {
+  const strip = $('.filmstrip', card);
+  const detail = $('.framedetail', card);
+  strip.innerHTML = '';
+  detail.innerHTML = '';
+  detail.classList.add('empty');
+
+  const frames = r.frames || [];
+  if (!frames.length) {
+    $('.filmnote', card).textContent = 'No per-frame detail was returned.';
+    return;
+  }
+  // Pooling weights sum to 1 across the clip, so the bars are scaled against
+  // the largest rather than against 1, or every bar would be a sliver.
+  const maxW = Math.max(...frames.map((f) => f.pooling_weight ?? f.reliability));
+
+  frames.forEach((f) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'fr';
+    if (!f.landmarks_found || !f.face_found) btn.classList.add('weak');
+    const w = f.pooling_weight ?? f.reliability;
+    btn.innerHTML =
+      (f.image ? `<img src="${f.image}" alt="frame ${f.index + 1}">`
+               : '<img alt="no image">') +
+      `<span class="wbar"><span style="width:${(w / maxW) * 100}%"></span></span>` +
+      `<span class="wnum">${(w * 100).toFixed(1)}%</span>`;
+    btn.title = `frame ${f.index + 1}: reliability ${f.reliability.toFixed(3)}`;
+    btn.addEventListener('click', () => {
+      [...strip.children].forEach((c) => c.classList.remove('sel'));
+      btn.classList.add('sel');
+      showFrame(detail, f, r);
+    });
+    strip.appendChild(btn);
+  });
+
+  // Open on the frame the model leaned on most, so the panel sees something
+  // meaningful without having to click.
+  const lead = frames.reduce((a, b) =>
+    (b.pooling_weight ?? b.reliability) > (a.pooling_weight ?? a.reliability) ? b : a);
+  strip.children[lead.index].classList.add('sel');
+  showFrame(detail, lead, r);
+}
+
+function showFrame(host, f, r) {
+  host.classList.remove('empty');
+  const w = f.pooling_weight ?? f.reliability;
+  const comps = Object.entries(f.components)
+    .map(([k, v]) => `<dt>${k.replace(/_/g, ' ')}</dt><dd>${v.toFixed(3)}</dd>`)
+    .join('');
+  const derived = f.derived.map((d) =>
+    `<dt title="${d.note}">${d.label}</dt>` +
+    (d.value === null
+      ? '<dd class="na">no mesh</dd>'
+      : `<dd>${d.value.toFixed(3)}</dd>`)).join('');
+
+  const src = f.source_frame === null || f.source_frame === undefined
+    ? '' : ` · source frame ${f.source_frame}`;
+  const pose = f.head_pose_deg
+    ? ` · pose ${f.head_pose_deg.join('° / ')}°` : '';
+  const fallback = f.face_found ? ''
+    : ` · no face detected, box from ${f.bbox_source}`;
+
+  host.innerHTML =
+    '<div class="fd">' +
+    (f.image ? `<img src="${f.image}" alt="frame ${f.index + 1}">` : '<div></div>') +
+    '<div>' +
+      `<h5>Frame ${f.index + 1} of ${(r.frames || []).length}</h5>` +
+      `<p class="meta">reliability ${f.reliability.toFixed(3)} · ` +
+      `carries ${(w * 100).toFixed(1)}% of the clip${src}${pose}${fallback}</p>` +
+      '<p class="sect">Reliability components</p>' +
+      `<dl class="kv">${comps}</dl>` +
+      '<p class="sect">Measured from this frame</p>' +
+      `<dl class="kv">${derived}</dl>` +
+    '</div></div>';
 }
 
 function renderStrip(card, r) {

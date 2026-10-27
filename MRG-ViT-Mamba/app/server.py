@@ -81,12 +81,12 @@ def demo_clips() -> dict[str, Path]:
     return found
 
 
-def predict(path: Path, explain: bool = True) -> dict:
+def predict(path: Path, explain: bool = True, with_frames: bool = True) -> dict:
     """Score one clip. Serialised: one model, one GPU, one request at a time."""
     predictor = _state["predictor"]
     started = time.time()
     with _state["lock"]:
-        result = predictor.predict(path, explain=explain)
+        result = predictor.predict(path, explain=explain, with_frames=with_frames)
     payload = result.as_dict()
     payload["elapsed_s"] = round(time.time() - started, 2)
     payload["name"] = path.name
@@ -216,7 +216,9 @@ class Handler(BaseHTTPRequestHandler):
         cid = req.get("clip")
         if cid not in clips:
             return self._error(404, f"unknown clip {cid!r}")
-        return self._json(predict(clips[cid], explain=bool(req.get("explain", True))))
+        return self._json(predict(clips[cid],
+                                  explain=bool(req.get("explain", True)),
+                                  with_frames=bool(req.get("frames", True))))
 
     def _predict_upload(self):
         """Score an uploaded clip.

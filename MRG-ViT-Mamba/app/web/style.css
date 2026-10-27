@@ -84,7 +84,77 @@ button:disabled { opacity: .5; cursor: progress; }
 .card-head h3 { margin: 0; font-size: 15px; font-weight: 600; }
 .player { width: 100%; display: block; background: #000; aspect-ratio: 16/9; }
 
+/* The run control is the thing a presenter reaches for, so it gets the full
+   width of the card and sits directly under the clip it acts on. */
+.runbar { padding: 14px 16px; border-bottom: 1px solid var(--rule); }
+.runbar .analyse { width: 100%; padding: 12px 16px; font-size: 15px; }
+
 .result { padding: 16px; }
+
+/* The verdict, stated plainly, above the probability it came from. */
+.banner {
+  display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+  padding: 12px 14px; border-radius: 8px; margin-bottom: 16px;
+  border: 1px solid var(--rule); background: var(--wash);
+}
+.banner-label { font-size: 19px; font-weight: 680; letter-spacing: -0.01em; }
+.banner-sub { font-size: 13px; color: var(--ink-soft); }
+.banner.flag { background: #fdf2f1; border-color: #eccbc9; }
+.banner.flag .banner-label { color: var(--flag); }
+.banner.ok { background: #eef7f1; border-color: #c8e3d4; }
+.banner.ok .banner-label { color: var(--ok); }
+
+/* ----------------------------------------------------------- filmstrip */
+.filmstrip {
+  display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px;
+}
+.fr {
+  border: 0; padding: 0; background: none; cursor: pointer;
+  display: flex; flex-direction: column; gap: 3px; border-radius: 5px;
+}
+.fr img {
+  width: 100%; aspect-ratio: 1/1; object-fit: cover; display: block;
+  border-radius: 4px; border: 2px solid transparent; background: var(--wash);
+}
+.fr.sel img { border-color: var(--accent); }
+.fr.weak img { opacity: .62; }
+.fr .wbar { height: 4px; border-radius: 999px; background: var(--rule); overflow: hidden; }
+.fr .wbar span { display: block; height: 100%; background: var(--accent); }
+.fr.weak .wbar span { background: var(--flag); }
+.fr .wnum {
+  font-family: var(--mono); font-size: 9px; color: var(--ink-faint);
+  text-align: center; line-height: 1;
+}
+.fr:hover img { border-color: var(--ink-faint); }
+.fr.sel:hover img { border-color: var(--accent); }
+
+.framedetail { margin-top: 12px; }
+.framedetail.empty { display: none; }
+.fd {
+  display: grid; grid-template-columns: 200px 1fr; gap: 16px;
+  padding: 12px; border: 1px solid var(--rule); border-radius: 8px;
+  background: var(--wash);
+}
+.fd img { width: 100%; border-radius: 6px; display: block; }
+.fd h5 {
+  margin: 0 0 8px; font-size: 12px; font-weight: 650;
+}
+.fd .meta { font-size: 11px; color: var(--ink-faint); margin: 0 0 10px;
+            font-family: var(--mono); }
+.kv { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; font-size: 12px; }
+.kv dt { color: var(--ink-soft); }
+.kv dd { margin: 0; font-family: var(--mono); font-size: 11px; text-align: right; }
+.kv dd.na { color: var(--ink-faint); font-style: italic; font-family: inherit; }
+.fd .sect {
+  font-size: 10px; text-transform: uppercase; letter-spacing: .07em;
+  color: var(--ink-faint); margin: 12px 0 5px; font-weight: 600;
+}
+.fd .sect:first-of-type { margin-top: 0; }
+@media (max-width: 760px) {
+  .filmstrip { grid-template-columns: repeat(4, 1fr); }
+  .fd { grid-template-columns: 1fr; }
+  .fd img { max-width: 160px; }
+}
 .result.empty > *:not(.placeholder) { display: none; }
 .result:not(.empty) > .placeholder { display: none; }
 .placeholder { color: var(--ink-faint); margin: 0; font-size: 14px; }

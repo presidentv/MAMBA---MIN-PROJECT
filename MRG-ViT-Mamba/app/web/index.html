@@ -28,7 +28,7 @@
 <main class="wrap">
 
   <section class="controls">
-    <button id="run-all" class="primary">Analyse both clips</button>
+    <button id="run-all">Run both clips in turn</button>
     <label class="upload">
       <input type="file" id="file" accept="video/*" hidden>
       <span>Upload a clip&hellip;</span>
@@ -59,12 +59,20 @@
   <article class="card">
     <div class="card-head">
       <h3 class="clip-name"></h3>
-      <button class="analyse">Analyse</button>
     </div>
     <video class="player" controls preload="metadata" playsinline></video>
 
+    <div class="runbar">
+      <button class="analyse primary">&#9654;&nbsp; Run the model on this clip</button>
+    </div>
+
     <div class="result empty">
-      <p class="placeholder">Not analysed yet.</p>
+      <p class="placeholder">Press <strong>Run the model</strong> to score this clip.</p>
+
+      <div class="banner">
+        <span class="banner-label"></span>
+        <span class="banner-sub"></span>
+      </div>
 
       <div class="verdict">
         <div class="gauge">
@@ -75,6 +83,17 @@
           <span class="label"></span>
           <span class="score"></span>
         </div>
+      </div>
+
+      <div class="block">
+        <h4>Sampled frames &mdash; landmarks and frame weight</h4>
+        <div class="filmstrip"></div>
+        <p class="fine filmnote">
+          The sixteen frames the model sampled, each with the MediaPipe mesh drawn
+          on it. The bar under a frame is how much of the clip representation that
+          frame ends up carrying. Select one to see what was measured on it.
+        </p>
+        <div class="framedetail"></div>
       </div>
 
       <div class="block">

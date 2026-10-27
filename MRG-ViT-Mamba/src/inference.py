@@ -48,16 +48,79 @@ from .augment import CenterCropView
 from .class_merge import class_names as merged_class_names
 from .dataset import load_calibration
 from .dataset_index import ClipRecord
+from .landmarks import FEATURE_NAMES
 from .model import MRGViTMamba
 from .mrs import COMPONENTS, component_matrix_from_arrays, mrs_from_arrays
 from .preprocess import FacePreprocessor, unpack_crops
 from .utils import resolve_path
 from .vit_encoder import ViTFrameEncoder, preprocess_crops
 
+# The per-frame descriptor is 80 values wide. These are the ones worth putting
+# in front of a reader: the eye and gaze measurements the attribution analysis
+# found to carry the signal, plus the head pose that reliability discounts.
+DERIVED_SHOWN = (
+    ("ear_mean", "Eye aspect ratio", "mean of both eyes; falls as the eyes close"),
+    ("eye_open_right", "Right eye open", "lid separation, face-size normalised"),
+    ("eye_open_left", "Left eye open", "lid separation, face-size normalised"),
+    ("iris_dx_mean", "Gaze, horizontal", "iris offset from eye centre; 0 is straight ahead"),
+    ("iris_dy_mean", "Gaze, vertical", "iris offset from eye centre; 0 is straight ahead"),
+    ("gaze_vergence", "Gaze vergence", "disagreement between the two eyes"),
+    ("brow_eye_mean", "Brow to eye", "brow height above the eye"),
+    ("head_yaw_norm", "Head yaw", "turn away from frontal"),
+    ("head_pitch_norm", "Head pitch", "nod away from frontal"),
+    ("head_roll_norm", "Head roll", "tilt away from frontal"),
+    ("mouth_aspect_ratio", "Mouth opening", "height over width"),
+    ("face_area_fraction", "Face area", "fraction of the frame the face covers"),
+)
+
 # process_clip writes record.engagement into its output. A clip handed to a
 # front end has no label, and -1 is carried through to the item builder, which
 # drops it. It never reaches the model.
 UNLABELLED = -1
+
+
+def _draw_landmarks(frame, det, lm, w, h):
+    """Draw the mesh, the features the model measures, and the detector box.
+
+    Colours are BGR and chosen to survive being shrunk to a thumbnail: the full
+    mesh is a faint grey wash that reads as texture, and only the groups the
+    attribution analysis singled out are picked out in colour.
+    """
+    import cv2
+
+    from .landmarks import (LEFT_BROW, LEFT_EYE, LEFT_IRIS_CENTER, MOUTH,
+                            RIGHT_BROW, RIGHT_EYE, RIGHT_IRIS_CENTER)
+
+    img = frame.copy()
+    if lm.found and lm.landmarks is not None:
+        pts = lm.landmarks
+
+        def px(i):
+            return int(pts[i, 0] * w), int(pts[i, 1] * h)
+
+        for i in range(pts.shape[0]):
+            cv2.circle(img, px(i), 1, (170, 170, 170), -1, cv2.LINE_AA)
+        for eye in (RIGHT_EYE, LEFT_EYE):
+            for grp in ("top", "bottom"):
+                for i in eye[grp]:
+                    cv2.circle(img, px(i), 2, (60, 220, 60), -1, cv2.LINE_AA)
+            cv2.line(img, px(eye["outer"]), px(eye["inner"]),
+                     (60, 220, 60), 1, cv2.LINE_AA)
+        for i in (RIGHT_IRIS_CENTER, LEFT_IRIS_CENTER):
+            cv2.circle(img, px(i), 4, (255, 230, 60), 2, cv2.LINE_AA)
+        for a, b in ((MOUTH["left"], MOUTH["right"]),
+                     (MOUTH["top"], MOUTH["bottom"])):
+            cv2.line(img, px(a), px(b), (220, 60, 220), 1, cv2.LINE_AA)
+        for i in (LEFT_BROW, RIGHT_BROW):
+            cv2.circle(img, px(i), 3, (40, 150, 240), -1, cv2.LINE_AA)
+
+    if det is not None and det.bbox is not None:
+        x0, y0, x1, y1 = det.bbox
+        # Amber when the box came from the detector, red when it is a fallback
+        # and the frame is therefore one the model was told to distrust.
+        colour = (0, 200, 255) if det.found else (60, 60, 230)
+        cv2.rectangle(img, (x0, y0), (x1, y1), colour, 2, cv2.LINE_AA)
+    return img
 
 
 @dataclass
@@ -78,6 +141,10 @@ class ClipPrediction:
     tta_views: list[dict] | None
     quality: dict = field(default_factory=dict)
     explanation: dict | None = None
+    # One entry per sampled frame: its reliability, how much of the clip
+    # representation it ends up carrying, the five components behind that, the
+    # named measurements taken from it, and optionally the annotated image.
+    frames: list[dict] = field(default_factory=list)
 
     def summary(self) -> str:
         parts = [f"{self.video}: {self.predicted_class}"]
@@ -237,7 +304,8 @@ class EngagementPredictor:
         return self._pre.process_clip(record)
 
     def predict(self, video_path, explain: bool = False,
-                ig_steps: int = 64) -> ClipPrediction:
+                ig_steps: int = 64, with_frames: bool = False,
+                frame_size: int = 420) -> ClipPrediction:
         """Score one video.
 
         Probabilities are averaged over the checkpoint's TTA views, which is
@@ -278,6 +346,11 @@ class EngagementPredictor:
         comps = base_item["mrs_components"].numpy()
         pooling = self._pooling_weights(mrs)
 
+        per_frame = self._per_frame(stage1, mrs, comps, pooling)
+        if with_frames:
+            for row, image in zip(per_frame, self.annotate(video_path, frame_size)):
+                row["image"] = image
+
         return ClipPrediction(
             video=str(video_path),
             predicted_class=self.class_names[pred],
@@ -294,7 +367,95 @@ class EngagementPredictor:
                        + [v.describe() for v in extra]) if extra else None,
             quality=self._quality(stage1),
             explanation=explanation,
+            frames=per_frame,
         )
+
+    # -------------------------------------------------------- per-frame view
+    def _per_frame(self, stage1: dict, mrs: np.ndarray, comps: np.ndarray,
+                   pooling: list[float] | None) -> list[dict]:
+        """What each sampled frame contributed, and what was measured on it.
+
+        The named measurements come straight out of the Stage 1 descriptor, so
+        these are the values the model actually consumed rather than anything
+        recomputed for display.
+        """
+        rows = np.asarray(stage1["landmark_features"], dtype=np.float32)
+        index = {n: i for i, n in enumerate(FEATURE_NAMES)}
+        found = np.asarray(stage1["landmarks_found"], dtype=bool)
+        face = np.asarray(stage1["face_found"], dtype=bool)
+        source = np.asarray(stage1["frame_indices"])
+        bbox_src = np.asarray(stage1["bbox_source"])
+        pose = np.asarray(stage1["head_pose_deg"], dtype=np.float32)
+
+        out = []
+        for t in range(len(mrs)):
+            derived = []
+            for name, label, note in DERIVED_SHOWN:
+                if name not in index:
+                    continue
+                derived.append({
+                    "name": name, "label": label, "note": note,
+                    # A frame with no landmark mesh has a descriptor of zeros;
+                    # reporting 0.000 would read as a measurement rather than
+                    # an absence.
+                    "value": (float(rows[t, index[name]]) if found[t] else None),
+                })
+            out.append({
+                "index": t,
+                "source_frame": int(source[t]) if t < len(source) else None,
+                "reliability": float(mrs[t]),
+                "pooling_weight": (float(pooling[t]) if pooling else None),
+                "components": {c: float(v) for c, v in zip(COMPONENTS, comps[t])},
+                "face_found": bool(face[t]),
+                "landmarks_found": bool(found[t]),
+                "bbox_source": str(bbox_src[t]) if t < len(bbox_src) else None,
+                "head_pose_deg": ([round(float(v), 1) for v in pose[t]]
+                                  if np.all(np.isfinite(pose[t])) else None),
+                "derived": derived,
+            })
+        return out
+
+    def annotate(self, video_path, size: int = 300) -> list[str | None]:
+        """A data-URI PNG per sampled frame, with the landmark mesh drawn on it.
+
+        The detector and the landmarker are run again here rather than during
+        preprocessing: process_clip is the training path and returns the arrays
+        the model needs, not the pictures. Re-running costs about a second for
+        sixteen frames and keeps that path untouched.
+        """
+        import base64
+
+        import cv2
+
+        from .video_sampling import read_frames
+
+        frames, _, _ = read_frames(str(video_path), self.num_frames)
+        out = []
+        for frame in frames:
+            h, w = frame.shape[:2]
+            det = self._pre.detector.detect(frame)
+            lm = self._pre.landmarker.extract(frame)
+            img = _draw_landmarks(frame, det, lm, w, h)
+            if det.found and det.bbox is not None:
+                x0, y0, x1, y1 = det.bbox
+                pad = int(0.28 * max(x1 - x0, y1 - y0))
+                x0, y0 = max(0, x0 - pad), max(0, y0 - pad)
+                x1, y1 = min(w, x1 + pad), min(h, y1 + pad)
+                if x1 > x0 and y1 > y0:
+                    img = img[y0:y1, x0:x1]
+            scale = size / max(img.shape[0], img.shape[1])
+            if scale < 1:
+                img = cv2.resize(img, (int(img.shape[1] * scale),
+                                       int(img.shape[0] * scale)),
+                                 interpolation=cv2.INTER_AREA)
+            # JPEG, not PNG: these are photographs, and sixteen of them inline
+            # in a JSON response is 3.3 MB as PNG against roughly a tenth of
+            # that as JPEG, for no visible difference at thumbnail size.
+            ok, buf = cv2.imencode(".jpg", img,
+                                   [int(cv2.IMWRITE_JPEG_QUALITY), 82])
+            out.append("data:image/jpeg;base64," + base64.b64encode(buf).decode()
+                       if ok else None)
+        return out
 
     # ------------------------------------------------------------- helpers
     def _pooling_weights(self, mrs: np.ndarray) -> list[float] | None:
