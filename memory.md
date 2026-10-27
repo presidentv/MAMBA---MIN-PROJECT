@@ -4,7 +4,7 @@ Last updated 20 August 2026.
  
 ## What the project is
  
-Adhvaith's academic mini project. Stated title:
+academic mini project. Stated title:
  
 > Explainable Multimodal AI Framework for Early Detection of Learning Engagement and Emotional States in Children Using Eye Movement Pattern Recognition and Sentiment Analysis
  
