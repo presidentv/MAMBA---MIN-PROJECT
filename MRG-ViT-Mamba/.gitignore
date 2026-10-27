@@ -59,6 +59,12 @@ artifacts/per_clip_predictions_*.json
 # machine that ran the model.
 artifacts/examples_*/
 
+# Demo clips for the front end: webcam recordings of identifiable people, and
+# large binaries besides. The app lists whatever videos are in this directory,
+# so it works on any machine once clips are dropped in; the clips themselves
+# are not part of the repository.
+app/demo/
+
 # The same worked examples, written into the report figure directory rather
 # than examples_*/: fig7 draws landmarks over a frame of an identifiable
 # participant, fig8 shows that frame's decision, and the JSON pairs each clip

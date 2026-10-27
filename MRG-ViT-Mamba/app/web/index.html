@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Engagement Detector</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <h1>Disengagement detector <span class="sub">MRS&ndash;ViT&ndash;Mamba</span></h1>
+    <p class="lede">
+      Ten seconds of webcam video in; a reliability-weighted engagement score out.
+      Every frame is kept &mdash; poorly observed frames are damped, not dropped.
+    </p>
+    <dl class="modelbar" id="modelbar">
+      <div><dt>model</dt><dd id="m-backbone">&hellip;</dd></div>
+      <div><dt>classes</dt><dd id="m-classes">&hellip;</dd></div>
+      <div><dt>frames</dt><dd id="m-frames">&hellip;</dd></div>
+      <div><dt>device</dt><dd id="m-device">&hellip;</dd></div>
+      <div><dt>test ROC-AUC</dt><dd id="m-auc">&hellip;</dd></div>
+    </dl>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="controls">
+    <button id="run-all" class="primary">Analyse both clips</button>
+    <label class="upload">
+      <input type="file" id="file" accept="video/*" hidden>
+      <span>Upload a clip&hellip;</span>
+    </label>
+    <span class="hint" id="hint"></span>
+  </section>
+
+  <section id="cards" class="cards"></section>
+
+  <section class="caveat">
+    <h2>How to read the score</h2>
+    <p id="caveat-text">&hellip;</p>
+    <p class="fine">
+      The detector ranks clips; it does not deliver verdicts. On the DAiSEE test
+      partition it recovers <strong id="c-found"></strong> of
+      <strong id="c-total"></strong> disengaged clips at the cost of
+      <strong id="c-fa"></strong> false alarms, so a flagged clip is a clip worth
+      a human look, not a conclusion about a learner. Always answering
+      &ldquo;engaged&rdquo; would score <strong id="c-const"></strong> accuracy on
+      that partition while detecting nothing at all, which is why accuracy is the
+      wrong headline here and ROC-AUC is the right one.
+    </p>
+  </section>
+
+</main>
+
+<template id="card-tpl">
+  <article class="card">
+    <div class="card-head">
+      <h3 class="clip-name"></h3>
+      <button class="analyse">Analyse</button>
+    </div>
+    <video class="player" controls preload="metadata" playsinline></video>
+
+    <div class="result empty">
+      <p class="placeholder">Not analysed yet.</p>
+
+      <div class="verdict">
+        <div class="gauge">
+          <div class="gauge-fill"></div>
+          <div class="gauge-mark" title="decision threshold"></div>
+        </div>
+        <div class="verdict-text">
+          <span class="label"></span>
+          <span class="score"></span>
+        </div>
+      </div>
+
+      <div class="block">
+        <h4>Per-frame observation reliability</h4>
+        <div class="strip"></div>
+        <p class="stripnote"></p>
+      </div>
+
+      <div class="block">
+        <h4>What the decision rests on</h4>
+        <div class="groups"></div>
+        <p class="fine attr-note"></p>
+      </div>
+
+      <div class="block quality">
+        <h4>Recording quality</h4>
+        <ul class="qlist"></ul>
+      </div>
+    </div>
+  </article>
+</template>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

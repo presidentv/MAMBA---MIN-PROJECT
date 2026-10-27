@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "engagement-frontend",
+      "runtimeExecutable": "MRG-ViT-Mamba/.venv/Scripts/python.exe",
+      "runtimeArgs": ["-I", "MRG-ViT-Mamba/app/server.py", "--checkpoint",
+                      "C:/Users/ashok/mrg_run/checkpoints/fullbin/best.pt"],
+      "port": 8000
+    }
+  ]
+}
