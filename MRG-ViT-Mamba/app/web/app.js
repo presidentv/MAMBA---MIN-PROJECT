@@ -323,7 +323,9 @@ function renderQuality(card, r, classes) {
       q.frames_with_face < q.num_frames);
   if (q.resolution) {
     add(`source ${q.resolution[0]}×${q.resolution[1]} at ` +
-        `${(q.fps || 0).toFixed(0)} fps, ${q.source_frame_count} frames`);
+        `${(q.fps || 0).toFixed(0)} fps` +
+        (q.duration_s ? `, ${q.duration_s}s long` : '') +
+        `, ${q.source_frame_count} frames`);
   }
   const probs = Object.entries(r.probabilities)
     .map(([k, v]) => `${k} ${v.toFixed(3)}`).join(' · ');

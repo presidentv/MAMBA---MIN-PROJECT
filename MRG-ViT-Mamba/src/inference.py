@@ -491,8 +491,29 @@ class EngagementPredictor:
             warnings.append(
                 f"no landmark mesh on {n - int(land.sum())} of {n} sampled frames, so "
                 f"the landmark branch saw zeros for those")
+        # Duration matters more than it looks. The sampler always returns
+        # num_frames indices spread across the whole clip, so a 60-second video
+        # is sampled every 4 seconds where training sampled every 0.63. The
+        # temporal encoder is given no marker for that change of timescale, and
+        # the score moves even when the content is identical: the same footage
+        # at 10 s scores 0.945 and at 60 s scores 0.986, and a 2-second excerpt
+        # of it flips to the other class entirely.
+        fps = float(stage1["fps"]) or 30.0
+        count = int(stage1["source_frame_count"])
+        duration = count / fps if fps > 0 and count > 0 else None
+        trained_gap = 10.0 / max(1, n - 1)
+        if duration:
+            gap = duration / max(1, n - 1)
+            if not 0.45 <= gap / trained_gap <= 2.2:
+                warnings.append(
+                    f"this clip is {duration:.0f}s long, so its {n} frames are "
+                    f"{gap:.1f}s apart; the model was trained on 10-second clips "
+                    f"sampled {trained_gap:.2f}s apart, and the score is not "
+                    f"comparable at this timescale")
+
         res = np.asarray(stage1["source_resolution"])
         return {
+            "duration_s": round(duration, 1) if duration else None,
             "num_frames": n,
             "frames_with_face": int(face.sum()),
             "frames_with_landmarks": int(land.sum()),
