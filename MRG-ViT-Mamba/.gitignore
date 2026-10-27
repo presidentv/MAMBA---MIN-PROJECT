@@ -59,6 +59,11 @@ artifacts/per_clip_predictions_*.json
 # machine that ran the model.
 artifacts/examples_*/
 
+# Review figures: r3_examples.png shows frames of identifiable DAiSEE
+# participants beside their clip ids and labels, which is the same category as
+# examples_*/ above. The script that draws them is tracked; the output is not.
+artifacts/review3/
+
 # Demo clips for the front end: webcam recordings of identifiable people, and
 # large binaries besides. The app lists whatever videos are in this directory,
 # so it works on any machine once clips are dropped in; the clips themselves
